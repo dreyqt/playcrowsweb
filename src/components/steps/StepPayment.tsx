@@ -14,7 +14,11 @@ function MethodIcon({ id, size = 36 }: { id: PaymentMethod; size?: number }) {
 function GCashQR() {
   return (
     <div className="w-40 h-40 rounded-xl overflow-hidden mx-auto border border-[#252a38] bg-white p-2">
-      <img src={gcashQr} alt="GCash QR code" className="w-full h-full object-cover" />
+      <img
+        src={gcashQr}
+        alt="GCash QR code"
+        className="w-full h-full object-cover"
+      />
     </div>
   )
 }
@@ -35,123 +39,362 @@ export function StepPayment({
 
   return (
     <div className="flex flex-col gap-6">
+
+      {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-[#e8eaf0] mb-2">Choose Your Payment Method</h2>
-        <p className="text-sm text-[#6b7280]">Select a method and follow the instructions to complete your payment.</p>
+        <h2 className="text-2xl font-bold text-[#e8eaf0] mb-2">
+          Choose Your Payment Method
+        </h2>
+
+        <p className="text-sm text-[#6b7280]">
+          Select a method and follow the instructions to complete your payment.
+        </p>
       </div>
 
+
+      {/* Order Summary */}
       <Card className="px-5 py-4 flex items-center justify-between flex-wrap gap-3">
+
         <div className="flex gap-6 flex-wrap">
+
           <div>
-            <div className="text-[10px] text-[#6b7280] uppercase tracking-widest font-semibold">Player ID</div>
-            <div className="text-sm font-medium text-[#f5a623]">{data.playerId}</div>
+            <div className="text-[10px] text-[#6b7280] uppercase tracking-widest font-semibold">
+              Player ID
+            </div>
+
+            <div className="text-sm font-medium text-[#f5a623]">
+              {data.playerId}
+            </div>
           </div>
+
+
           <div>
-            <div className="text-[10px] text-[#6b7280] uppercase tracking-widest font-semibold">Username</div>
-            <div className="text-sm font-medium text-[#f5a623]">{data.username}</div>
+            <div className="text-[10px] text-[#6b7280] uppercase tracking-widest font-semibold">
+              Username
+            </div>
+
+            <div className="text-sm font-medium text-[#f5a623]">
+              {data.username}
+            </div>
           </div>
+
         </div>
+
+
         <div className="text-right">
-          <div className="text-[10px] text-[#6b7280] uppercase tracking-widest font-semibold">Amount</div>
-          <div className="text-lg font-bold text-[#e8eaf0]">{amtDisplay}</div>
+
+          <div className="text-[10px] text-[#6b7280] uppercase tracking-widest font-semibold">
+            Amount
+          </div>
+
+          <div className="text-lg font-bold text-[#e8eaf0]">
+            {amtDisplay}
+          </div>
+
           {data.currency !== 'USD' && (
             <div className="text-[10px] text-[#6b7280]">
-              ≈ ${(parseFloat(data.amount === 'custom' ? data.customAmount : data.amount)).toFixed(2)} USD
+              ≈ $
+              {(
+                parseFloat(
+                  data.amount === 'custom'
+                    ? data.customAmount
+                    : data.amount
+                ) / curMeta.rateFromUSD
+              ).toFixed(2)}{' '}
+              USD
             </div>
           )}
+
         </div>
+
       </Card>
 
+
+      {/* Payment Methods */}
       <div className="flex flex-col gap-3">
+
         {PAYMENT_METHODS.map(m => {
-          const selected = data.paymentMethod === m.id
+
+          const selected =
+            data.paymentMethod === m.id
+
           return (
             <button
               key={m.id}
-              onClick={() => onUpdate({ paymentMethod: m.id })}
+              onClick={() =>
+                onUpdate({
+                  paymentMethod: m.id,
+                })
+              }
               className={
                 `w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-all duration-200 cursor-pointer
-                ${selected ? 'border-[#f5a623] bg-[#f5a623]/5' : 'border-[#252a38] bg-[#13161e] hover:border-[#353c52]'}`
+                ${
+                  selected
+                    ? 'border-[#f5a623] bg-[#f5a623]/5'
+                    : 'border-[#252a38] bg-[#13161e] hover:border-[#353c52]'
+                }`
               }
             >
-              <MethodIcon id={m.id} size={36} />
+
+              <MethodIcon
+                id={m.id}
+                size={36}
+              />
+
               <div className="flex-1">
-                <div className="font-semibold text-[#e8eaf0] text-sm">{m.label}</div>
-                <div className="text-xs text-[#6b7280] mt-0.5">{m.desc}</div>
+
+                <div className="font-semibold text-[#e8eaf0] text-sm">
+                  {m.label}
+                </div>
+
+                <div className="text-xs text-[#6b7280] mt-0.5">
+                  {m.desc}
+                </div>
+
               </div>
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${selected ? 'border-[#f5a623] bg-[#f5a623] text-[#0d0f14]' : 'border-[#353c52]'}`}>
-                {selected && <CheckIcon size={10} />}
+
+
+              <div
+                className={
+                  `w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200
+                  ${
+                    selected
+                      ? 'border-[#f5a623] bg-[#f5a623] text-[#0d0f14]'
+                      : 'border-[#353c52]'
+                  }`
+                }
+              >
+                {selected && (
+                  <CheckIcon size={10} />
+                )}
               </div>
+
             </button>
           )
         })}
+
       </div>
 
+
+      {/* Payment Details */}
       {data.paymentMethod && (
+
         <Card className="p-6 flex flex-col gap-5">
+
+          {/* Payment Method Header */}
           <div className="flex items-center gap-3">
-            <MethodIcon id={data.paymentMethod} size={28} />
+
+            <MethodIcon
+              id={data.paymentMethod}
+              size={28}
+            />
+
             <div className="text-sm font-bold text-[#e8eaf0]">
-              {data.paymentMethod === 'gcash' && 'GCash Payment Details'}
-              {data.paymentMethod === 'paypal' && 'PayPal Payment Details'}
-              {data.paymentMethod === 'wise' && 'Wise Payment Details'}
+
+              {data.paymentMethod === 'gcash' &&
+                'GCash Payment Details'}
+
+              {data.paymentMethod === 'paypal' &&
+                'PayPal Payment Details'}
+
+              {data.paymentMethod === 'wise' &&
+                'Wise Payment Details'}
+
             </div>
+
           </div>
 
+
+          {/* GCash */}
           {data.paymentMethod === 'gcash' && (
+
             <>
               <GCashQR />
-              <p className="text-xs text-center text-[#6b7280]">Scan the QR code using your GCash app to complete your payment.</p>
+
+              <p className="text-xs text-center text-[#6b7280]">
+                Scan the QR code using your GCash app to complete your payment.
+              </p>
+
+
               <div className="flex flex-col gap-2 bg-[#13161e] rounded-xl p-4">
+
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-[#6b7280]">Account Name</span>
-                  <span className="text-sm font-medium text-[#e8eaf0]">{PAYMENT_INFO.gcash.name}</span>
+
+                  <span className="text-xs text-[#6b7280]">
+                    Account Name
+                  </span>
+
+                  <span className="text-sm font-medium text-[#e8eaf0]">
+                    {PAYMENT_INFO.gcash.name}
+                  </span>
+
                 </div>
+
+
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-[#6b7280]">Account Number</span>
-                  <span className="text-sm font-medium text-[#e8eaf0] font-mono">{PAYMENT_INFO.gcash.number}</span>
+
+                  <span className="text-xs text-[#6b7280]">
+                    Account Number
+                  </span>
+
+                  <span className="text-sm font-medium text-[#e8eaf0] font-mono">
+                    {PAYMENT_INFO.gcash.number}
+                  </span>
+
                 </div>
+
               </div>
+
             </>
+
           )}
 
+
+          {/* PayPal */}
           {data.paymentMethod === 'paypal' && (
+
             <>
-              <div className="flex items-center gap-3 bg-[#13161e] rounded-xl p-4">
-                <PayPalIcon size={40} />
-                <div>
-                  <div className="text-xs text-[#6b7280]">PayPal Email</div>
-                  <div className="text-sm font-medium text-[#e8eaf0]">{PAYMENT_INFO.paypal.email}</div>
+
+              {/* PayPal Warning */}
+              <div className="rounded-xl border border-[#f5a623]/40 bg-[#f5a623]/5 p-4">
+
+                <div className="flex gap-3">
+
+                  <div className="flex-shrink-0 text-[#f5a623] text-lg">
+                    ⚠️
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+
+                    <div className="text-sm font-bold text-[#f5a623]">
+                      Important PayPal Payment Instructions
+                    </div>
+
+                    <p className="text-xs text-[#d1d5db] leading-relaxed">
+                      When sending your payment through PayPal, please select
+                      <span className="font-bold text-[#f5a623]">
+                        {' '}Friends and Family
+                      </span>
+                      {' '}if this option is available to you.
+                    </p>
+
+                    <p className="text-xs text-[#6b7280] leading-relaxed">
+                      Please make sure the payment is sent using the correct
+                      payment type before completing the transaction.
+                    </p>
+
+                  </div>
+
                 </div>
+
               </div>
-              <a href={PAYMENT_INFO.paypal.link} target="_blank" rel="noopener noreferrer" className="w-full">
-                <Btn className="w-full"><PayPalIcon size={18} /> Pay with PayPal</Btn>
+
+
+              {/* PayPal Account */}
+              <div className="flex items-center gap-3 bg-[#13161e] rounded-xl p-4">
+
+                <PayPalIcon size={40} />
+
+                <div>
+
+                  <div className="text-xs text-[#6b7280]">
+                    PayPal Email
+                  </div>
+
+                  <div className="text-sm font-medium text-[#e8eaf0]">
+                    {PAYMENT_INFO.paypal.email}
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              {/* PayPal Button */}
+              <a
+                href={PAYMENT_INFO.paypal.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full"
+              >
+
+                <Btn className="w-full">
+                  <PayPalIcon size={18} />
+                  Open PayPal
+                </Btn>
+
               </a>
+
             </>
+
           )}
 
+
+          {/* Wise */}
           {data.paymentMethod === 'wise' && (
+
             <>
+
               <div className="flex flex-col gap-0 bg-[#13161e] rounded-xl overflow-hidden">
+
                 {[
-                  ['Account Name', PAYMENT_INFO.wise.accountName],
-                  ['Wisetag', PAYMENT_INFO.wise.email]
+                  [
+                    'Account Name',
+                    PAYMENT_INFO.wise.accountName,
+                  ],
+                  [
+                    'Wisetag',
+                    PAYMENT_INFO.wise.email,
+                  ],
                 ].map(([label, val]) => (
-                  <div key={label} className="flex justify-between items-center px-4 py-3 border-b border-[#252a38] last:border-0">
-                    <span className="text-xs text-[#6b7280]">{label}</span>
-                    <span className="text-sm font-medium text-[#e8eaf0] font-mono">{val}</span>
+
+                  <div
+                    key={label}
+                    className="flex justify-between items-center px-4 py-3 border-b border-[#252a38] last:border-0"
+                  >
+
+                    <span className="text-xs text-[#6b7280]">
+                      {label}
+                    </span>
+
+                    <span className="text-sm font-medium text-[#e8eaf0] font-mono">
+                      {val}
+                    </span>
+
                   </div>
+
                 ))}
+
               </div>
+
             </>
+
           )}
+
         </Card>
+
       )}
 
+
+      {/* Navigation */}
       <div className="flex items-center justify-between">
-        <Btn variant="ghost" onClick={onBack}>Back</Btn>
-        <Btn onClick={onNext} disabled={!data.paymentMethod}>Continue to Receipt</Btn>
+
+        <Btn
+          variant="ghost"
+          onClick={onBack}
+        >
+          Back
+        </Btn>
+
+        <Btn
+          onClick={onNext}
+          disabled={!data.paymentMethod}
+        >
+          Continue to Receipt
+        </Btn>
+
       </div>
+
     </div>
   )
 }
