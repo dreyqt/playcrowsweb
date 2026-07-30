@@ -12,16 +12,25 @@ export function CumulativeRewards() {
 
   return (
     <section className="flex flex-col gap-6">
-      <div>
-        <h2 className="mb-2 text-2xl font-bold text-[#e8eaf0]">
-          Cumulative Rewards
-        </h2>
+    <div>
+      <h2 className="mb-2 text-2xl font-bold text-[#e8eaf0]">
+        Cumulative Rewards
+      </h2>
 
-        <p className="text-sm leading-6 text-[#7c879d]">
-          Review the rewards assigned to each cumulative support milestone.
-          Select a milestone to expand its complete reward list.
-        </p>
-      </div>
+      <p className="text-sm leading-6 text-[#7c879d]">
+        Review the rewards assigned to each cumulative support milestone.
+        Select a milestone to expand its complete reward list.
+      </p>
+
+      <a
+        href="https://account.playcrows.com/bonus.php"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-4 py-2 text-sm font-bold text-[#66d4ff] transition-all hover:border-[#66d4ff] hover:bg-[#66d4ff]/20"
+      >
+        Claim Cumulative Rewards
+      </a>
+    </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-xl border border-[#252a38] bg-[#13161e] p-4">
