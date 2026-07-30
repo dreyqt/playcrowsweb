@@ -286,23 +286,59 @@ export function AdminApp() {
     setSaveMessage('')
   }
 
-  const openReceipt = async () => {
-    if (!selected) return
-
-    setSaveMessage('Opening receipt…')
-
-    const { data, error } = await supabase.storage
-      .from('payment-receipts')
-      .createSignedUrl(selected.receipt_path, 300)
-
-    if (error || !data?.signedUrl) {
-      setSaveMessage(error?.message ?? 'Unable to create a receipt link.')
-      return
-    }
-
-    window.open(data.signedUrl, '_blank', 'noopener,noreferrer')
-    setSaveMessage('Receipt opened in a new tab. The link expires in 5 minutes.')
+const openReceipt = async () => {
+  if (!selected) {
+    return
   }
+
+  const receiptWindow = window.open('about:blank', '_blank')
+
+  if (!receiptWindow) {
+    setSaveMessage(
+      'Your browser blocked the new tab. Allow pop-ups for this website and try again.'
+    )
+    return
+  }
+
+  receiptWindow.opener = null
+  receiptWindow.document.title = 'Loading Private Receipt'
+
+  receiptWindow.document.body.innerHTML = `
+    <div style="
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0d0f14;
+      color: #e8eaf0;
+      font-family: Arial, sans-serif;
+    ">
+      Loading private receipt...
+    </div>
+  `
+
+  setSaveMessage('Creating a secure receipt link…')
+
+  const { data, error } = await supabase.storage
+    .from('payment-receipts')
+    .createSignedUrl(selected.receipt_path, 300)
+
+  if (error || !data?.signedUrl) {
+    receiptWindow.close()
+
+    setSaveMessage(
+      error?.message ?? 'Unable to create a secure receipt link.'
+    )
+    return
+  }
+
+  receiptWindow.location.replace(data.signedUrl)
+
+  setSaveMessage(
+    'Receipt opened in a new tab. The secure link expires in 5 minutes.'
+  )
+}
 
   const saveReview = async () => {
     if (!selected) return
