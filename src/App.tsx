@@ -268,7 +268,7 @@ export default function App() {
 
                       <StepAmount
                         data={form}
-                        onUpdate={updateLockedAmount}
+                        onUpdate={update}
                         onNext={next}
                       />
                     </section>
