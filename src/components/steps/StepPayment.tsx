@@ -11,25 +11,10 @@ import {
   PayPalIcon,
   GCashIcon,
   WiseIcon,
+  BybitIcon,
 } from '../icons'
 import gcashQr from '../../assets/gcash-qr.jpg'
 import bybitQr from '../../assets/bybit-qr.png'
-
-function BybitIcon({ size = 36 }: { size?: number }) {
-  return (
-    <div
-      className="flex flex-shrink-0 items-center justify-center rounded-lg border border-[#66d4ff]/40 bg-[#66d4ff]/10 font-black text-[#66d4ff]"
-      style={{
-        width: size,
-        height: size,
-        fontSize: Math.max(12, size * 0.38),
-      }}
-      aria-label="Bybit"
-    >
-      B
-    </div>
-  )
-}
 
 function MethodIcon({
   id,
@@ -46,11 +31,15 @@ function MethodIcon({
     return <GCashIcon size={size} />
   }
 
+  if (id === 'wise') {
+    return <WiseIcon size={size} />
+  }
+
   if (id === 'bybit') {
     return <BybitIcon size={size} />
   }
 
-  return <WiseIcon size={size} />
+  return null
 }
 
 function GCashQR() {

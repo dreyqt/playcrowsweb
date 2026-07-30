@@ -1,17 +1,54 @@
 import gcashLogo from '../assets/gcash-logo.jpg'
 import paypalLogo from '../assets/paypal-logo.jpg'
 import wiseLogo from '../assets/wise-logo.jpg'
+import bybitLogo from '../assets/bybit-logo.jpg'
 
 export function PayPalIcon({ size = 32 }: { size?: number }) {
-  return <img src={paypalLogo} alt="PayPal logo" width={size} height={size} className="rounded-lg object-contain" />
+  return (
+    <img
+      src={paypalLogo}
+      alt="PayPal logo"
+      width={size}
+      height={size}
+      className="rounded-lg object-contain"
+    />
+  )
 }
 
 export function GCashIcon({ size = 32 }: { size?: number }) {
-  return <img src={gcashLogo} alt="GCash logo" width={size} height={size} className="rounded-lg object-contain" />
+  return (
+    <img
+      src={gcashLogo}
+      alt="GCash logo"
+      width={size}
+      height={size}
+      className="rounded-lg object-contain"
+    />
+  )
 }
 
 export function WiseIcon({ size = 32 }: { size?: number }) {
-  return <img src={wiseLogo} alt="Wise logo" width={size} height={size} className="rounded-lg object-contain" />
+  return (
+    <img
+      src={wiseLogo}
+      alt="Wise logo"
+      width={size}
+      height={size}
+      className="rounded-lg object-contain"
+    />
+  )
+}
+
+export function BybitIcon({ size = 32 }: { size?: number }) {
+  return (
+    <img
+      src={bybitLogo}
+      alt="Bybit logo"
+      width={size}
+      height={size}
+      className="rounded-lg object-contain"
+    />
+  )
 }
 
 export function CrowIcon() {
