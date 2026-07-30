@@ -10,7 +10,7 @@ import {
   SuccessScreen,
 } from './components/steps'
 import { GiftPackages } from './components/GiftPackages'
-import CrowLogo from './assets/wise-logo.jpg'
+import CrowLogo from './assets/playcrows-icon.jpg'
 
 type InformationTab = 'packages' | 'support' | 'cumulative'
 
@@ -28,10 +28,11 @@ const INITIAL: FormData = {
 export default function App() {
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
-
-  // Gift Packages opens first.
   const [activeTab, setActiveTab] =
     useState<InformationTab>('packages')
+
+  const [selectedPackageAmount, setSelectedPackageAmount] =
+    useState<number | null>(null)
 
   const [form, setForm] = useState<FormData>(INITIAL)
 
@@ -42,42 +43,77 @@ export default function App() {
     }))
   }
 
+  /*
+   * Prevent StepAmount from changing the amount selected
+   * through the Gift Packages page.
+   */
+  const updateLockedAmount = (partial: Partial<FormData>) => {
+    if (selectedPackageAmount === null) {
+      return
+    }
+
+    setForm(current => ({
+      ...current,
+      ...partial,
+      currency: 'USD',
+      amount: String(selectedPackageAmount),
+      customAmount: '',
+    }))
+  }
+
   const next = () => {
+    /*
+     * Extra protection in case StepAmount attempts to continue
+     * without a valid gift package.
+     */
+    if (step === 1 && selectedPackageAmount === null) {
+      setActiveTab('packages')
+      return
+    }
+
     setActiveTab('support')
     setStep(current => current + 1)
   }
 
   const back = () => {
     setActiveTab('support')
-    setStep(current => current - 1)
+    setStep(current => Math.max(1, current - 1))
   }
 
   const reset = () => {
     setForm(INITIAL)
     setStep(1)
     setSubmitted(false)
-
-    // Return to Gift Packages after completing or resetting.
+    setSelectedPackageAmount(null)
     setActiveTab('packages')
   }
 
   const selectGiftPackage = (amount: number) => {
+    setSelectedPackageAmount(amount)
+
     update({
       currency: 'USD',
       amount: String(amount),
       customAmount: '',
     })
 
-    // Automatically show the amount page after package selection.
     setActiveTab('support')
   }
 
-  const selectedAmount = Number(
-    form.customAmount || form.amount || 0
-  )
+  const changeGiftPackage = () => {
+    setSelectedPackageAmount(null)
 
-  // Support Amount remains locked until a gift package is selected.
-  const hasSelectedPackage = form.amount !== ''
+    update({
+      currency: 'USD',
+      amount: '',
+      customAmount: '',
+    })
+
+    setActiveTab('packages')
+  }
+
+  const hasSelectedPackage = selectedPackageAmount !== null
+  const selectedAmount = selectedPackageAmount ?? 0
 
   const tabClass = (
     tab: InformationTab,
@@ -87,11 +123,11 @@ export default function App() {
       'min-h-11 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-colors duration-200'
 
     if (disabled) {
-      return `${base} cursor-not-allowed border border-transparent bg-transparent text-[#454c5c] opacity-60`
+      return `${base} cursor-not-allowed border border-transparent text-[#475569] opacity-60`
     }
 
     if (activeTab === tab) {
-      return `${base} border border-[#f5a623] bg-[#f5a623]/10 text-[#f5a623]`
+      return `${base} border border-[#66d4ff] bg-[#66d4ff]/10 text-[#66d4ff]`
     }
 
     return `${base} border border-transparent text-[#7c879d] hover:bg-[#171b24] hover:text-[#e8eaf0]`
@@ -134,10 +170,28 @@ export default function App() {
                 >
                   <button
                     type="button"
-                    className={tabClass('packages')}
-                    onClick={() => setActiveTab('packages')}
+                    disabled={hasSelectedPackage}
+                    className={tabClass(
+                      'packages',
+                      hasSelectedPackage
+                    )}
+                    onClick={() => {
+                      if (!hasSelectedPackage) {
+                        setActiveTab('packages')
+                      }
+                    }}
+                    title={
+                      hasSelectedPackage
+                        ? 'Use Change Package to select another package'
+                        : 'Choose a gift package'
+                    }
                   >
                     Gift Packages
+                    {hasSelectedPackage && (
+                      <span className="ml-1 text-[10px]">
+                        🔒
+                      </span>
+                    )}
                   </button>
 
                   <button
@@ -175,20 +229,49 @@ export default function App() {
                   </button>
                 </nav>
 
-                {activeTab === 'packages' && (
-                  <GiftPackages
-                    selectedAmount={selectedAmount}
-                    onSelectAmount={selectGiftPackage}
-                  />
-                )}
+                {activeTab === 'packages' &&
+                  !hasSelectedPackage && (
+                    <GiftPackages
+                      selectedAmount={selectedAmount}
+                      onSelectAmount={selectGiftPackage}
+                    />
+                  )}
 
                 {activeTab === 'support' &&
                   hasSelectedPackage && (
-                    <StepAmount
-                      data={form}
-                      onUpdate={update}
-                      onNext={next}
-                    />
+                    <section>
+                      <div className="mb-6 flex flex-col gap-4 rounded-xl border border-[#66d4ff]/30 bg-[#66d4ff]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#7c879d]">
+                            Selected Gift Package
+                          </div>
+
+                          <div className="text-xl font-bold text-[#66d4ff]">
+                            $
+                            {selectedPackageAmount.toLocaleString()}
+                          </div>
+
+                          <p className="mt-1 text-xs text-[#7c879d]">
+                            This support amount is linked to your
+                            selected gift package.
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={changeGiftPackage}
+                          className="min-h-10 rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-4 py-2 text-xs font-bold text-[#66d4ff] transition-colors hover:border-[#66d4ff] hover:bg-[#66d4ff]/20"
+                        >
+                          Change Package
+                        </button>
+                      </div>
+
+                      <StepAmount
+                        data={form}
+                        onUpdate={updateLockedAmount}
+                        onNext={next}
+                      />
+                    </section>
                   )}
 
                 {activeTab === 'cumulative' && (
@@ -206,7 +289,7 @@ export default function App() {
 
                     <div className="rounded-xl border border-[#242a36] bg-[#11151d] p-6">
                       <div className="flex min-h-40 flex-col items-center justify-center text-center">
-                        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[#f5a623]/30 bg-[#f5a623]/10 text-xl text-[#f5a623]">
+                        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[#66d4ff]/30 bg-[#66d4ff]/10 text-xl text-[#66d4ff]">
                           ★
                         </div>
 
