@@ -74,8 +74,8 @@ export function GiftPackages({
       </div>
 
       <div className="gift-packages__notice">
-        Package rewards are based on the selected support amount. Bound items
-        cannot be traded or transferred.
+        Select a gift package below to continue to the support amount and payment process.
+        Bound items cannot be traded or transferred.
       </div>
     </section>
   );

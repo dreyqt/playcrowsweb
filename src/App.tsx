@@ -10,9 +10,9 @@ import {
   SuccessScreen,
 } from './components/steps'
 import { GiftPackages } from './components/GiftPackages'
-import CrowLogo from './assets/playcrows-icon.jpg'
+import CrowLogo from './assets/wise-logo.jpg'
 
-type InformationTab = 'support' | 'packages' | 'cumulative'
+type InformationTab = 'packages' | 'support' | 'cumulative'
 
 const INITIAL: FormData = {
   currency: 'USD',
@@ -28,8 +28,11 @@ const INITIAL: FormData = {
 export default function App() {
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
+
+  // Gift Packages opens first.
   const [activeTab, setActiveTab] =
-    useState<InformationTab>('support')
+    useState<InformationTab>('packages')
+
   const [form, setForm] = useState<FormData>(INITIAL)
 
   const update = (partial: Partial<FormData>) => {
@@ -53,7 +56,9 @@ export default function App() {
     setForm(INITIAL)
     setStep(1)
     setSubmitted(false)
-    setActiveTab('support')
+
+    // Return to Gift Packages after completing or resetting.
+    setActiveTab('packages')
   }
 
   const selectGiftPackage = (amount: number) => {
@@ -63,6 +68,7 @@ export default function App() {
       customAmount: '',
     })
 
+    // Automatically show the amount page after package selection.
     setActiveTab('support')
   }
 
@@ -70,19 +76,25 @@ export default function App() {
     form.customAmount || form.amount || 0
   )
 
-  const tabClass = (tab: InformationTab) => {
+  // Support Amount remains locked until a gift package is selected.
+  const hasSelectedPackage = form.amount !== ''
+
+  const tabClass = (
+    tab: InformationTab,
+    disabled = false
+  ) => {
     const base =
       'min-h-11 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-colors duration-200'
 
-    const active =
-      'border border-[#f5a623] bg-[#f5a623]/10 text-[#f5a623]'
+    if (disabled) {
+      return `${base} cursor-not-allowed border border-transparent bg-transparent text-[#454c5c] opacity-60`
+    }
 
-    const inactive =
-      'border border-transparent text-[#7c879d] hover:bg-[#171b24] hover:text-[#e8eaf0]'
+    if (activeTab === tab) {
+      return `${base} border border-[#f5a623] bg-[#f5a623]/10 text-[#f5a623]`
+    }
 
-    return `${base} ${
-      activeTab === tab ? active : inactive
-    }`
+    return `${base} border border-transparent text-[#7c879d] hover:bg-[#171b24] hover:text-[#e8eaf0]`
   }
 
   return (
@@ -122,18 +134,36 @@ export default function App() {
                 >
                   <button
                     type="button"
-                    className={tabClass('support')}
-                    onClick={() => setActiveTab('support')}
-                  >
-                    Support Amount
-                  </button>
-
-                  <button
-                    type="button"
                     className={tabClass('packages')}
                     onClick={() => setActiveTab('packages')}
                   >
                     Gift Packages
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!hasSelectedPackage}
+                    className={tabClass(
+                      'support',
+                      !hasSelectedPackage
+                    )}
+                    onClick={() => {
+                      if (hasSelectedPackage) {
+                        setActiveTab('support')
+                      }
+                    }}
+                    title={
+                      hasSelectedPackage
+                        ? 'View your selected support amount'
+                        : 'Select a gift package first'
+                    }
+                  >
+                    Support Amount
+                    {!hasSelectedPackage && (
+                      <span className="ml-1 text-[10px]">
+                        🔒
+                      </span>
+                    )}
                   </button>
 
                   <button
@@ -145,20 +175,21 @@ export default function App() {
                   </button>
                 </nav>
 
-                {activeTab === 'support' && (
-                  <StepAmount
-                    data={form}
-                    onUpdate={update}
-                    onNext={next}
-                  />
-                )}
-
                 {activeTab === 'packages' && (
                   <GiftPackages
                     selectedAmount={selectedAmount}
                     onSelectAmount={selectGiftPackage}
                   />
                 )}
+
+                {activeTab === 'support' &&
+                  hasSelectedPackage && (
+                    <StepAmount
+                      data={form}
+                      onUpdate={update}
+                      onNext={next}
+                    />
+                  )}
 
                 {activeTab === 'cumulative' && (
                   <section>
@@ -184,8 +215,8 @@ export default function App() {
                         </h3>
 
                         <p className="max-w-md text-sm leading-6 text-[#7c879d]">
-                          The complete milestone and reward list will be
-                          displayed here.
+                          The complete milestone and reward list will
+                          be displayed here.
                         </p>
                       </div>
                     </div>
