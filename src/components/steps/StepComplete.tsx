@@ -1,5 +1,13 @@
 import type { FormData } from '../../types'
 import { displayAmount } from '../../utils'
+import {
+  EARLY_PROMO_CODE,
+  EARLY_PROMO_DISCOUNT_PERCENT,
+  formatCurrencyAmount,
+  getDiscountedPackageAmount,
+  getPackageAmountInCurrency,
+  isEarlyPromoActive,
+} from '../../promo'
 import { Btn, Card } from '../ui'
 
 const PAYMENT_LABELS = {
@@ -29,6 +37,7 @@ function SummaryRow({
 export function StepComplete({
   data,
   selectedPackageAmount,
+  promoCode,
   onSubmit,
   onBack,
   isSubmitting,
@@ -36,6 +45,7 @@ export function StepComplete({
 }: {
   data: FormData
   selectedPackageAmount: number | null
+  promoCode: string | null
   onSubmit: () => Promise<void> | void
   onBack: () => void
   isSubmitting: boolean
@@ -44,6 +54,27 @@ export function StepComplete({
   const paymentLabel = data.paymentMethod
     ? PAYMENT_LABELS[data.paymentMethod]
     : 'Not selected'
+
+  const promoApplied =
+    promoCode === EARLY_PROMO_CODE &&
+    isEarlyPromoActive() &&
+    selectedPackageAmount !== null
+
+  const originalPackageAmount =
+    selectedPackageAmount === null
+      ? null
+      : getPackageAmountInCurrency(
+          selectedPackageAmount,
+          data.currency
+        )
+
+  const discountedPackageAmount =
+    selectedPackageAmount === null
+      ? null
+      : getDiscountedPackageAmount(
+          selectedPackageAmount,
+          data.currency
+        )
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,15 +98,56 @@ export function StepComplete({
 
         <SummaryRow label="Player ID" value={data.playerId} />
         <SummaryRow label="Username" value={data.username} />
-        <SummaryRow label="Support Amount" value={displayAmount(data)} />
-        <SummaryRow
-          label="Initial Gift Package"
-          value={
-            selectedPackageAmount === null
-              ? 'Not selected'
-              : `$${selectedPackageAmount.toLocaleString()}`
-          }
-        />
+
+        {promoApplied &&
+        selectedPackageAmount !== null &&
+        originalPackageAmount !== null &&
+        discountedPackageAmount !== null ? (
+          <>
+            <SummaryRow
+              label="Gift Package / Cumulative Credit"
+              value={`$${selectedPackageAmount.toLocaleString()}`}
+            />
+            <SummaryRow
+              label="Original Payment Amount"
+              value={formatCurrencyAmount(
+                data.currency,
+                originalPackageAmount
+              )}
+            />
+            <SummaryRow
+              label="Redeem Code"
+              value={EARLY_PROMO_CODE}
+            />
+            <SummaryRow
+              label="Discount"
+              value={`${EARLY_PROMO_DISCOUNT_PERCENT}%`}
+            />
+            <SummaryRow
+              label="Amount To Pay"
+              value={formatCurrencyAmount(
+                data.currency,
+                discountedPackageAmount
+              )}
+            />
+          </>
+        ) : (
+          <>
+            <SummaryRow
+              label="Support Amount"
+              value={displayAmount(data)}
+            />
+            <SummaryRow
+              label="Initial Gift Package"
+              value={
+                selectedPackageAmount === null
+                  ? 'Not selected'
+                  : `$${selectedPackageAmount.toLocaleString()}`
+              }
+            />
+          </>
+        )}
+
         <SummaryRow label="Payment Method" value={paymentLabel} />
         <SummaryRow
           label="Payment Receipt"
@@ -92,6 +164,12 @@ export function StepComplete({
           Your submission will be marked as pending while the PlayCrows team
           checks the payment and receipt. Keep the reference code shown after
           submission.
+          {promoApplied && (
+            <>
+              {' '}Your cumulative reward credit will use the full gift package
+              value, not the discounted payment amount.
+            </>
+          )}
         </p>
       </div>
 

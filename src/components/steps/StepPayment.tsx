@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { FormData, PaymentMethod } from '../../types'
 import {
   PAYMENT_METHODS,
@@ -5,6 +6,15 @@ import {
   CURRENCY_META,
 } from '../../constants'
 import { displayAmount } from '../../utils'
+import {
+  EARLY_PROMO_CODE,
+  EARLY_PROMO_DISCOUNT_PERCENT,
+  formatCurrencyAmount,
+  getDiscountedPackageAmount,
+  getPackageAmountInCurrency,
+  isEarlyPromoActive,
+  type PromoApplyResult,
+} from '../../promo'
 import { Btn, Card } from '../ui'
 import {
   CheckIcon,
@@ -94,18 +104,97 @@ function PaymentDetailRow({
 
 export function StepPayment({
   data,
+  selectedPackageAmount,
+  appliedPromoCode,
+  onApplyPromoCode,
+  onRemovePromoCode,
   onUpdate,
   onNext,
   onBack,
 }: {
   data: FormData
+  selectedPackageAmount: number | null
+  appliedPromoCode: string | null
+  onApplyPromoCode: (code: string) => PromoApplyResult
+  onRemovePromoCode: () => void
   onUpdate: (partial: Partial<FormData>) => void
   onNext: () => void
   onBack: () => void
 }) {
+  const [redeemCode, setRedeemCode] = useState('')
+  const [promoMessage, setPromoMessage] = useState('')
+  const [promoMessageType, setPromoMessageType] =
+    useState<'success' | 'error' | ''>('')
+
   const amtDisplay = displayAmount(data)
   const curMeta =
     CURRENCY_META[data.currency] ?? CURRENCY_META.USD
+
+  const promoApplied =
+    appliedPromoCode === EARLY_PROMO_CODE &&
+    isEarlyPromoActive()
+
+  const originalPackageAmount =
+    selectedPackageAmount === null
+      ? null
+      : getPackageAmountInCurrency(
+          selectedPackageAmount,
+          data.currency
+        )
+
+  const discountedPackageAmount =
+    selectedPackageAmount === null
+      ? null
+      : getDiscountedPackageAmount(
+          selectedPackageAmount,
+          data.currency
+        )
+
+  const usdEquivalent = (() => {
+    if (
+      promoApplied &&
+      selectedPackageAmount !== null
+    ) {
+      return (
+        selectedPackageAmount *
+        (1 - EARLY_PROMO_DISCOUNT_PERCENT / 100)
+      )
+    }
+
+    if (data.amount === 'custom') {
+      const customAmount = Number(data.customAmount)
+
+      return Number.isFinite(customAmount)
+        ? customAmount / curMeta.rateFromUSD
+        : 0
+    }
+
+    const presetAmount = Number(data.amount)
+
+    return Number.isFinite(presetAmount)
+      ? presetAmount
+      : 0
+  })()
+
+  const applyCode = () => {
+    const result = onApplyPromoCode(redeemCode)
+
+    setPromoMessage(result.message)
+    setPromoMessageType(
+      result.success ? 'success' : 'error'
+    )
+
+    if (result.success) {
+      setRedeemCode(EARLY_PROMO_CODE)
+    }
+  }
+
+  const removeCode = () => {
+    onRemovePromoCode()
+    setRedeemCode('')
+    setPromoMessage('Redeem code removed.')
+    setPromoMessageType('')
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -147,24 +236,140 @@ export function StepPayment({
 
         <div className="text-right">
           <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6b7280]">
-            Amount
+            {promoApplied ? 'Amount To Pay' : 'Amount'}
           </div>
 
-          <div className="text-lg font-bold text-[#e8eaf0]">
-            {amtDisplay}
-          </div>
+          {promoApplied &&
+          originalPackageAmount !== null &&
+          discountedPackageAmount !== null ? (
+            <>
+              <div className="text-xs text-[#6b7280] line-through">
+                {formatCurrencyAmount(
+                  data.currency,
+                  originalPackageAmount
+                )}
+              </div>
+
+              <div className="text-xl font-bold text-[#66d4ff]">
+                {formatCurrencyAmount(
+                  data.currency,
+                  discountedPackageAmount
+                )}
+              </div>
+
+              <div className="mt-1 text-[10px] font-bold text-[#22c55e]">
+                {EARLY_PROMO_DISCOUNT_PERCENT}% discount applied
+              </div>
+            </>
+          ) : (
+            <div className="text-lg font-bold text-[#e8eaf0]">
+              {amtDisplay}
+            </div>
+          )}
 
           {data.currency !== 'USD' && (
             <div className="text-[10px] text-[#6b7280]">
-              ≈ $
-              {(
-                parseFloat(
-                  data.amount === 'custom'
-                    ? data.customAmount
-                    : data.amount
-                ) / curMeta.rateFromUSD
-              ).toFixed(2)}{' '}
-              USD
+              ≈ ${usdEquivalent.toFixed(2)} USD
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Redeem Code */}
+      <Card className="p-5">
+        <div className="flex flex-col gap-4">
+          <div>
+            <div className="text-sm font-bold text-[#e8eaf0]">
+              Redeem Code
+            </div>
+
+            <p className="mt-1 text-xs leading-5 text-[#6b7280]">
+              Enter a valid promotion code before selecting your payment method.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              value={redeemCode}
+              onChange={event =>
+                setRedeemCode(
+                  event.target.value.toUpperCase()
+                )
+              }
+              onKeyDown={event => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  applyCode()
+                }
+              }}
+              placeholder="Enter redeem code"
+              disabled={promoApplied}
+              className="min-h-11 flex-1 rounded-lg border border-[#353c52] bg-[#0f1219] px-3 text-sm font-semibold uppercase tracking-wider text-[#e8eaf0] outline-none transition focus:border-[#66d4ff] disabled:cursor-not-allowed disabled:opacity-70"
+            />
+
+            {promoApplied ? (
+              <button
+                type="button"
+                onClick={removeCode}
+                className="min-h-11 rounded-lg border border-[#ef4444]/40 bg-[#ef4444]/5 px-4 text-xs font-bold text-[#ef4444] transition hover:bg-[#ef4444]/10"
+              >
+                Remove
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={applyCode}
+                disabled={!redeemCode.trim()}
+                className="min-h-11 rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-5 text-xs font-bold text-[#66d4ff] transition hover:bg-[#66d4ff]/20 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Apply Code
+              </button>
+            )}
+          </div>
+
+          {promoApplied &&
+          selectedPackageAmount !== null &&
+          discountedPackageAmount !== null ? (
+            <div className="rounded-xl border border-[#22c55e]/35 bg-[#22c55e]/5 px-4 py-3">
+              <div className="text-sm font-bold text-[#22c55e]">
+                {EARLY_PROMO_CODE} applied successfully
+              </div>
+
+              <p className="mt-1 text-xs leading-5 text-[#b8c3d4]">
+                Pay{' '}
+                <strong className="text-[#e8eaf0]">
+                  {formatCurrencyAmount(
+                    data.currency,
+                    discountedPackageAmount
+                  )}
+                </strong>{' '}
+                and receive the full{' '}
+                <strong className="text-[#e8eaf0]">
+                  ${selectedPackageAmount.toLocaleString()}
+                </strong>{' '}
+                package and cumulative reward credit.
+              </p>
+            </div>
+          ) : (
+            promoMessage && (
+              <div
+                className={`rounded-lg border px-4 py-3 text-xs leading-5 ${
+                  promoMessageType === 'error'
+                    ? 'border-[#ef4444]/35 bg-[#ef4444]/5 text-[#ef4444]'
+                    : promoMessageType === 'success'
+                      ? 'border-[#22c55e]/35 bg-[#22c55e]/5 text-[#22c55e]'
+                      : 'border-[#353c52] bg-[#0f1219] text-[#9aa6ba]'
+                }`}
+              >
+                {promoMessage}
+              </div>
+            )
+          )}
+
+          {!isEarlyPromoActive() && (
+            <div className="text-xs text-[#ef4444]">
+              The early donation promotion has ended.
             </div>
           )}
         </div>

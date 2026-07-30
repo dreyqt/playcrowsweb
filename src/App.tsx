@@ -11,6 +11,13 @@ import {
 import { GiftPackages } from './components/GiftPackages'
 import { CumulativeRewards } from './components/CumulativeRewards'
 import { submitDonation } from './lib/submitDonation'
+import {
+  EARLY_PROMO_CODE,
+  isEarlyPromoActive,
+  isPackageEligibleForPromo,
+  normalizePromoCode,
+  type PromoApplyResult,
+} from './promo'
 import CrowLogo from './assets/playcrows-icon.jpg'
 
 type InformationTab = 'packages' | 'support' | 'cumulative'
@@ -32,6 +39,8 @@ export default function App() {
   const [submissionReference, setSubmissionReference] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [appliedPromoCode, setAppliedPromoCode] =
+    useState<string | null>(null)
   const [activeTab, setActiveTab] =
     useState<InformationTab>('packages')
   const [selectedPackageAmount, setSelectedPackageAmount] =
@@ -39,6 +48,19 @@ export default function App() {
   const [form, setForm] = useState<FormData>(INITIAL)
 
   const update = (partial: Partial<FormData>) => {
+    /*
+     * Changing the amount or currency invalidates an already-applied
+     * promo code. The player can apply the code again after finishing
+     * their new selection.
+     */
+    if (
+      'amount' in partial ||
+      'customAmount' in partial ||
+      'currency' in partial
+    ) {
+      setAppliedPromoCode(null)
+    }
+
     setForm(current => ({
       ...current,
       ...partial,
@@ -72,11 +94,13 @@ export default function App() {
     setSubmitted(false)
     setSubmissionReference('')
     setSubmitError('')
+    setAppliedPromoCode(null)
     setSelectedPackageAmount(null)
     setActiveTab('packages')
   }
 
   const selectGiftPackage = (amount: number) => {
+    setAppliedPromoCode(null)
     setSelectedPackageAmount(amount)
 
     update({
@@ -89,6 +113,7 @@ export default function App() {
   }
 
   const changeGiftPackage = () => {
+    setAppliedPromoCode(null)
     setSelectedPackageAmount(null)
 
     update({
@@ -99,9 +124,69 @@ export default function App() {
     setActiveTab('packages')
   }
 
+  const applyPromoCode = (code: string): PromoApplyResult => {
+    const normalizedCode = normalizePromoCode(code)
+
+    if (!isEarlyPromoActive()) {
+      setAppliedPromoCode(null)
+
+      return {
+        success: false,
+        message:
+          'The EARLY10 promotion ended on July 31, 2026 at 3:00 PM Singapore Time.',
+      }
+    }
+
+    if (normalizedCode !== EARLY_PROMO_CODE) {
+      setAppliedPromoCode(null)
+
+      return {
+        success: false,
+        message: 'Invalid redeem code.',
+      }
+    }
+
+    if (
+      !isPackageEligibleForPromo(
+        form,
+        selectedPackageAmount
+      )
+    ) {
+      setAppliedPromoCode(null)
+
+      return {
+        success: false,
+        message:
+          'EARLY10 only applies when your selected support amount matches your chosen gift package. Custom amounts are not eligible.',
+      }
+    }
+
+    setAppliedPromoCode(EARLY_PROMO_CODE)
+
+    return {
+      success: true,
+      message:
+        'EARLY10 applied. You will pay 10% less while receiving the full package and cumulative credit.',
+    }
+  }
+
+  const removePromoCode = () => {
+    setAppliedPromoCode(null)
+  }
 
   const submitForm = async () => {
     if (isSubmitting) return
+
+    if (
+      appliedPromoCode &&
+      !isEarlyPromoActive()
+    ) {
+      setAppliedPromoCode(null)
+      setSubmitError(
+        'The EARLY10 promotion has expired. Review the regular payment amount before submitting.'
+      )
+      return
+    }
 
     setIsSubmitting(true)
     setSubmitError('')
@@ -110,6 +195,7 @@ export default function App() {
       const result = await submitDonation({
         data: form,
         selectedPackageAmount,
+        promoCode: appliedPromoCode,
       })
 
       setSubmissionReference(result.donation.referenceCode)
@@ -334,6 +420,10 @@ export default function App() {
             {step === 3 && (
               <StepPayment
                 data={form}
+                selectedPackageAmount={selectedPackageAmount}
+                appliedPromoCode={appliedPromoCode}
+                onApplyPromoCode={applyPromoCode}
+                onRemovePromoCode={removePromoCode}
                 onUpdate={update}
                 onNext={next}
                 onBack={back}
@@ -353,6 +443,7 @@ export default function App() {
               <StepComplete
                 data={form}
                 selectedPackageAmount={selectedPackageAmount}
+                promoCode={appliedPromoCode}
                 onSubmit={submitForm}
                 onBack={back}
                 isSubmitting={isSubmitting}

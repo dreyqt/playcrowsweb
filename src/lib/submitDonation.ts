@@ -1,4 +1,4 @@
-import type { FormData } from '../types'
+import type { FormData as DonationFormData } from '../types'
 
 export interface DonationResponse {
   success: true
@@ -12,8 +12,9 @@ export interface DonationResponse {
 }
 
 interface SubmitDonationOptions {
-  data: FormData
+  data: DonationFormData
   selectedPackageAmount: number | null
+  promoCode: string | null
 }
 
 function getRequiredEnvironmentVariable(name: string, value?: string) {
@@ -29,6 +30,7 @@ function getRequiredEnvironmentVariable(name: string, value?: string) {
 export async function submitDonation({
   data,
   selectedPackageAmount,
+  promoCode,
 }: SubmitDonationOptions): Promise<DonationResponse> {
   if (!data.receiptFile) {
     throw new Error('Please upload your payment receipt before submitting.')
@@ -57,17 +59,25 @@ export async function submitDonation({
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
   )
 
-  const body = new FormData()
+  const body = new globalThis.FormData()
   body.append('playerId', data.playerId.trim())
   body.append('username', data.username.trim())
   body.append('currency', data.currency)
   body.append('amount', amount)
+  body.append(
+    'amountMode',
+    data.amount === 'custom' ? 'custom' : 'preset'
+  )
   body.append('paymentMethod', data.paymentMethod)
   body.append('receipt', data.receiptFile)
   body.append('website', '')
 
   if (selectedPackageAmount !== null) {
     body.append('selectedPackageAmount', String(selectedPackageAmount))
+  }
+
+  if (promoCode) {
+    body.append('promoCode', promoCode)
   }
 
   const response = await fetch(
