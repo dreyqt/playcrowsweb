@@ -1,4 +1,4 @@
-export type PaymentMethod = 'gcash' | 'paypal' | 'wise'
+export type PaymentMethod = 'gcash' | 'paypal' | 'wise' | 'bybit'
 export type Currency = 'USD' | 'PHP' | 'GBP'
 
 export interface FormData {
