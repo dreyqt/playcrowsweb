@@ -23,8 +23,8 @@ export function StepPlayerInfo({
         </p>
       </div>
       <Card className="p-6 flex flex-col gap-5">
-        <Input label="Player ID" placeholder="Enter your Player ID" value={data.playerId} onChange={v => onUpdate({ playerId: v })} />
-        <Input label="Username" placeholder="Enter your in-game username" value={data.username} onChange={v => onUpdate({ username: v })} />
+        <Input label="Username" placeholder="Enter your Login ID" value={data.playerId} onChange={v => onUpdate({ playerId: v })} />
+        <Input label="Character name" placeholder="Enter your ingame character name" value={data.username} onChange={v => onUpdate({ username: v })} />
       </Card>
       <div className="flex items-center justify-between">
         <Btn variant="ghost" onClick={onBack}>Back</Btn>
