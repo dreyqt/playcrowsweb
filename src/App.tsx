@@ -7,10 +7,10 @@ import {
   StepPayment,
   StepReceipt,
   StepComplete,
-  SuccessScreen,
 } from './components/steps'
 import { GiftPackages } from './components/GiftPackages'
 import { CumulativeRewards } from './components/CumulativeRewards'
+import { submitDonation } from './lib/submitDonation'
 import CrowLogo from './assets/playcrows-icon.jpg'
 
 type InformationTab = 'packages' | 'support' | 'cumulative'
@@ -29,6 +29,9 @@ const INITIAL: FormData = {
 export default function App() {
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
+  const [submissionReference, setSubmissionReference] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [activeTab, setActiveTab] =
     useState<InformationTab>('packages')
   const [selectedPackageAmount, setSelectedPackageAmount] =
@@ -48,19 +51,27 @@ export default function App() {
       return
     }
 
+    setSubmitError('')
     setActiveTab('support')
     setStep(current => current + 1)
   }
 
   const back = () => {
+    setSubmitError('')
     setActiveTab('support')
     setStep(current => Math.max(1, current - 1))
   }
 
   const reset = () => {
+    if (form.receiptPreview) {
+      URL.revokeObjectURL(form.receiptPreview)
+    }
+
     setForm(INITIAL)
     setStep(1)
     setSubmitted(false)
+    setSubmissionReference('')
+    setSubmitError('')
     setSelectedPackageAmount(null)
     setActiveTab('packages')
   }
@@ -86,6 +97,32 @@ export default function App() {
     })
 
     setActiveTab('packages')
+  }
+
+
+  const submitForm = async () => {
+    if (isSubmitting) return
+
+    setIsSubmitting(true)
+    setSubmitError('')
+
+    try {
+      const result = await submitDonation({
+        data: form,
+        selectedPackageAmount,
+      })
+
+      setSubmissionReference(result.donation.referenceCode)
+      setSubmitted(true)
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to submit the donation form. Please try again.'
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const hasSelectedPackage = selectedPackageAmount !== null
@@ -133,7 +170,37 @@ export default function App() {
 
       <main className="mx-auto max-w-2xl px-4 py-10">
         {submitted ? (
-          <SuccessScreen onReset={reset} />
+          <section className="mx-auto flex max-w-xl flex-col items-center rounded-2xl border border-[#66d4ff]/35 bg-[#13161e] px-6 py-10 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#66d4ff]/40 bg-[#66d4ff]/10 text-3xl text-[#66d4ff]">
+              ✓
+            </div>
+
+            <h1 className="mt-5 text-2xl font-bold text-[#e8eaf0]">
+              Donation Form Submitted
+            </h1>
+
+            <p className="mt-3 max-w-md text-sm leading-6 text-[#7c879d]">
+              Your submission is pending review. Save the reference code below
+              in case you need to contact PlayCrows support.
+            </p>
+
+            <div className="mt-6 w-full rounded-xl border border-[#66d4ff]/30 bg-[#66d4ff]/5 px-4 py-4">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-[#7c879d]">
+                Reference Code
+              </div>
+              <div className="mt-2 break-all font-mono text-xl font-bold text-[#66d4ff]">
+                {submissionReference}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={reset}
+              className="mt-7 min-h-11 rounded-lg border border-[#66d4ff] bg-[#66d4ff] px-5 py-2 text-sm font-bold text-[#06141b] transition-colors hover:bg-[#8ae2ff]"
+            >
+              Submit Another Form
+            </button>
+          </section>
         ) : (
           <>
             <StepProgress current={step} />
@@ -285,8 +352,11 @@ export default function App() {
             {step === 5 && (
               <StepComplete
                 data={form}
-                onSubmit={() => setSubmitted(true)}
+                selectedPackageAmount={selectedPackageAmount}
+                onSubmit={submitForm}
                 onBack={back}
+                isSubmitting={isSubmitting}
+                submitError={submitError}
               />
             )}
           </>
