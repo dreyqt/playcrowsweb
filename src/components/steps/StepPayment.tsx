@@ -126,7 +126,7 @@ export function StepPayment({
         <div className="flex flex-wrap gap-6">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6b7280]">
-              Player ID
+              Username
             </div>
 
             <div className="text-sm font-medium text-[#66d4ff]">
@@ -136,7 +136,7 @@ export function StepPayment({
 
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6b7280]">
-              Username
+              Character Name
             </div>
 
             <div className="text-sm font-medium text-[#66d4ff]">

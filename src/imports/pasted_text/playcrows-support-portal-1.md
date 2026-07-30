@@ -55,11 +55,11 @@ Add two required input fields:
 
 **Player ID**
 Placeholder:
-`Enter your Player ID`
+`Enter your Login ID`
 
 **Username**
 Placeholder:
-`Enter your in-game username`
+`Enter your Ingame character name`
 
 Add a button:
 
