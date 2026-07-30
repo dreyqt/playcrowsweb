@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import type { FormData } from './types'
 import {
   StepProgress,
@@ -10,6 +10,7 @@ import {
   SuccessScreen,
 } from './components/steps'
 import { GiftPackages } from './components/GiftPackages'
+import { CumulativeRewards } from './components/CumulativeRewards'
 import CrowLogo from './assets/playcrows-icon.jpg'
 
 type InformationTab = 'packages' | 'support' | 'cumulative'
@@ -30,10 +31,8 @@ export default function App() {
   const [submitted, setSubmitted] = useState(false)
   const [activeTab, setActiveTab] =
     useState<InformationTab>('packages')
-
   const [selectedPackageAmount, setSelectedPackageAmount] =
     useState<number | null>(null)
-
   const [form, setForm] = useState<FormData>(INITIAL)
 
   const update = (partial: Partial<FormData>) => {
@@ -43,29 +42,7 @@ export default function App() {
     }))
   }
 
-  /*
-   * Prevent StepAmount from changing the amount selected
-   * through the Gift Packages page.
-   */
-  const updateLockedAmount = (partial: Partial<FormData>) => {
-    if (selectedPackageAmount === null) {
-      return
-    }
-
-    setForm(current => ({
-      ...current,
-      ...partial,
-      currency: 'USD',
-      amount: String(selectedPackageAmount),
-      customAmount: '',
-    }))
-  }
-
   const next = () => {
-    /*
-     * Extra protection in case StepAmount attempts to continue
-     * without a valid gift package.
-     */
     if (step === 1 && selectedPackageAmount === null) {
       setActiveTab('packages')
       return
@@ -104,7 +81,6 @@ export default function App() {
     setSelectedPackageAmount(null)
 
     update({
-      currency: 'USD',
       amount: '',
       customAmount: '',
     })
@@ -208,7 +184,7 @@ export default function App() {
                     }}
                     title={
                       hasSelectedPackage
-                        ? 'View your selected support amount'
+                        ? 'Choose your currency and support amount'
                         : 'Select a gift package first'
                     }
                   >
@@ -243,17 +219,16 @@ export default function App() {
                       <div className="mb-6 flex flex-col gap-4 rounded-xl border border-[#66d4ff]/30 bg-[#66d4ff]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#7c879d]">
-                            Selected Gift Package
+                            Initial Gift Package Selection
                           </div>
 
                           <div className="text-xl font-bold text-[#66d4ff]">
-                            $
-                            {selectedPackageAmount.toLocaleString()}
+                            ${selectedAmount.toLocaleString()}
                           </div>
 
                           <p className="mt-1 text-xs text-[#7c879d]">
-                            This support amount is linked to your
-                            selected gift package.
+                            You may freely choose your currency and
+                            support amount below.
                           </p>
                         </div>
 
@@ -275,35 +250,7 @@ export default function App() {
                   )}
 
                 {activeTab === 'cumulative' && (
-                  <section>
-                    <div className="mb-6">
-                      <h2 className="mb-2 text-2xl font-bold text-[#e8eaf0]">
-                        Cumulative Rewards
-                      </h2>
-
-                      <p className="text-sm text-[#7c879d]">
-                        Earn additional rewards when your accumulated
-                        support reaches each milestone.
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl border border-[#242a36] bg-[#11151d] p-6">
-                      <div className="flex min-h-40 flex-col items-center justify-center text-center">
-                        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[#66d4ff]/30 bg-[#66d4ff]/10 text-xl text-[#66d4ff]">
-                          ★
-                        </div>
-
-                        <h3 className="mb-2 font-semibold text-[#e8eaf0]">
-                          Cumulative rewards coming soon
-                        </h3>
-
-                        <p className="max-w-md text-sm leading-6 text-[#7c879d]">
-                          The complete milestone and reward list will
-                          be displayed here.
-                        </p>
-                      </div>
-                    </div>
-                  </section>
+                  <CumulativeRewards />
                 )}
               </>
             )}
