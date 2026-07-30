@@ -22,8 +22,8 @@ export function StepComplete({
         <p className="text-sm text-[#6b7280]">Review your information before submitting.</p>
       </div>
       <Card className="p-5">
-        <SummaryRow label="Player ID" value={data.playerId} />
-        <SummaryRow label="Username" value={data.username} />
+        <SummaryRow label="Username" value={data.playerId} />
+        <SummaryRow label="Character name" value={data.username} />
         <SummaryRow label="Payment Method" value={methodLabel} />
         <SummaryRow label="Amount" value={displayAmount(data)} />
         <SummaryRow label="Currency" value={CURRENCY_META[data.currency].label} />
