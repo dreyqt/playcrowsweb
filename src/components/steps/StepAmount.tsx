@@ -27,6 +27,7 @@ const PACKAGE_REWARDS = [
  * Dias displayed under each preset package.
  */
 const DIAMONDS_BY_USD: Record<string, string> = {
+  '5': '20,000',
   '10': '10,000',
   '50': '210,000',
   '100': '450,000',
