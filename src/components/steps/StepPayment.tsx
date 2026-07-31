@@ -547,28 +547,57 @@ export function StepPayment({
             </>
           )}
 
-          {/* Wise */}
-          {data.paymentMethod === 'wise' && (
-            <div className="flex flex-col gap-0 overflow-hidden rounded-xl bg-[#13161e]">
-              {[
-                [
-                  'Account Name',
-                  PAYMENT_INFO.wise.accountName,
-                ],
-                [
-                  'Wisetag',
-                  PAYMENT_INFO.wise.email,
-                ],
-              ].map(([label, value]) => (
-                <PaymentDetailRow
-                  key={label}
-                  label={label}
-                  value={value}
-                  mono
-                />
-              ))}
-            </div>
-          )}
+{/* Wise */}
+{data.paymentMethod === 'wise' && (
+  <>
+    <div className="mx-auto h-48 w-48 overflow-hidden rounded-xl border border-[#66d4ff]/40 bg-white p-2">
+      <img
+        src={wiseQr}
+        alt="Wise payment QR code"
+        className="h-full w-full object-contain"
+      />
+    </div>
+
+    <p className="text-center text-xs leading-5 text-[#6b7280]">
+      Scan the QR code using your phone or open the Wise payment link below.
+    </p>
+
+    <div className="flex flex-col gap-0 overflow-hidden rounded-xl bg-[#13161e]">
+      {[
+        [
+          'Account Name',
+          PAYMENT_INFO.wise.accountName,
+        ],
+        [
+          'Wisetag',
+          PAYMENT_INFO.wise.email,
+        ],
+      ].map(([label, value]) => (
+        <PaymentDetailRow
+          key={label}
+          label={label}
+          value={value}
+          mono
+        />
+      ))}
+    </div>
+
+    <a
+      href={PAYMENT_INFO.wise.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#66d4ff] bg-[#66d4ff] px-4 py-2 text-sm font-bold text-[#06141b] transition-colors hover:bg-[#8ae2ff]"
+    >
+      <WiseIcon size={18} />
+      Open Wise Payment
+    </a>
+
+    <p className="text-center text-xs leading-5 text-[#6b7280]">
+      After completing the payment, save a screenshot of the transaction and
+      upload it in the next step.
+    </p>
+  </>
+)}
 
           {/* Bybit */}
           {data.paymentMethod === 'bybit' && (
