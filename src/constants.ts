@@ -1,6 +1,6 @@
 import type { Currency, PaymentMethod } from './types'
 
-export const PRESET_AMOUNTS_USD = ['10', '50', '100', '200', '500', '1000'] as const
+export const PRESET_AMOUNTS_USD = ['5', '10', '50', '100', '200', '500', '1000'] as const
 
 export const CURRENCY_META: Record<Currency, { symbol: string; label: string; rateFromUSD: number }> = {
   USD: { symbol: '$', label: 'USD', rateFromUSD: 1 },
