@@ -11,7 +11,7 @@ export const CURRENCY_META: Record<Currency, { symbol: string; label: string; ra
 export const PAYMENT_INFO = {
   gcash: { name: 'PLAYCROWS', number: '+63 9XX XXX 9607' },
   paypal: { email: 'andreybitoon19@gmail.com', link: 'paypal.me/andreybitoon' },
-  wise: { accountName: 'Playcrows', email: '@playcrows' },
+  wise: { accountName: 'Playcrows', link: 'https://wise.com/pay/me/darrendagusmaranad' },
   bybit: { uid: '164220077', asset: 'USDT', network: 'TRC20', address: 'TUXBG7N86yabdJUwoJmtGkTq39DkphU8HN', },
 } as const
 
