@@ -9,6 +9,12 @@ export interface GiftPackage {
 }
 
 export const giftPackages: GiftPackage[] = [
+    {
+    amount: 5,
+    rewards: [
+      { name: 'Diamond', quantity: 20_000 },
+    ],
+  },
   {
     amount: 10,
     rewards: [

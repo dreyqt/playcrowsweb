@@ -20,6 +20,7 @@ const PACKAGE_REWARDS = [
   { amount: 100, dias: 450000 },
   { amount: 50, dias: 210000 },
   { amount: 10, dias: 10000 },
+  { amount: 5, dias: 20000 },
 ]
 
 /**
