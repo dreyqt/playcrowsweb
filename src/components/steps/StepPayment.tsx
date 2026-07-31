@@ -570,7 +570,7 @@ export function StepPayment({
         ],
         [
           'Wisetag',
-          PAYMENT_INFO.wise.email,
+          PAYMENT_INFO.wise.wisetag,
         ],
       ].map(([label, value]) => (
         <PaymentDetailRow
