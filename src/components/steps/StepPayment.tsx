@@ -22,9 +22,11 @@ import {
   GCashIcon,
   WiseIcon,
   BybitIcon,
+  WiseIcon,
 } from '../icons'
 import gcashQr from '../../assets/gcash-qr.jpg'
 import bybitQr from '../../assets/bybit-qr.png'
+import wiseQr from '../../assets/wise-qr.png'
 
 function MethodIcon({
   id,
