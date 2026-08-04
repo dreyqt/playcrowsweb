@@ -92,6 +92,52 @@ input[type='file'] {
   line-height: 1.6;
 }
 
+/* WEB Shop category tabs */
+
+.gift-package-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 28px;
+  padding: 4px;
+  background: #11151d;
+  border: 1px solid #252a38;
+  border-radius: 12px;
+}
+
+.gift-package-tabs__button {
+  min-height: 44px;
+  padding: 10px 16px;
+  color: #7c879d;
+  font-size: 14px;
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.gift-package-tabs__button:hover {
+  color: #cbd5e1;
+  background: rgba(102, 212, 255, 0.05);
+}
+
+.gift-package-tabs__button--active {
+  color: #66d4ff;
+  background: rgba(102, 212, 255, 0.1);
+  border-color: #66d4ff;
+}
+
+.gift-package-tabs__button:focus-visible {
+  outline: 2px solid #66d4ff;
+  outline-offset: 2px;
+}
+
+.gift-package-category {
+  margin-bottom: 40px;
+}
+
 /* Gift Packages grid */
 
 .gift-packages__grid {

@@ -321,7 +321,7 @@ export default function App() {
                         : 'Choose a gift package'
                     }
                   >
-                    Gift Packages
+                    WEB Shop
                     {hasSelectedPackage && (
                       <span className="ml-1 text-[10px]">
                         🔒
