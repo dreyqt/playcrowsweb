@@ -14,13 +14,93 @@ export interface GiftPackage {
 }
 
 export const giftPackages: GiftPackage[] = [
-  { id: 'currency-5', category: 'currency', title: 'Diamond Package', amount: 5, rewards: [{ name: 'Diamond', quantity: 20_000 }] },
-  { id: 'currency-10', category: 'currency', title: 'Diamond Package', amount: 10, rewards: [{ name: 'Diamond', quantity: 10_000 }] },
-  { id: 'currency-50', category: 'currency', title: 'Diamond Package', amount: 50, rewards: [{ name: 'Diamond', quantity: 210_000 }] },
-  { id: 'currency-100', category: 'currency', title: 'Diamond Package', amount: 100, rewards: [{ name: 'Diamond', quantity: 450_000 }] },
-  { id: 'currency-200', category: 'currency', title: 'Diamond Package', amount: 200, rewards: [{ name: 'Diamond', quantity: 1_000_000 }] },
-  { id: 'currency-500', category: 'currency', title: 'Diamond Package', amount: 500, rewards: [{ name: 'Diamond', quantity: 3_000_000 }] },
-  { id: 'currency-1000', category: 'currency', title: 'Diamond Package', amount: 1_000, rewards: [{ name: 'Diamond', quantity: 8_000_000 }] },
+{
+  id: 'currency-5',
+  category: 'currency',
+  title: 'Diamond Package',
+  amount: 5,
+  rewards: [
+    { name: 'Diamond', quantity: 20_000 },
+  ],
+},
+{
+  id: 'currency-10',
+  category: 'currency',
+  title: 'Diamond Package',
+  amount: 10,
+  rewards: [
+    { name: 'Diamond', quantity: 50_000 },
+    { name: 'Black Wing Special Supply', quantity: 1 },
+  ],
+},
+{
+  id: 'currency-50',
+  category: 'currency',
+  title: 'Diamond Package',
+  amount: 50,
+  rewards: [
+    { name: 'Diamond', quantity: 210_000 },
+    { name: 'Gold Chest', quantity: 500 },
+    { name: 'Sunset Splendid Weapon Style Summon x11 (Bound)', quantity: 50 },
+    { name: 'Sunset Splendid Mount Summon x11 (Bound)', quantity: 50 },
+  ],
+},
+{
+  id: 'currency-100',
+  category: 'currency',
+  title: 'Diamond Package',
+  amount: 100,
+  rewards: [
+    { name: 'Diamond', quantity: 450_000 },
+    { name: 'Gold Chest', quantity: 1_000 },
+    { name: 'Sunset Splendid Weapon Style Summon x11 (Bound)', quantity: 100 },
+    { name: 'Sunset Splendid Mount Summon x11 (Bound)', quantity: 100 },
+  ],
+},
+{
+  id: 'currency-200',
+  category: 'currency',
+  title: 'Diamond Package',
+  amount: 200,
+  rewards: [
+    { name: 'Diamond', quantity: 1_000_000 },
+    { name: 'Gold Chest', quantity: 3_000 },
+    { name: 'Sunset Splendid Weapon Style Summon x11 (Bound)', quantity: 200 },
+    { name: 'Sunset Splendid Mount Summon x11 (Bound)', quantity: 200 },
+    { name: 'Morion', quantity: 500 },
+    { name: 'Time Recharger - Masarta Special Dungeon', quantity: 10 },
+  ],
+},
+{
+  id: 'currency-500',
+  category: 'currency',
+  title: 'Diamond Package',
+  amount: 500,
+  rewards: [
+    { name: 'Diamond', quantity: 3_000_000 },
+    { name: 'Gold Chest', quantity: 5_000 },
+    { name: 'Sunset Splendid Weapon Style Summon x11 (Bound)', quantity: 500 },
+    { name: 'Sunset Splendid Mount Summon x11 (Bound)', quantity: 500 },
+    { name: 'Morion', quantity: 2_000 },
+    { name: 'Time Recharger - Masarta Special Dungeon', quantity: 30 },
+    { name: 'Element Extraction of Harmony (Bound)', quantity: 1_000 },
+  ],
+},
+{
+  id: 'currency-1000',
+  category: 'currency',
+  title: 'Diamond Package',
+  amount: 1000,
+  rewards: [
+    { name: 'Diamond', quantity: 8_000_000 },
+    { name: 'Gold Chest', quantity: 10_000 },
+    { name: 'Sunset Splendid Weapon Style Summon x11 (Bound)', quantity: 1_000 },
+    { name: 'Sunset Splendid Mount Summon x11 (Bound)', quantity: 1_000 },
+    { name: 'Morion', quantity: 5_000 },
+    { name: 'Time Recharger - Masarta Special Dungeon', quantity: 100 },
+    { name: 'Element Extraction of Harmony (Bound)', quantity: 2_000 },
+  ],
+},
   {
     id: 'support-skill-bundle', category: 'support', title: 'SKILL BUNDLE', amount: 15,
     rewards: [
