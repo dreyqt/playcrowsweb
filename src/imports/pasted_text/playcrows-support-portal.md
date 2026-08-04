@@ -1,7 +1,7 @@
 Create a modern, clean, and professional **Donation / Support Portal** for a game server called:
 
 **PLAYCROWS**
-**by Hawk**
+**by Playcrows Development Team**
 
 The purpose of this page is to allow players to support the Playcrows game server and submit their payment information and receipt for verification.
 
@@ -24,7 +24,7 @@ Use a clean solid-color design with strong contrast, modern typography, clean sp
 
 The interface should look professional, trustworthy, and easy to navigate.
 
-Use a dark, premium gaming-inspired color palette with solid colors and a simple accent color that matches the **Playcrows by Hawk** branding.
+Use a dark, premium gaming-inspired color palette with solid colors and a simple accent color that matches the **Playcrows by Playcrows Development Team** branding.
 
 Keep the design visually interesting through:
 
@@ -138,7 +138,7 @@ This reminds the player which account the payment will be associated with.
 
 Add:
 
-**Every contribution helps support Playcrows by Hawk and helps us continue improving the server and community. Thank you for your support!**
+**Every contribution helps support Playcrows Development Team and helps us continue improving the server and community. Thank you for your support!**
 
 Add a button:
 
@@ -240,9 +240,9 @@ Below the upload box, display:
 
 Then add this message:
 
-**If you are unable to upload your receipt here, you can contact Hawk or NightFall directly on Discord, or create a support ticket and send your receipt there.**
+**If you are unable to upload your receipt here, you can create a support ticket and send your receipt there.**
 
-**When contacting Hawk or NightFall, or when creating a ticket, please include:**
+**When creating a ticket, please include:**
 
 * Your Player ID
 * Your Username
@@ -254,8 +254,7 @@ This information is required to help us verify and process your contribution.
 
 Add three clean buttons:
 
-**Contact Hawk**
-**Contact NightFall**
+
 **Create a Ticket**
 
 The buttons should open the configured Discord profiles or ticket system.
@@ -286,7 +285,7 @@ After clicking, show a clean success screen:
 
 **Payment Receipt Submitted Successfully!**
 
-**Thank you for supporting Playcrows by Hawk!**
+**Thank you for supporting Playcrows Development Team!**
 
 **Your payment is now waiting for verification. Once your payment has been confirmed, your support contribution will be processed accordingly.**
 
@@ -329,6 +328,6 @@ Use **solid colors only**, with a clean dark gaming aesthetic, professional typo
 Brand everything around:
 
 **PLAYCROWS**
-**by Hawk**
+**by Playcrows Development Team**
 
 Make the page feel like an official payment and support portal for the Playcrows game server.

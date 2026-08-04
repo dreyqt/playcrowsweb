@@ -254,7 +254,7 @@ export default function App() {
             </div>
 
             <div className="text-[10px] uppercase tracking-widest text-[#6b7280]">
-              by Hawk
+              by Playcrows Development Team
             </div>
           </div>
         </div>
@@ -465,7 +465,7 @@ export default function App() {
 
       <footer className="mt-16 border-t border-[#191d27]">
         <div className="mx-auto max-w-2xl px-4 py-6 text-center text-xs text-[#6b7280]">
-          2026 Playcrows by Hawk - All contributions are voluntary
+          2026 Playcrows by Playcrows Development Team - All contributions are voluntary
           support donations.
         </div>
       </footer>

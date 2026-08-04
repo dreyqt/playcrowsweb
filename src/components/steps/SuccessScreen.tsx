@@ -9,7 +9,7 @@ export function SuccessScreen({ onReset }: { onReset: () => void }) {
       </div>
       <div className="flex flex-col gap-3">
         <h2 className="text-2xl font-bold text-[#e8eaf0]">Payment Receipt Submitted Successfully!</h2>
-        <p className="text-sm text-[#f5a623] font-semibold">Thank you for supporting Playcrows by Hawk!</p>
+        <p className="text-sm text-[#f5a623] font-semibold">Thank you for supporting Playcrows!</p>
         <p className="text-sm text-[#6b7280] leading-relaxed max-w-md">
           Your payment is now waiting for verification. Once your payment has been confirmed, your support contribution will be processed accordingly.
         </p>
