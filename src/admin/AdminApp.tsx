@@ -51,6 +51,40 @@ function formatBytes(bytes: number | null) {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
 }
 
+function getPackageCategory(packageId: string | null | undefined) {
+  if (packageId?.startsWith('currency-')) return 'Currency'
+  if (packageId?.startsWith('support-')) return 'Support Package'
+  return 'Not recorded'
+}
+
+function getPackageDisplayName(donation: DonationRecord) {
+  if (donation.selected_package_id?.startsWith('currency-')) {
+    const amount = Number(donation.selected_package_amount)
+
+    if (Number.isFinite(amount)) {
+      return `${amount.toLocaleString()} Diamonds`
+    }
+  }
+
+  return donation.selected_package_title ?? 'Not recorded'
+}
+
+function PackageCategoryBadge({ packageId }: { packageId: string | null | undefined }) {
+  const category = getPackageCategory(packageId)
+  const className =
+    category === 'Currency'
+      ? 'border-[#66d4ff]/40 bg-[#66d4ff]/10 text-[#66d4ff]'
+      : category === 'Support Package'
+        ? 'border-[#f5a623]/40 bg-[#f5a623]/10 text-[#f5a623]'
+        : 'border-[#353c52] bg-[#353c52]/20 text-[#9aa6ba]'
+
+  return (
+    <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold ${className}`}>
+      {category}
+    </span>
+  )
+}
+
 function LoginScreen({ onSignedIn }: { onSignedIn: () => Promise<void> }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -568,17 +602,27 @@ const openReceipt = async () => {
                   <DetailRow label="Player ID" value={selected.player_id} />
                   <DetailRow label="Username" value={selected.username} />
                   <DetailRow label="Amount" value={formatMoney(selected.currency, selected.amount)} />
+                  <div className="border-b border-[#252a38] py-3">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
+                      Package Category
+                    </div>
+                    <div className="mt-2">
+                      <PackageCategoryBadge packageId={selected.selected_package_id} />
+                    </div>
+                  </div>
+                  <DetailRow label="Package" value={getPackageDisplayName(selected)} />
                   <DetailRow
-                    label="Gift Package"
+                    label="Unit Price"
                     value={
                       selected.selected_package_amount == null
                         ? 'Not recorded'
-                        : `$${Number(selected.selected_package_amount).toLocaleString()}`
+                        : formatMoney('USD', selected.selected_package_amount)
                     }
                   />
-                  <DetailRow label="Package Name" value={selected.selected_package_title ?? 'Not recorded'} />
                   <DetailRow label="Quantity" value={String(selected.package_quantity ?? 1)} />
-                  <DetailRow label="Customer Notes" value={selected.additional_notes ?? 'None'} />
+                  <DetailRow label="Total Paid" value={formatMoney(selected.currency, selected.amount)} />
+                  <DetailRow label="Package ID" value={selected.selected_package_id ?? 'Not recorded'} />
+                  <DetailRow label="Additional Notes" value={selected.additional_notes ?? 'None'} />
                   <DetailRow label="Payment Method" value={PAYMENT_LABELS[selected.payment_method]} />
                   <DetailRow
                     label="Receipt File"
