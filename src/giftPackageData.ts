@@ -29,7 +29,7 @@ export const giftPackages: GiftPackage[] = [
   title: 'Diamond Package',
   amount: 10,
   rewards: [
-    { name: 'Diamond', quantity: 50_000 },
+    { name: 'Diamond', quantity: 10_000 },
     { name: 'Black Wing Special Supply', quantity: 1 },
   ],
 },
