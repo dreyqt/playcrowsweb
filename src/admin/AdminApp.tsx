@@ -45,6 +45,25 @@ function formatDate(value: string) {
   }).format(new Date(value))
 }
 
+function formatTableDate(value: string) {
+  const date = new Date(value)
+
+  return {
+    date: new Intl.DateTimeFormat('en-SG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'Asia/Singapore',
+    }).format(date),
+    time: new Intl.DateTimeFormat('en-SG', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Singapore',
+    }).format(date),
+  }
+}
+
 function formatBytes(bytes: number | null) {
   if (!bytes) return 'Unknown size'
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
@@ -54,7 +73,7 @@ function formatBytes(bytes: number | null) {
 function getPackageCategory(packageId: string | null | undefined) {
   if (packageId?.startsWith('currency-')) return 'Currency'
   if (packageId?.startsWith('support-')) return 'Support Package'
-  return 'Not recorded'
+  return 'Legacy'
 }
 
 function getPackageDisplayName(donation: DonationRecord) {
@@ -66,7 +85,7 @@ function getPackageDisplayName(donation: DonationRecord) {
     }
   }
 
-  return donation.selected_package_title ?? 'Not recorded'
+  return donation.selected_package_title ?? 'Legacy Donation'
 }
 
 function PackageCategoryBadge({ packageId }: { packageId: string | null | undefined }) {
@@ -79,7 +98,7 @@ function PackageCategoryBadge({ packageId }: { packageId: string | null | undefi
         : 'border-[#353c52] bg-[#353c52]/20 text-[#9aa6ba]'
 
   return (
-    <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold ${className}`}>
+    <span className={`inline-flex whitespace-nowrap rounded-full border px-2 py-0.5 text-[9px] font-bold ${className}`}>
       {category}
     </span>
   )
@@ -520,19 +539,19 @@ const openReceipt = async () => {
 
         <div className="mt-6 overflow-hidden rounded-xl border border-[#252a38] bg-[#13161e]">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1280px] border-collapse text-left">
+            <table className="w-full min-w-[1180px] table-fixed border-collapse text-left">
               <thead className="bg-[#191d27] text-[10px] uppercase tracking-widest text-[#7c879d]">
                 <tr>
-                  <th className="px-4 py-3">Reference</th>
-                  <th className="px-4 py-3">Submitted</th>
-                  <th className="px-4 py-3">Player</th>
-                  <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3">Package</th>
-                  <th className="px-4 py-3 text-center">Qty</th>
-                  <th className="px-4 py-3">Total Paid</th>
-                  <th className="px-4 py-3">Method</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Action</th>
+                  <th className="w-[135px] px-4 py-3">Reference</th>
+                  <th className="w-[150px] px-4 py-3">Submitted</th>
+                  <th className="w-[165px] px-4 py-3">Player</th>
+                  <th className="w-[110px] px-3 py-3">Category</th>
+                  <th className="w-[175px] px-3 py-3">Package</th>
+                  <th className="w-[50px] px-2 py-3 text-center">Qty</th>
+                  <th className="w-[105px] px-3 py-3">Total Paid</th>
+                  <th className="w-[85px] px-3 py-3">Method</th>
+                  <th className="w-[105px] px-3 py-3">Status</th>
+                  <th className="w-[90px] px-3 py-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -542,40 +561,43 @@ const openReceipt = async () => {
                       {donation.reference_code}
                     </td>
                     <td className="px-4 py-4 text-xs text-[#9aa6ba]">
-                      {formatDate(donation.created_at)}
+                      <div>{formatTableDate(donation.created_at).date}</div>
+                      <div className="mt-1 text-[10px] text-[#6b7280]">
+                        {formatTableDate(donation.created_at).time}
+                      </div>
                     </td>
                     <td className="px-4 py-4">
                       <div className="font-semibold text-[#e8eaf0]">{donation.username}</div>
                       <div className="mt-1 text-xs text-[#6b7280]">{donation.player_id}</div>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-4">
                       <PackageCategoryBadge packageId={donation.selected_package_id} />
                     </td>
-                    <td className="px-4 py-4">
-                      <div className="max-w-[240px] font-semibold text-[#e8eaf0]">
+                    <td className="px-3 py-4">
+                      <div className="truncate font-semibold text-[#e8eaf0]">
                         {getPackageDisplayName(donation)}
                       </div>
-                      <div className="mt-1 max-w-[240px] truncate font-mono text-[10px] text-[#6b7280]">
-                        {donation.selected_package_id ?? 'Legacy submission'}
+                      <div className="mt-1 truncate font-mono text-[9px] text-[#6b7280]">
+                        {donation.selected_package_id ?? 'Before package tracking'}
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-center font-semibold">
+                    <td className="px-2 py-4 text-center font-semibold">
                       {donation.package_quantity ?? 1}
                     </td>
-                    <td className="px-4 py-4 font-semibold">
+                    <td className="px-3 py-4 font-semibold">
                       {formatMoney(donation.currency, donation.amount)}
                     </td>
-                    <td className="px-4 py-4">{PAYMENT_LABELS[donation.payment_method]}</td>
-                    <td className="px-4 py-4">
-                      <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${STATUS_CLASSES[donation.status]}`}>
+                    <td className="px-3 py-4 text-xs">{PAYMENT_LABELS[donation.payment_method]}</td>
+                    <td className="px-3 py-4">
+                      <span className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-[9px] font-bold ${STATUS_CLASSES[donation.status]}`}>
                         {STATUS_LABELS[donation.status]}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-right">
+                    <td className="px-3 py-4 text-right">
                       <button
                         type="button"
                         onClick={() => openDonation(donation)}
-                        className="rounded-lg border border-[#353c52] px-3 py-2 text-xs font-bold hover:border-[#66d4ff] hover:text-[#66d4ff]"
+                        className="whitespace-nowrap rounded-lg border border-[#353c52] px-3 py-2 text-xs font-bold hover:border-[#66d4ff] hover:text-[#66d4ff]"
                       >
                         Review
                       </button>
@@ -640,7 +662,7 @@ const openReceipt = async () => {
                   />
                   <DetailRow label="Quantity" value={String(selected.package_quantity ?? 1)} />
                   <DetailRow label="Total Paid" value={formatMoney(selected.currency, selected.amount)} />
-                  <DetailRow label="Package ID" value={selected.selected_package_id ?? 'Not recorded'} />
+                  <DetailRow label="Package ID" value={selected.selected_package_id ?? 'Legacy record'} />
                   <DetailRow label="Additional Notes" value={selected.additional_notes ?? 'None'} />
                   <DetailRow label="Payment Method" value={PAYMENT_LABELS[selected.payment_method]} />
                   <DetailRow
