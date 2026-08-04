@@ -34,8 +34,6 @@ export const giftPackages: GiftPackage[] = [
     rewards: [
       { name: 'Treasure Guild Coin Chest (Bound)', quantity: 50 },
       { name: 'Sturdy Bundle of Yarn Box (Attributed)', quantity: 20 },
-      { name: 'Guild Points', quantity: 20_000 },
-      { name: 'Contribution Coin', quantity: 20_000 },
       { name: 'Moonlight Protection Talisman (Bound)', quantity: 10 },
       { name: 'Sun Battle Talisman (Bound)', quantity: 10 },
     ],
