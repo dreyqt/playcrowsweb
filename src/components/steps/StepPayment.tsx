@@ -3,7 +3,6 @@ import type { FormData, PaymentMethod } from '../../types'
 import {
   PAYMENT_METHODS,
   PAYMENT_INFO,
-  CURRENCY_META,
 } from '../../constants'
 import { displayAmount } from '../../utils'
 import {
@@ -129,9 +128,6 @@ export function StepPayment({
     useState<'success' | 'error' | ''>('')
 
   const amtDisplay = displayAmount(data)
-  const curMeta =
-    CURRENCY_META[data.currency] ?? CURRENCY_META.USD
-
   const promoApplied =
     appliedPromoCode === EARLY_PROMO_CODE &&
     isEarlyPromoActive()
@@ -161,14 +157,6 @@ export function StepPayment({
         selectedPackageAmount *
         (1 - EARLY_PROMO_DISCOUNT_PERCENT / 100)
       )
-    }
-
-    if (data.amount === 'custom') {
-      const customAmount = Number(data.customAmount)
-
-      return Number.isFinite(customAmount)
-        ? customAmount / curMeta.rateFromUSD
-        : 0
     }
 
     const presetAmount = Number(data.amount)

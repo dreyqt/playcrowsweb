@@ -217,7 +217,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes'
+        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -354,7 +354,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes'
+        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes'
       )
       .single()
 
@@ -576,6 +576,9 @@ const openReceipt = async () => {
                         : `$${Number(selected.selected_package_amount).toLocaleString()}`
                     }
                   />
+                  <DetailRow label="Package Name" value={selected.selected_package_title ?? 'Not recorded'} />
+                  <DetailRow label="Quantity" value={String(selected.package_quantity ?? 1)} />
+                  <DetailRow label="Customer Notes" value={selected.additional_notes ?? 'None'} />
                   <DetailRow label="Payment Method" value={PAYMENT_LABELS[selected.payment_method]} />
                   <DetailRow
                     label="Receipt File"

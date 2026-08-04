@@ -19,18 +19,20 @@ import {
   type PromoApplyResult,
 } from './promo'
 import CrowLogo from './assets/playcrows-icon.jpg'
+import { findGiftPackage } from './giftPackageData'
 
 type InformationTab = 'packages' | 'support' | 'cumulative'
 
 const INITIAL: FormData = {
   currency: 'USD',
   amount: '',
-  customAmount: '',
+  packageQuantity: '1',
   playerId: '',
   username: '',
   paymentMethod: null,
   receiptFile: null,
   receiptPreview: null,
+  additionalNotes: '',
 }
 
 export default function App() {
@@ -43,8 +45,7 @@ export default function App() {
     useState<string | null>(null)
   const [activeTab, setActiveTab] =
     useState<InformationTab>('packages')
-  const [selectedPackageAmount, setSelectedPackageAmount] =
-    useState<number | null>(null)
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
   const [form, setForm] = useState<FormData>(INITIAL)
 
   const update = (partial: Partial<FormData>) => {
@@ -55,7 +56,7 @@ export default function App() {
      */
     if (
       'amount' in partial ||
-      'customAmount' in partial ||
+      'packageQuantity' in partial ||
       'currency' in partial
     ) {
       setAppliedPromoCode(null)
@@ -68,7 +69,7 @@ export default function App() {
   }
 
   const next = () => {
-    if (step === 1 && selectedPackageAmount === null) {
+    if (step === 1 && selectedPackageId === null) {
       setActiveTab('packages')
       return
     }
@@ -95,18 +96,21 @@ export default function App() {
     setSubmissionReference('')
     setSubmitError('')
     setAppliedPromoCode(null)
-    setSelectedPackageAmount(null)
+    setSelectedPackageId(null)
     setActiveTab('packages')
   }
 
-  const selectGiftPackage = (amount: number) => {
+  const selectGiftPackage = (packageId: string) => {
+    const giftPackage = findGiftPackage(packageId)
+    if (!giftPackage) return
+
     setAppliedPromoCode(null)
-    setSelectedPackageAmount(amount)
+    setSelectedPackageId(packageId)
 
     update({
       currency: 'USD',
-      amount: String(amount),
-      customAmount: '',
+      amount: String(giftPackage.amount),
+      packageQuantity: '1',
     })
 
     setActiveTab('support')
@@ -114,11 +118,11 @@ export default function App() {
 
   const changeGiftPackage = () => {
     setAppliedPromoCode(null)
-    setSelectedPackageAmount(null)
+    setSelectedPackageId(null)
 
     update({
       amount: '',
-      customAmount: '',
+      packageQuantity: '1',
     })
 
     setActiveTab('packages')
@@ -149,7 +153,7 @@ export default function App() {
     if (
       !isPackageEligibleForPromo(
         form,
-        selectedPackageAmount
+        selectedPackage?.amount ?? null
       )
     ) {
       setAppliedPromoCode(null)
@@ -194,7 +198,9 @@ export default function App() {
     try {
       const result = await submitDonation({
         data: form,
-        selectedPackageAmount,
+        selectedPackageAmount: selectedPackage?.amount ?? null,
+        selectedPackageId,
+        selectedPackageTitle: selectedPackage?.title ?? null,
         promoCode: appliedPromoCode,
       })
 
@@ -211,8 +217,8 @@ export default function App() {
     }
   }
 
-  const hasSelectedPackage = selectedPackageAmount !== null
-  const selectedAmount = selectedPackageAmount ?? 0
+  const selectedPackage = findGiftPackage(selectedPackageId)
+  const hasSelectedPackage = selectedPackage !== null
 
   const tabClass = (
     tab: InformationTab,
@@ -361,8 +367,8 @@ export default function App() {
                 {activeTab === 'packages' &&
                   !hasSelectedPackage && (
                     <GiftPackages
-                      selectedAmount={selectedAmount}
-                      onSelectAmount={selectGiftPackage}
+                      selectedPackageId={selectedPackageId}
+                      onSelectPackage={selectGiftPackage}
                     />
                   )}
 
@@ -376,7 +382,7 @@ export default function App() {
                           </div>
 
                           <div className="text-xl font-bold text-[#66d4ff]">
-                            ${selectedAmount.toLocaleString()}
+                            {selectedPackage?.title} · ${selectedPackage?.amount.toLocaleString()}
                           </div>
 
                           <p className="mt-1 text-xs text-[#7c879d]">
@@ -396,6 +402,8 @@ export default function App() {
 
                       <StepAmount
                         data={form}
+                        packageAmount={selectedPackage?.amount ?? 0}
+                        packageTitle={selectedPackage?.title ?? ''}
                         onUpdate={update}
                         onNext={next}
                       />
@@ -420,7 +428,7 @@ export default function App() {
             {step === 3 && (
               <StepPayment
                 data={form}
-                selectedPackageAmount={selectedPackageAmount}
+                selectedPackageAmount={selectedPackage?.amount ?? null}
                 appliedPromoCode={appliedPromoCode}
                 onApplyPromoCode={applyPromoCode}
                 onRemovePromoCode={removePromoCode}
@@ -442,7 +450,8 @@ export default function App() {
             {step === 5 && (
               <StepComplete
                 data={form}
-                selectedPackageAmount={selectedPackageAmount}
+                selectedPackageAmount={selectedPackage?.amount ?? null}
+                selectedPackageTitle={selectedPackage?.title ?? null}
                 promoCode={appliedPromoCode}
                 onSubmit={submitForm}
                 onBack={back}

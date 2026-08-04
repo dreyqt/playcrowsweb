@@ -27,11 +27,11 @@ export function isPackageEligibleForPromo(
   data: FormData,
   selectedPackageAmount: number | null
 ) {
-  if (selectedPackageAmount === null || data.amount === 'custom') {
+  if (selectedPackageAmount === null) {
     return false
   }
 
-  return Number(data.amount) === selectedPackageAmount
+  return Number(data.amount) === selectedPackageAmount * Number(data.packageQuantity)
 }
 
 export function getPackageAmountInCurrency(

@@ -181,6 +181,27 @@ export function StepReceipt({
         />
       </Card>
 
+      <Card className="p-5">
+        <label htmlFor="additional-notes" className="block text-sm font-bold text-[#e8eaf0]">
+          Additional Notes
+        </label>
+        <p className="mt-1 text-xs leading-5 text-[#6b7280]">
+          Add optional instructions or information for the PlayCrows team.
+        </p>
+        <textarea
+          id="additional-notes"
+          rows={4}
+          maxLength={1000}
+          value={data.additionalNotes}
+          onChange={event => onUpdate({ additionalNotes: event.target.value })}
+          placeholder="Enter additional notes here..."
+          className="mt-3 w-full resize-y rounded-xl border border-[#353c52] bg-[#0f1219] px-3 py-3 text-sm text-[#e8eaf0] outline-none transition focus:border-[#66d4ff]"
+        />
+        <div className="mt-1 text-right text-[10px] text-[#6b7280]">
+          {data.additionalNotes.length}/1000
+        </div>
+      </Card>
+
       {error && (
         <div
           role="alert"

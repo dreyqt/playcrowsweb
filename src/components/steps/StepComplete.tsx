@@ -37,6 +37,7 @@ function SummaryRow({
 export function StepComplete({
   data,
   selectedPackageAmount,
+  selectedPackageTitle,
   promoCode,
   onSubmit,
   onBack,
@@ -45,6 +46,7 @@ export function StepComplete({
 }: {
   data: FormData
   selectedPackageAmount: number | null
+  selectedPackageTitle: string | null
   promoCode: string | null
   onSubmit: () => Promise<void> | void
   onBack: () => void
@@ -138,11 +140,11 @@ export function StepComplete({
               value={displayAmount(data)}
             />
             <SummaryRow
-              label="Initial Gift Package"
+              label="Selected Package"
               value={
                 selectedPackageAmount === null
                   ? 'Not selected'
-                  : `$${selectedPackageAmount.toLocaleString()}`
+                  : `${selectedPackageTitle ?? 'Package'} · $${selectedPackageAmount.toLocaleString()} × ${data.packageQuantity}`
               }
             />
           </>
@@ -152,6 +154,10 @@ export function StepComplete({
         <SummaryRow
           label="Payment Receipt"
           value={data.receiptFile?.name ?? 'Not uploaded'}
+        />
+        <SummaryRow
+          label="Additional Notes"
+          value={data.additionalNotes.trim() || 'None'}
         />
       </Card>
 

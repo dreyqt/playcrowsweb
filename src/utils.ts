@@ -17,7 +17,7 @@ export function convertAmount(usdValue: string, currency: Currency): string {
 export function displayAmount(form: FormData): string {
   const currency = form.currency ?? 'USD'
   const meta = CURRENCY_META[currency] ?? CURRENCY_META.USD
-  const raw = form.amount === 'custom' ? form.customAmount : form.amount
+  const raw = form.amount
   if (!raw) return ''
 
   return `${meta.symbol}${convertAmount(raw, currency)}`
