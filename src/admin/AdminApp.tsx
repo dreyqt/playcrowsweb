@@ -297,7 +297,9 @@ export function AdminApp() {
         donation.reference_code.toLowerCase().includes(query) ||
         donation.player_id.toLowerCase().includes(query) ||
         donation.username.toLowerCase().includes(query) ||
-        donation.payment_method.toLowerCase().includes(query)
+        donation.payment_method.toLowerCase().includes(query) ||
+        donation.selected_package_id?.toLowerCase().includes(query) ||
+        donation.selected_package_title?.toLowerCase().includes(query)
 
       return statusMatches && searchMatches
     })
@@ -497,7 +499,7 @@ const openReceipt = async () => {
             type="search"
             value={search}
             onChange={event => setSearch(event.target.value)}
-            placeholder="Search reference, player ID, username, or method"
+            placeholder="Search reference, player, package, or payment method"
             className="min-h-11 flex-1 rounded-lg border border-[#353c52] bg-[#0f1219] px-3 text-sm outline-none focus:border-[#66d4ff]"
           />
           <button
@@ -518,13 +520,16 @@ const openReceipt = async () => {
 
         <div className="mt-6 overflow-hidden rounded-xl border border-[#252a38] bg-[#13161e]">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] border-collapse text-left">
+            <table className="w-full min-w-[1280px] border-collapse text-left">
               <thead className="bg-[#191d27] text-[10px] uppercase tracking-widest text-[#7c879d]">
                 <tr>
                   <th className="px-4 py-3">Reference</th>
                   <th className="px-4 py-3">Submitted</th>
                   <th className="px-4 py-3">Player</th>
-                  <th className="px-4 py-3">Amount</th>
+                  <th className="px-4 py-3">Category</th>
+                  <th className="px-4 py-3">Package</th>
+                  <th className="px-4 py-3 text-center">Qty</th>
+                  <th className="px-4 py-3">Total Paid</th>
                   <th className="px-4 py-3">Method</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3 text-right">Action</th>
@@ -542,6 +547,20 @@ const openReceipt = async () => {
                     <td className="px-4 py-4">
                       <div className="font-semibold text-[#e8eaf0]">{donation.username}</div>
                       <div className="mt-1 text-xs text-[#6b7280]">{donation.player_id}</div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <PackageCategoryBadge packageId={donation.selected_package_id} />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="max-w-[240px] font-semibold text-[#e8eaf0]">
+                        {getPackageDisplayName(donation)}
+                      </div>
+                      <div className="mt-1 max-w-[240px] truncate font-mono text-[10px] text-[#6b7280]">
+                        {donation.selected_package_id ?? 'Legacy submission'}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-center font-semibold">
+                      {donation.package_quantity ?? 1}
                     </td>
                     <td className="px-4 py-4 font-semibold">
                       {formatMoney(donation.currency, donation.amount)}
@@ -566,7 +585,7 @@ const openReceipt = async () => {
 
                 {!loading && filteredDonations.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-sm text-[#6b7280]">
+                    <td colSpan={10} className="px-4 py-12 text-center text-sm text-[#6b7280]">
                       No donation submissions match the current filters.
                     </td>
                   </tr>
