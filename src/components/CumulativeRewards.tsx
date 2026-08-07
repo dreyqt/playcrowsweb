@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { cumulativeRewards } from '../cumulativeRewards'
+import { useI18n } from '../i18n'
 
 function formatAmount(amount: number) {
   return `$${amount.toLocaleString()}`
 }
 
 export function CumulativeRewards() {
+  const { t } = useI18n()
   const [expandedAmount, setExpandedAmount] = useState<number | null>(
     cumulativeRewards[0]?.amount ?? null
   )
@@ -14,12 +16,11 @@ export function CumulativeRewards() {
     <section className="flex flex-col gap-6">
     <div>
       <h2 className="mb-2 text-2xl font-bold text-[#e8eaf0]">
-        Cumulative Rewards
+        {t('cumulativeRewards')}
       </h2>
 
       <p className="text-sm leading-6 text-[#7c879d]">
-        Review the rewards assigned to each cumulative support milestone.
-        Select a milestone to expand its complete reward list.
+        {t('cumulativeIntro')}
       </p>
 
       <a
@@ -28,14 +29,14 @@ export function CumulativeRewards() {
         rel="noopener noreferrer"
         className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-4 py-2 text-sm font-bold text-[#66d4ff] transition-all hover:border-[#66d4ff] hover:bg-[#66d4ff]/20"
       >
-        Claim Cumulative Rewards
+        {t('claimCumulative')}
       </a>
     </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-xl border border-[#252a38] bg-[#13161e] p-4">
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
-            Milestones
+            {t('milestones')}
           </div>
           <div className="mt-1 text-xl font-bold text-[#66d4ff]">
             {cumulativeRewards.length}
@@ -44,7 +45,7 @@ export function CumulativeRewards() {
 
         <div className="rounded-xl border border-[#252a38] bg-[#13161e] p-4">
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
-            Starting Tier
+            {t('startingTier')}
           </div>
           <div className="mt-1 text-xl font-bold text-[#e8eaf0]">
             {formatAmount(cumulativeRewards[0]?.amount ?? 0)}
@@ -53,7 +54,7 @@ export function CumulativeRewards() {
 
         <div className="rounded-xl border border-[#252a38] bg-[#13161e] p-4">
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
-            Highest Tier
+            {t('highestTier')}
           </div>
           <div className="mt-1 text-xl font-bold text-[#e8eaf0]">
             {formatAmount(
@@ -88,7 +89,7 @@ export function CumulativeRewards() {
               >
                 <div>
                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
-                    Cumulative Support Milestone
+                    {t('cumulativeMilestone')}
                   </div>
 
                   <div className="mt-1 text-xl font-extrabold text-[#66d4ff]">
@@ -99,7 +100,7 @@ export function CumulativeRewards() {
                 <div className="flex items-center gap-3">
                   <span className="rounded-full border border-[#353c52] px-3 py-1 text-[11px] font-semibold text-[#9aa6ba]">
                     {tier.rewards.length}{' '}
-                    {tier.rewards.length === 1 ? 'reward' : 'rewards'}
+                    {tier.rewards.length === 1 ? t('reward') : t('rewards')}
                   </span>
 
                   <span
@@ -139,9 +140,7 @@ export function CumulativeRewards() {
       </div>
 
       <div className="rounded-r-xl border border-[#252a38] border-l-2 border-l-[#66d4ff] bg-[#11151d] px-4 py-3 text-xs leading-5 text-[#8792a8]">
-        Cumulative reward contents are displayed by milestone. Contact
-        PlayCrows support if you need confirmation about qualification or
-        reward distribution.
+        {t('cumulativeNotice')}
       </div>
     </section>
   )

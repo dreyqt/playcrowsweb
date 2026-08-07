@@ -1,34 +1,29 @@
 import type { FormData } from '../../types'
+import { useI18n } from '../../i18n'
 import { Btn, Card, Input } from '../ui'
 
-export function StepPlayerInfo({
-  data,
-  onUpdate,
-  onNext,
-  onBack,
-}: {
+export function StepPlayerInfo({ data, onUpdate, onNext, onBack }: {
   data: FormData
   onUpdate: (partial: Partial<FormData>) => void
   onNext: () => void
   onBack: () => void
 }) {
+  const { t } = useI18n()
   const valid = data.playerId.trim() && data.username.trim()
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#e8eaf0] mb-2">Player Information</h2>
-        <p className="text-sm text-[#6b7280] leading-relaxed">
-          Before you continue, please enter your Playcrows account information. This allows us to properly identify your account and process your support contribution.
-        </p>
+        <h2 className="text-2xl font-bold text-[#e8eaf0] mb-2">{t('playerInformation')}</h2>
+        <p className="text-sm text-[#6b7280] leading-relaxed">{t('playerInformationDesc')}</p>
       </div>
       <Card className="p-6 flex flex-col gap-5">
-        <Input label="Username" placeholder="Enter your Login ID" value={data.playerId} onChange={v => onUpdate({ playerId: v })} />
-        <Input label="Character name" placeholder="Enter your ingame character name" value={data.username} onChange={v => onUpdate({ username: v })} />
+        <Input label={t('username')} placeholder={t('loginIdPlaceholder')} value={data.playerId} onChange={v => onUpdate({ playerId: v })} />
+        <Input label={t('characterName')} placeholder={t('characterPlaceholder')} value={data.username} onChange={v => onUpdate({ username: v })} />
       </Card>
       <div className="flex items-center justify-between">
-        <Btn variant="ghost" onClick={onBack}>Back</Btn>
-        <Btn onClick={onNext} disabled={!valid}>Continue to Payment</Btn>
+        <Btn variant="ghost" onClick={onBack}>{t('back')}</Btn>
+        <Btn onClick={onNext} disabled={!valid}>{t('continuePayment')}</Btn>
       </div>
     </div>
   )

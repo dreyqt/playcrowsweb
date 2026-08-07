@@ -5,6 +5,7 @@ import {
   PAYMENT_INFO,
 } from '../../constants'
 import { displayAmount } from '../../utils'
+import { useI18n } from '../../i18n'
 import {
   EARLY_PROMO_CODE,
   EARLY_PROMO_DISCOUNT_PERCENT,
@@ -21,7 +22,6 @@ import {
   GCashIcon,
   WiseIcon,
   BybitIcon,
-  WiseIcon,
 } from '../icons'
 import gcashQr from '../../assets/gcash-qr.jpg'
 import bybitQr from '../../assets/bybit-qr.png'
@@ -122,6 +122,7 @@ export function StepPayment({
   onNext: () => void
   onBack: () => void
 }) {
+  const { t } = useI18n()
   const [redeemCode, setRedeemCode] = useState('')
   const [promoMessage, setPromoMessage] = useState('')
   const [promoMessageType, setPromoMessageType] =
@@ -182,7 +183,7 @@ export function StepPayment({
   const removeCode = () => {
     onRemovePromoCode()
     setRedeemCode('')
-    setPromoMessage('Redeem code removed.')
+    setPromoMessage(t('redeemRemoved'))
     setPromoMessageType('')
   }
 
@@ -191,12 +192,11 @@ export function StepPayment({
       {/* Header */}
       <div>
         <h2 className="mb-2 text-2xl font-bold text-[#e8eaf0]">
-          Choose Your Payment Method
+          {t('choosePayment')}
         </h2>
 
         <p className="text-sm text-[#6b7280]">
-          Select a method and follow the instructions to complete
-          your payment.
+          {t('choosePaymentDesc')}
         </p>
       </div>
 
@@ -205,7 +205,7 @@ export function StepPayment({
         <div className="flex flex-wrap gap-6">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6b7280]">
-              Username
+              {t('username')}
             </div>
 
             <div className="text-sm font-medium text-[#66d4ff]">
@@ -215,7 +215,7 @@ export function StepPayment({
 
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6b7280]">
-              Character Name
+              {t('characterName')}
             </div>
 
             <div className="text-sm font-medium text-[#66d4ff]">
@@ -226,7 +226,7 @@ export function StepPayment({
 
         <div className="text-right">
           <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6b7280]">
-            {promoApplied ? 'Amount To Pay' : 'Amount'}
+            {promoApplied ? t('amountToPay') : t('amount')}
           </div>
 
           {promoApplied &&
@@ -248,7 +248,7 @@ export function StepPayment({
               </div>
 
               <div className="mt-1 text-[10px] font-bold text-[#22c55e]">
-                {EARLY_PROMO_DISCOUNT_PERCENT}% discount applied
+                {EARLY_PROMO_DISCOUNT_PERCENT}% {t('discountApplied')}
               </div>
             </>
           ) : (
@@ -270,11 +270,11 @@ export function StepPayment({
         <div className="flex flex-col gap-4">
           <div>
             <div className="text-sm font-bold text-[#e8eaf0]">
-              Redeem Code
+              {t('redeemCode')}
             </div>
 
             <p className="mt-1 text-xs leading-5 text-[#6b7280]">
-              Enter a valid promotion code before selecting your payment method.
+              {t('redeemDesc')}
             </p>
           </div>
 
@@ -293,7 +293,7 @@ export function StepPayment({
                   applyCode()
                 }
               }}
-              placeholder="Enter redeem code"
+              placeholder={t('enterRedeem')}
               disabled={promoApplied}
               className="min-h-11 flex-1 rounded-lg border border-[#353c52] bg-[#0f1219] px-3 text-sm font-semibold uppercase tracking-wider text-[#e8eaf0] outline-none transition focus:border-[#66d4ff] disabled:cursor-not-allowed disabled:opacity-70"
             />
@@ -304,7 +304,7 @@ export function StepPayment({
                 onClick={removeCode}
                 className="min-h-11 rounded-lg border border-[#ef4444]/40 bg-[#ef4444]/5 px-4 text-xs font-bold text-[#ef4444] transition hover:bg-[#ef4444]/10"
               >
-                Remove
+                {t('remove')}
               </button>
             ) : (
               <button
@@ -313,7 +313,7 @@ export function StepPayment({
                 disabled={!redeemCode.trim()}
                 className="min-h-11 rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-5 text-xs font-bold text-[#66d4ff] transition hover:bg-[#66d4ff]/20 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Apply Code
+                {t('applyCode')}
               </button>
             )}
           </div>
@@ -323,22 +323,16 @@ export function StepPayment({
           discountedPackageAmount !== null ? (
             <div className="rounded-xl border border-[#22c55e]/35 bg-[#22c55e]/5 px-4 py-3">
               <div className="text-sm font-bold text-[#22c55e]">
-                {EARLY_PROMO_CODE} applied successfully
+                {EARLY_PROMO_CODE} {t('appliedSuccessfully')}
               </div>
 
               <p className="mt-1 text-xs leading-5 text-[#b8c3d4]">
-                Pay{' '}
+                {t('pay')}{' '}
                 <strong className="text-[#e8eaf0]">
-                  {formatCurrencyAmount(
-                    data.currency,
-                    discountedPackageAmount
-                  )}
+                  {formatCurrencyAmount(data.currency, discountedPackageAmount)}
                 </strong>{' '}
-                and receive the full{' '}
-                <strong className="text-[#e8eaf0]">
-                  ${selectedPackageAmount.toLocaleString()}
-                </strong>{' '}
-                package and cumulative reward credit.
+                <strong className="text-[#e8eaf0]">${selectedPackageAmount.toLocaleString()}</strong>{' '}
+                {t('receiveFullPackage')}
               </p>
             </div>
           ) : (
@@ -359,7 +353,7 @@ export function StepPayment({
 
           {!isEarlyPromoActive() && (
             <div className="text-xs text-[#ef4444]">
-              The early donation promotion has ended.
+              {t('earlyPromotionEnded')}
             </div>
           )}
         </div>
@@ -397,7 +391,7 @@ export function StepPayment({
                 </div>
 
                 <div className="mt-0.5 text-xs text-[#6b7280]">
-                  {method.desc}
+                  {method.id === 'paypal' ? t('paypalDesc') : method.id === 'gcash' ? t('gcashDesc') : method.id === 'wise' ? t('wiseDesc') : t('bybitDesc')}
                 </div>
               </div>
 
@@ -429,16 +423,16 @@ export function StepPayment({
 
             <div className="text-sm font-bold text-[#e8eaf0]">
               {data.paymentMethod === 'gcash' &&
-                'GCash Payment Details'}
+                `GCash ${t('paymentDetails')}`}
 
               {data.paymentMethod === 'paypal' &&
-                'PayPal Payment Details'}
+                `PayPal ${t('paymentDetails')}`}
 
               {data.paymentMethod === 'wise' &&
-                'Wise Payment Details'}
+                `Wise ${t('paymentDetails')}`}
 
               {data.paymentMethod === 'bybit' &&
-                'Bybit Payment Details'}
+                `Bybit ${t('paymentDetails')}`}
             </div>
           </div>
 
@@ -448,14 +442,13 @@ export function StepPayment({
               <GCashQR />
 
               <p className="text-center text-xs text-[#6b7280]">
-                Scan the QR code using your GCash app to complete
-                your payment.
+                {t('scanGcash')}
               </p>
 
               <div className="flex flex-col gap-2 rounded-xl bg-[#13161e] p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[#6b7280]">
-                    Account Name
+                    {t('accountName')}
                   </span>
 
                   <span className="text-sm font-medium text-[#e8eaf0]">
@@ -465,7 +458,7 @@ export function StepPayment({
 
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[#6b7280]">
-                    Account Number
+                    {t('accountNumber')}
                   </span>
 
                   <span className="font-mono text-sm font-medium text-[#e8eaf0]">
@@ -487,23 +480,15 @@ export function StepPayment({
 
                   <div className="flex flex-col gap-2">
                     <div className="text-sm font-bold text-[#f5a623]">
-                      Important PayPal Payment Instructions
+                      {t('paypalInstructions')}
                     </div>
 
                     <p className="text-xs leading-relaxed text-[#d1d5db]">
-                      When sending your payment through PayPal,
-                      please select
-                      <span className="font-bold text-[#f5a623]">
-                        {' '}
-                        Friends and Family
-                      </span>{' '}
-                      if this option is available to you.
+                      {t('paypalFriendsFamily')}
                     </p>
 
                     <p className="text-xs leading-relaxed text-[#6b7280]">
-                      Please make sure the payment is sent using the
-                      correct payment type before completing the
-                      transaction.
+                      {t('paypalCorrectType')}
                     </p>
                   </div>
                 </div>
@@ -514,7 +499,7 @@ export function StepPayment({
 
                 <div>
                   <div className="text-xs text-[#6b7280]">
-                    PayPal Email
+                    {t('paypalEmail')}
                   </div>
 
                   <div className="text-sm font-medium text-[#e8eaf0]">
@@ -531,7 +516,7 @@ export function StepPayment({
               >
                 <Btn className="w-full">
                   <PayPalIcon size={18} />
-                  Open PayPal
+                  {t('openPaypal')}
                 </Btn>
               </a>
             </>
@@ -549,27 +534,12 @@ export function StepPayment({
     </div>
 
     <p className="text-center text-xs leading-5 text-[#6b7280]">
-      Scan the QR code using your phone or open the Wise payment link below.
+      {t('scanWise')}
     </p>
 
     <div className="flex flex-col gap-0 overflow-hidden rounded-xl bg-[#13161e]">
-      {[
-        [
-          'Account Name',
-          PAYMENT_INFO.wise.accountName,
-        ],
-        [
-          'Wisetag',
-          PAYMENT_INFO.wise.wisetag,
-        ],
-      ].map(([label, value]) => (
-        <PaymentDetailRow
-          key={label}
-          label={label}
-          value={value}
-          mono
-        />
-      ))}
+      <PaymentDetailRow label={t('accountName')} value={PAYMENT_INFO.wise.accountName} mono />
+      <PaymentDetailRow label={t('wisetag')} value={PAYMENT_INFO.wise.wisetag} mono />
     </div>
 
     <a
@@ -579,12 +549,11 @@ export function StepPayment({
       className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#66d4ff] bg-[#66d4ff] px-4 py-2 text-sm font-bold text-[#06141b] transition-colors hover:bg-[#8ae2ff]"
     >
       <WiseIcon size={18} />
-      Open Wise Payment
+      {t('openWise')}
     </a>
 
     <p className="text-center text-xs leading-5 text-[#6b7280]">
-      After completing the payment, save a screenshot of the transaction and
-      upload it in the next step.
+      {t('saveScreenshotNext')}
     </p>
   </>
 )}
@@ -594,12 +563,11 @@ export function StepPayment({
             <>
               <div className="rounded-xl border border-[#66d4ff]/30 bg-[#66d4ff]/5 p-4">
                 <div className="text-sm font-bold text-[#66d4ff]">
-                  Choose one Bybit transfer method
+                  {t('chooseBybitMethod')}
                 </div>
 
                 <p className="mt-2 text-xs leading-relaxed text-[#a8b2c5]">
-                  You may send through an internal Bybit UID transfer,
-                  or send USDT through the TRC20 network.
+                  {t('bybitMethodDesc')}
                 </p>
               </div>
 
@@ -607,17 +575,16 @@ export function StepPayment({
               <div className="overflow-hidden rounded-xl border border-[#252a38] bg-[#13161e]">
                 <div className="border-b border-[#252a38] px-4 py-3">
                   <div className="text-sm font-bold text-[#e8eaf0]">
-                    Bybit Internal Transfer
+                    {t('bybitInternal')}
                   </div>
 
                   <div className="mt-1 text-xs text-[#6b7280]">
-                    Use this UID when transferring from another Bybit
-                    account.
+                    {t('bybitUidDesc')}
                   </div>
                 </div>
 
                 <PaymentDetailRow
-                  label="Bybit UID"
+                  label={t('bybitUid')}
                   value={PAYMENT_INFO.bybit.uid}
                   mono
                 />
@@ -627,7 +594,7 @@ export function StepPayment({
                 <div className="h-px flex-1 bg-[#252a38]" />
 
                 <span className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
-                  Or
+                  {t('or')}
                 </span>
 
                 <div className="h-px flex-1 bg-[#252a38]" />
@@ -637,12 +604,11 @@ export function StepPayment({
               <div className="overflow-hidden rounded-xl border border-[#252a38] bg-[#13161e]">
                 <div className="border-b border-[#252a38] px-4 py-3">
                   <div className="text-sm font-bold text-[#e8eaf0]">
-                    USDT On-Chain Transfer
+                    {t('usdtOnchain')}
                   </div>
 
                   <div className="mt-1 text-xs text-[#6b7280]">
-                    Scan the QR code or enter the wallet address
-                    manually.
+                    {t('usdtDesc')}
                   </div>
                 </div>
 
@@ -651,17 +617,17 @@ export function StepPayment({
                 </div>
 
                 <PaymentDetailRow
-                  label="Asset"
+                  label={t('asset')}
                   value={PAYMENT_INFO.bybit.asset}
                 />
 
                 <PaymentDetailRow
-                  label="Network"
+                  label={t('network')}
                   value={PAYMENT_INFO.bybit.network}
                 />
 
                 <PaymentDetailRow
-                  label="Wallet Address"
+                  label={t('walletAddress')}
                   value={PAYMENT_INFO.bybit.address}
                   mono
                 />
@@ -675,22 +641,18 @@ export function StepPayment({
 
                   <div>
                     <div className="text-sm font-bold text-[#ef4444]">
-                      Important network warning
+                      {t('networkWarning')}
                     </div>
 
                     <p className="mt-1 text-xs leading-relaxed text-[#c8cfda]">
-                      Send only USDT using the TRC20 network. Using a
-                      different asset or network may result in
-                      permanent loss of funds.
+                      {t('networkWarningDesc')}
                     </p>
                   </div>
                 </div>
               </div>
 
               <p className="text-center text-xs leading-relaxed text-[#6b7280]">
-                After completing the transfer, save a screenshot of
-                the transaction receipt and upload it in the next
-                step.
+                {t('saveTransferReceipt')}
               </p>
             </>
           )}
@@ -703,14 +665,14 @@ export function StepPayment({
           variant="ghost"
           onClick={onBack}
         >
-          Back
+          {t('back')}
         </Btn>
 
         <Btn
           onClick={onNext}
           disabled={!data.paymentMethod}
         >
-          Continue to Receipt
+          {t('continueReceipt')}
         </Btn>
       </div>
     </div>

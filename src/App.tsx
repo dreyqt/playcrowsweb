@@ -20,6 +20,8 @@ import {
 } from './promo'
 import CrowLogo from './assets/playcrows-icon.jpg'
 import { findGiftPackage } from './giftPackageData'
+import { I18nProvider, useI18n } from './i18n'
+import { LanguageSelector } from './components/LanguageSelector'
 
 type InformationTab = 'packages' | 'support' | 'cumulative'
 
@@ -35,7 +37,8 @@ const INITIAL: FormData = {
   additionalNotes: '',
 }
 
-export default function App() {
+function PublicApp() {
+  const { t } = useI18n()
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [submissionReference, setSubmissionReference] = useState('')
@@ -137,7 +140,7 @@ export default function App() {
       return {
         success: false,
         message:
-          'The EARLY10 promotion ended on July 31, 2026 at 3:00 PM Singapore Time.',
+          t('promoEnded'),
       }
     }
 
@@ -146,7 +149,7 @@ export default function App() {
 
       return {
         success: false,
-        message: 'Invalid redeem code.',
+        message: t('invalidRedeem'),
       }
     }
 
@@ -161,7 +164,7 @@ export default function App() {
       return {
         success: false,
         message:
-          'EARLY10 only applies when your selected support amount matches your chosen gift package. Custom amounts are not eligible.',
+          t('promoNotEligible'),
       }
     }
 
@@ -170,7 +173,7 @@ export default function App() {
     return {
       success: true,
       message:
-        'EARLY10 applied. You will pay 10% less while receiving the full package and cumulative credit.',
+        t('promoApplied'),
     }
   }
 
@@ -187,7 +190,7 @@ export default function App() {
     ) {
       setAppliedPromoCode(null)
       setSubmitError(
-        'The EARLY10 promotion has expired. Review the regular payment amount before submitting.'
+        t('promoExpiredReview')
       )
       return
     }
@@ -210,7 +213,7 @@ export default function App() {
       setSubmitError(
         error instanceof Error
           ? error.message
-          : 'Unable to submit the donation form. Please try again.'
+          : t('unableSubmit')
       )
     } finally {
       setIsSubmitting(false)
@@ -241,22 +244,26 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#0d0f14] text-[#e8eaf0]">
       <header className="sticky top-0 z-50 border-b border-[#191d27] bg-[#0d0f14]">
-        <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4">
-          <img
-            src={CrowLogo}
-            alt="PlayCrows logo"
-            className="h-10 w-10 rounded-full object-cover"
-          />
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <img
+              src={CrowLogo}
+              alt="PlayCrows logo"
+              className="h-10 w-10 rounded-full object-cover"
+            />
 
-          <div>
-            <div className="text-base font-bold leading-tight tracking-tight text-[#e8eaf0]">
-              PLAYCROWS
-            </div>
+            <div className="min-w-0">
+              <div className="text-base font-bold leading-tight tracking-tight text-[#e8eaf0]">
+                PLAYCROWS
+              </div>
 
-            <div className="text-[10px] uppercase tracking-widest text-[#6b7280]">
-              by Playcrows Development Team
+              <div className="truncate text-[10px] uppercase tracking-widest text-[#6b7280]">
+                {t('developmentTeam')}
+              </div>
             </div>
           </div>
+
+          <LanguageSelector />
         </div>
       </header>
 
@@ -268,17 +275,16 @@ export default function App() {
             </div>
 
             <h1 className="mt-5 text-2xl font-bold text-[#e8eaf0]">
-              Donation Form Submitted
+              {t('donationSubmitted')}
             </h1>
 
             <p className="mt-3 max-w-md text-sm leading-6 text-[#7c879d]">
-              Your submission is pending review. Save the reference code below
-              in case you need to contact PlayCrows support.
+              {t('donationSubmittedDesc')}
             </p>
 
             <div className="mt-6 w-full rounded-xl border border-[#66d4ff]/30 bg-[#66d4ff]/5 px-4 py-4">
               <div className="text-[10px] font-bold uppercase tracking-widest text-[#7c879d]">
-                Reference Code
+                {t('referenceCode')}
               </div>
               <div className="mt-2 break-all font-mono text-xl font-bold text-[#66d4ff]">
                 {submissionReference}
@@ -290,7 +296,7 @@ export default function App() {
               onClick={reset}
               className="mt-7 min-h-11 rounded-lg border border-[#66d4ff] bg-[#66d4ff] px-5 py-2 text-sm font-bold text-[#06141b] transition-colors hover:bg-[#8ae2ff]"
             >
-              Submit Another Form
+              {t('submitAnother')}
             </button>
           </section>
         ) : (
@@ -317,11 +323,11 @@ export default function App() {
                     }}
                     title={
                       hasSelectedPackage
-                        ? 'Use Change Package to select another package'
-                        : 'Choose a gift package'
+                        ? t('changePackageHint')
+                        : t('choosePackageHint')
                     }
                   >
-                    WEB Shop
+                    {t('webShop')}
                     {hasSelectedPackage && (
                       <span className="ml-1 text-[10px]">
                         🔒
@@ -343,11 +349,11 @@ export default function App() {
                     }}
                     title={
                       hasSelectedPackage
-                        ? 'Choose your currency and support amount'
-                        : 'Select a gift package first'
+                        ? t('chooseSupportHint')
+                        : t('selectPackageFirst')
                     }
                   >
-                    Support Amount
+                    {t('supportAmount')}
                     {!hasSelectedPackage && (
                       <span className="ml-1 text-[10px]">
                         🔒
@@ -360,7 +366,7 @@ export default function App() {
                     className={tabClass('cumulative')}
                     onClick={() => setActiveTab('cumulative')}
                   >
-                    Cumulative Rewards
+                    {t('cumulativeRewards')}
                   </button>
                 </nav>
 
@@ -378,7 +384,7 @@ export default function App() {
                       <div className="mb-6 flex flex-col gap-4 rounded-xl border border-[#66d4ff]/30 bg-[#66d4ff]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#7c879d]">
-                            Initial Gift Package Selection
+                            {t('initialPackage')}
                           </div>
 
                           <div className="text-xl font-bold text-[#66d4ff]">
@@ -386,8 +392,7 @@ export default function App() {
                           </div>
 
                           <p className="mt-1 text-xs text-[#7c879d]">
-                            You may freely choose your currency and
-                            support amount below.
+                            {t('packageSelectionDesc')}
                           </p>
                         </div>
 
@@ -396,7 +401,7 @@ export default function App() {
                           onClick={changeGiftPackage}
                           className="min-h-10 rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-4 py-2 text-xs font-bold text-[#66d4ff] transition-colors hover:border-[#66d4ff] hover:bg-[#66d4ff]/20"
                         >
-                          Change Package
+                          {t('changePackage')}
                         </button>
                       </div>
 
@@ -465,10 +470,18 @@ export default function App() {
 
       <footer className="mt-16 border-t border-[#191d27]">
         <div className="mx-auto max-w-2xl px-4 py-6 text-center text-xs text-[#6b7280]">
-          2026 Playcrows by Playcrows Development Team - All contributions are voluntary
-          support donations.
+          {t('voluntaryFooter')}
         </div>
       </footer>
     </div>
+  )
+}
+
+
+export default function App() {
+  return (
+    <I18nProvider>
+      <PublicApp />
+    </I18nProvider>
   )
 }

@@ -1,23 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { giftPackages, type GiftPackageCategory } from '../giftPackageData'
+import { useI18n } from '../i18n'
 
 interface GiftPackagesProps {
   selectedPackageId?: string | null
   onSelectPackage?: (packageId: string) => void
-}
-
-const sections: Record<
-  GiftPackageCategory,
-  { title: string; description: string }
-> = {
-  currency: {
-    title: 'Currency',
-    description: 'Diamond packages currently available in the web shop.',
-  },
-  support: {
-    title: 'Support Packages',
-    description: 'Item bundles available for direct support purchases.',
-  },
 }
 
 /*
@@ -59,7 +46,7 @@ function getRewardIconPath(name: string) {
   return `/images/${filename}`
 }
 
-function RewardIcon({ name }: { name: string }) {
+function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: string; unavailable: string }) {
   const [failed, setFailed] = useState(false)
   const iconPath = getRewardIconPath(name)
 
@@ -71,8 +58,8 @@ function RewardIcon({ name }: { name: string }) {
     return (
       <div
         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#353c52] bg-[#171b24] text-sm font-bold text-[#7c879d]"
-        title={`Missing icon: ${iconPath}`}
-        aria-label={`${name} icon unavailable`}
+        title={`${tMissing}: ${iconPath}`}
+        aria-label={`${name} ${unavailable}`}
       >
         {name.charAt(0).toUpperCase()}
       </div>
@@ -93,6 +80,11 @@ function RewardIcon({ name }: { name: string }) {
 }
 
 export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackagesProps) {
+  const { t } = useI18n()
+  const sections: Record<GiftPackageCategory, { title: string; description: string }> = {
+    currency: { title: t('currency'), description: t('currencyDesc') },
+    support: { title: t('supportPackages'), description: t('supportPackagesDesc') },
+  }
   const selectedCategory = useMemo<GiftPackageCategory | null>(() => {
     if (!selectedPackageId) return null
     return giftPackages.find(item => item.id === selectedPackageId)?.category ?? null
@@ -116,11 +108,11 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
   return (
     <section className="gift-packages">
       <div className="gift-packages__header">
-        <h2>WEB Shop</h2>
-        <p>Select a category below for an easy lookup of available packages.</p>
+        <h2>{t('webShop')}</h2>
+        <p>{t('webShopIntro')}</p>
       </div>
 
-      <nav className="gift-package-tabs" aria-label="WEB Shop package categories">
+      <nav className="gift-package-tabs" aria-label={t('webShop')}>
         {(Object.keys(sections) as GiftPackageCategory[]).map(category => (
           <button
             key={category}
@@ -154,7 +146,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                 <header className="gift-package-card__header">
                   <div>
                     <span className="gift-package-card__label">
-                      {giftPackage.category === 'currency' ? 'Currency' : 'Support Package'}
+                      {giftPackage.category === 'currency' ? t('currency') : t('supportPackage')}
                     </span>
                     <h3>{giftPackage.title}</h3>
                     <div className="mt-1 text-xl font-bold text-[#66d4ff]">
@@ -163,7 +155,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                   </div>
 
                   {isSelected && (
-                    <span className="gift-package-card__selected">Selected</span>
+                    <span className="gift-package-card__selected">{t('selected')}</span>
                   )}
                 </header>
 
@@ -173,7 +165,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                       key={reward.name}
                       className="flex min-h-[62px] items-center gap-3 rounded-xl border border-[#252a38] bg-[#0f1219] px-3 py-2.5 transition-colors hover:border-[#353c52]"
                     >
-                      <RewardIcon name={reward.name} />
+                      <RewardIcon name={reward.name} tMissing={t('missingIcon')} unavailable={t('iconUnavailable')} />
 
                       <div className="min-w-0 flex-1">
                         <div className="break-words text-sm font-semibold leading-5 text-[#dfe5ef]">
@@ -196,7 +188,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                     className="gift-package-card__button"
                     onClick={() => onSelectPackage(giftPackage.id)}
                   >
-                    Select {giftPackage.title}
+                    {t('select')} {giftPackage.title}
                   </button>
                 )}
               </article>
@@ -206,7 +198,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
       </div>
 
       <div className="gift-packages__notice">
-        Select a package to continue. Bound items cannot be traded or transferred.
+        {t('packageContinueNotice')}
       </div>
     </section>
   )
