@@ -20,6 +20,78 @@ const sections: Record<
   },
 }
 
+/*
+ * Most item icons are resolved automatically from the reward name.
+ * These aliases only cover filenames that intentionally use a shorter
+ * or different name inside public/images/.
+ */
+const REWARD_ICON_ALIASES: Record<string, string> = {
+  'Black Wing Special Supply': 'black_wings_special_supply.png',
+  'Sunset Splendid Weapon Style Summon x11 (Bound)': 'sunset_weapon_summon.png',
+  'Sunset Splendid Mount Summon x11 (Bound)': 'sunset_mount_summon.png',
+  'Time Recharger - Masarta Special Dungeon': 'time_recharger_masarta_special_dungeon.png',
+  'Element Extraction of Harmony (Bound)': 'element_extraction_of_harmony.png',
+  'Source of Wisdom (Bound)': 'source_wisdom.png',
+  'Source of Growth (Bound)': 'source_growth.png',
+  'Treasure Guild Coin Chest (Bound)': 'treasure_guild_coins.png',
+  'High Seal of Advancement (Bound)': 'higher_seal_advancement.png',
+  "Star's Memory (Bound)": 'star_memory.png',
+  'Aura of Intense Expression (Attribution)': 'aura_intense_expression.png',
+  'Cyclical Manifestation Energy (Attribution)': 'cyclical_manifestation_energy.png',
+}
+
+function rewardNameToFilename(name: string) {
+  const withoutQualifier = name
+    .replace(/\s*\((?:bound|attributed|attribution)\)\s*/gi, ' ')
+    .replace(/\bx11\b/gi, '')
+    .trim()
+
+  return `${withoutQualifier
+    .toLowerCase()
+    .replace(/['’]/g, '')
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')}.png`
+}
+
+function getRewardIconPath(name: string) {
+  const filename = REWARD_ICON_ALIASES[name] ?? rewardNameToFilename(name)
+  return `/images/${filename}`
+}
+
+function RewardIcon({ name }: { name: string }) {
+  const [failed, setFailed] = useState(false)
+  const iconPath = getRewardIconPath(name)
+
+  useEffect(() => {
+    setFailed(false)
+  }, [iconPath])
+
+  if (failed) {
+    return (
+      <div
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#353c52] bg-[#171b24] text-sm font-bold text-[#7c879d]"
+        title={`Missing icon: ${iconPath}`}
+        aria-label={`${name} icon unavailable`}
+      >
+        {name.charAt(0).toUpperCase()}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#353c52] bg-[#171b24] p-1">
+      <img
+        src={iconPath}
+        alt=""
+        className="h-full w-full object-contain"
+        loading="lazy"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  )
+}
+
 export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackagesProps) {
   const selectedCategory = useMemo<GiftPackageCategory | null>(() => {
     if (!selectedPackageId) return null
@@ -73,6 +145,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
         <div className="gift-packages__grid">
           {visiblePackages.map(giftPackage => {
             const isSelected = selectedPackageId === giftPackage.id
+
             return (
               <article
                 className={`gift-package-card ${isSelected ? 'gift-package-card--selected' : ''}`}
@@ -88,17 +161,30 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                       ${giftPackage.amount.toLocaleString()}
                     </div>
                   </div>
+
                   {isSelected && (
                     <span className="gift-package-card__selected">Selected</span>
                   )}
                 </header>
 
-                <ul className="gift-package-card__rewards">
+                <ul className="mt-4 space-y-2">
                   {giftPackage.rewards.map(reward => (
-                    <li key={reward.name}>
-                      <span>{reward.name}</span>
+                    <li
+                      key={reward.name}
+                      className="flex min-h-[62px] items-center gap-3 rounded-xl border border-[#252a38] bg-[#0f1219] px-3 py-2.5 transition-colors hover:border-[#353c52]"
+                    >
+                      <RewardIcon name={reward.name} />
+
+                      <div className="min-w-0 flex-1">
+                        <div className="break-words text-sm font-semibold leading-5 text-[#dfe5ef]">
+                          {reward.name}
+                        </div>
+                      </div>
+
                       {reward.quantity !== undefined && (
-                        <strong>×{reward.quantity.toLocaleString()}</strong>
+                        <strong className="shrink-0 pl-2 text-sm font-bold tabular-nums text-[#66d4ff]">
+                          ×{reward.quantity.toLocaleString()}
+                        </strong>
                       )}
                     </li>
                   ))}
