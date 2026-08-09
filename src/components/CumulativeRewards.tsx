@@ -29,6 +29,7 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   'Die of Oceans': 'die_of_oceans.png',
   'Die of Thunderbolts': 'die_of_thunderbolts.png',
   'Element Extraction of Harmony': 'element_extraction_of_harmony.png',
+  'Elemental Extraction of Fusion 11 times': 'element_extraction_of_fusion.png',
   'Seal of Advancement': 'seal_of_advancement.png',
   'Higher Seal of Advancement': 'higher_seal_advancement.png',
   'Metal Fragment': 'metal_fragment.png',
@@ -66,17 +67,19 @@ function splitRewardText(reward: string) {
     : null
   const match = quantityMatch ?? bareQuantityMatch
 
-  let name = match ? normalized.slice(0, match.index).trim() : normalized
+  const displayName = match ? normalized.slice(0, match.index).trim() : normalized
   const quantity = match ? Number(match[1].replace(/,/g, '')) : null
 
-  name = name
+  // Keep enhancement levels such as +8, +9, +10 and +11 visible to players.
+  // Only normalize the name used for matching an icon filename.
+  const iconName = displayName
     .replace(/\s*·\s*\+\d+\s*$/i, '')
     .replace(/^\+\d+\s+/, '')
     .replace(/\s*\((?:bound|attributed|attribution)\)\s*/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 
-  return { name, quantity }
+  return { displayName, iconName, quantity }
 }
 
 function rewardNameToFilename(name: string) {
@@ -247,14 +250,14 @@ export function CumulativeRewards() {
                           className="flex min-h-[62px] min-w-0 items-center gap-3 rounded-xl border border-[#252a38] bg-[#0f1219] px-3 py-2.5 transition-colors hover:border-[#353c52]"
                         >
                           <RewardIcon
-                            name={parsed.name}
+                            name={parsed.iconName}
                             tMissing={t('missingIcon')}
                             unavailable={t('iconUnavailable')}
                           />
 
                           <div className="min-w-0 flex-1">
                             <div className="break-words text-sm font-semibold leading-5 text-[#dfe5ef]">
-                              {parsed.name}
+                              {parsed.displayName}
                             </div>
                           </div>
 
