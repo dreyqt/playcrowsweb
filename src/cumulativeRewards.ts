@@ -5,6 +5,183 @@ export interface CumulativeRewardTier {
 
 export const cumulativeRewards: CumulativeRewardTier[] = [
   {
+    amount: 10,
+    rewards: [
+      'Morion (Bound) 200',
+      'Gold Chest (Bound) 500',
+      'Sunset\'s Mount Summon Style x11 (Bound) 20',
+      'Sunset\'s Weapon Summon Style x11 (Bound) 20',
+      '[L] Weapon Style Challenge Ticket (Bound) 1',
+      '[L] Mount Summon Challenge Ticket (Bound) 1',
+    ],
+  },
+
+  {
+    amount: 50,
+    rewards: [
+      'Sunset\'s Mount Summon Style x11  (Bound) ×50',
+      'Sunset\'s Weapon Summon Style x11 (Bound) ×50',
+      '[L] Weapon Style Challenge Ticket (Bound) ×3',
+      '[L] Mount Summon Challenge Ticket  (Bound) ×3',
+      'Pupil Aircraft Toolbox (Bound) ×25',
+      'Artisan\'s Aircaft Toolbox (Bound) ×5',
+      'NightCrow Claw Talisman Chest (Bound) ×50',
+      'Night Crow Beak Circlet Chest (Bound) ×50',
+      'Night Crow Flight Feather Jewel Chest (Bound) ×50',
+      'Night Crow Feather Brooch Chest  (Bound) ×50',
+      'Night Hawk Mask Chest (Bound) ×50',
+      'Night Hawk TailFeather Whistle Box (Bound) ×50',
+      'Morion (Bound) ×500',
+      'Gold Chest (Bound) x2500',
+    ],
+  },
+
+  {
+    amount: 100,
+    rewards: [
+      'Sunset\'s Mount Summon Style x11  (Bound) ×100',
+      'Sunset\'s Weapon Summon Style x11 (Bound) ×100',
+      '[L] Weapon Style Challenge Ticket (Bound) ×7',
+      '[L] Mount Summon Challenge Ticket  (Bound) ×7',
+      'Pupil Aircraft Toolbox (Bound) ×50',
+      'Artisan\'s Aircaft Toolbox (Bound) ×10',
+      'NightCrow Claw Talisman Chest (Bound) ×100',
+      'Night Crow Beak Circlet Chest (Bound) ×100',
+      'Night Crow Flight Feather Jewel Chest (Bound) ×100',
+      'Night Crow Feather Brooch Chest  (Bound) ×100',
+      'Night Hawk Mask Chest (Bound) ×100',
+      'Night Hawk TailFeather Whistle Box (Bound) ×100',
+      'Morion (Bound) ×1000',
+      'Gold Chest (Bound) x5000',
+    ],
+  },
+
+  {
+    amount: 300,
+    rewards: [
+      'Sunset\'s Mount Summon Style x11  (Bound) ×200',
+      'Sunset\'s Weapon Summon Style x11 (Bound) ×200',
+      '[L] Weapon Style Challenge Ticket (Bound) ×20',
+      '[L] Mount Summon Challenge Ticket  (Bound) ×20',
+      'Pupil Aircraft Toolbox (Bound) ×100',
+      'Artisan\'s Aircaft Toolbox (Bound) ×30',
+      'NightCrow Claw Talisman Chest (Bound) ×200',
+      'Night Crow Beak Circlet Chest (Bound) ×200',
+      'Night Crow Flight Feather Jewel Chest (Bound) ×200',
+      'Night Crow Feather Brooch Chest  (Bound) ×200',
+      'Night Hawk Mask Chest (Bound) ×200',
+      'Night Hawk TailFeather Whistle Box (Bound) ×200',
+      'Hourglass of Desert (Bound) · +6 ×1',
+      'Die of Scorching Heat (Bound) · +6 ×1',
+      'Die of Oceans (Bound) · +6 ×1',
+      'Die of Thunderbolts (Bound) · +6 ×1',
+      'Morion (Bound) ×3000',
+      'Gold Chest (Bound) ×10,000',
+      'Element Extraction of Harmony (Bound) ×3000',
+    ],
+  },
+
+  {
+    amount: 500,
+    rewards: [
+      'Sunset\'s Mount Summon Style x11  (Bound) ×300',
+      'Sunset\'s Weapon Summon Style x11 (Bound) ×300',
+      '[L] Weapon Style Challenge Ticket (Bound) ×30',
+      '[L] Mount Summon Challenge Ticket  (Bound) ×30',
+      'Pupil Aircraft Toolbox (Bound) ×150',
+      'Artisan\'s Aircaft Toolbox (Bound) ×50',
+      'NightCrow Claw Talisman Chest (Bound) ×200',
+      'Night Crow Beak Circlet Chest (Bound) ×200',
+      'Night Crow Flight Feather Jewel Chest (Bound) ×200',
+      'Night Crow Feather Brooch Chest  (Bound) ×200',
+      'Night Hawk Mask Chest (Bound) ×200',
+      'Night Hawk TailFeather Whistle Box (Bound) ×200',
+      'Hourglass of Desert (Bound) · +6 ×1',
+      'Die of Scorching Heat (Bound) · +6 ×1',
+      'Die of Oceans (Bound) · +6 ×1',
+      'Die of Thunderbolts (Bound) · +6 ×1',
+      'Morion (Bound) ×3000',
+      'Gold Chest (Bound) ×15,000',
+      'Element Extraction of Harmony (Bound) ×5000',
+    ],
+  },
+
+  {
+    amount: 1000,
+    rewards: [
+      'Sunset\'s Mount Summon Style x11  (Bound) ×500',
+      'Sunset\'s Weapon Summon Style x11 (Bound) ×500',
+      '[L] Weapon Style Challenge Ticket (Bound) ×30',
+      '[L] Mount Summon Challenge Ticket  (Bound) ×30',
+      'Pupil Aircraft Toolbox (Bound) ×150',
+      'Artisan\'s Aircaft Toolbox (Bound) ×50',
+      'NightCrow Claw Talisman Chest (Bound) ×500',
+      'Night Crow Beak Circlet Chest (Bound) ×500',
+      'Night Crow Flight Feather Jewel Chest (Bound) ×500',
+      'Night Crow Feather Brooch Chest  (Bound) ×500',
+      'Night Hawk Mask Chest (Bound) ×500',
+      'Night Hawk TailFeather Whistle Box (Bound) ×500',
+      'Hourglass of Desert (Bound) · +7 ×1',
+      'Die of Scorching Heat (Bound) · +7 ×1',
+      'Die of Oceans (Bound) · +7 ×1',
+      'Die of Thunderbolts (Bound) · +7 ×1',
+      'Morion (Bound) ×5000',
+      'Gold Chest (Bound) ×20000',
+      'Element Extraction of Harmony (Bound) ×5000',
+    ],
+  },
+
+  {
+    amount: 1500,
+    rewards: [
+      'Sunset\'s Mount Summon Style x11  (Bound) ×700',
+      'Sunset\'s Weapon Summon Style x11 (Bound) ×700',
+      '[L] Weapon Style Challenge Ticket (Bound) ×70',
+      '[L] Mount Summon Challenge Ticket  (Bound) ×70',
+      'Pupil Aircraft Toolbox (Bound) ×300',
+      'Artisan\'s Aircaft Toolbox (Bound) ×100',
+      'NightCrow Claw Talisman Chest (Bound) ×700',
+      'Night Crow Beak Circlet Chest (Bound) ×700',
+      'Night Crow Flight Feather Jewel Chest (Bound) ×700',
+      'Night Crow Feather Brooch Chest  (Bound) ×700',
+      'Night Hawk Mask Chest (Bound) ×700',
+      'Night Hawk TailFeather Whistle Box (Bound) ×700',
+      'Hourglass of Desert (Bound) · +7 ×1',
+      'Die of Scorching Heat (Bound) · +7 ×1',
+      'Die of Oceans (Bound) · +7 ×1',
+      'Die of Thunderbolts (Bound) · +7 ×1',
+      'Morion (Bound) ×10,000',
+      'Gold Chest (Bound) ×25000',
+      'Element Extraction of Harmony (Bound) ×50000',
+    ],
+  },
+
+  {
+    amount: 2000,
+    rewards: [
+      'Sunset\'s Mount Summon Style x11  (Bound) ×1000',
+      'Sunset\'s Weapon Summon Style x11 (Bound) ×1000',
+      '[L] Weapon Style Challenge Ticket (Bound) ×70',
+      '[L] Mount Summon Challenge Ticket  (Bound) ×70',
+      'Pupil Aircraft Toolbox (Bound) ×450',
+      'Artisan\'s Aircaft Toolbox (Bound) ×150',
+      'NightCrow Claw Talisman Chest (Bound) ×1000',
+      'Night Crow Beak Circlet Chest (Bound) ×1000',
+      'Night Crow Flight Feather Jewel Chest (Bound) ×1000',
+      'Night Crow Feather Brooch Chest  (Bound) ×1000',
+      'Night Hawk Mask Chest (Bound) ×1000',
+      'Night Hawk TailFeather Whistle Box (Bound) ×1000',
+      'Hourglass of Desert (Bound) · +8 ×1',
+      'Die of Scorching Heat (Bound) · +8 ×1',
+      'Die of Oceans (Bound) · +8 ×1',
+      'Die of Thunderbolts (Bound) · +8 ×1',
+      'Morion (Bound) ×10,000',
+      'Gold Chest (Bound) ×30,000',
+      'Element Extraction of Harmony(Bound) ×100000',
+    ],
+  },
+
+  {
     amount: 3000,
     rewards: [
       "Mileage ×200000",
@@ -36,6 +213,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "Gilded Monarch Raven (Bound) ×1",
     ],
   },
+
   {
     amount: 3500,
     rewards: [
@@ -69,6 +247,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+8 Die of Thunderbolts   (Bound) ×1",
     ],
   },
+
   {
     amount: 4000,
     rewards: [
@@ -101,6 +280,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "for gray-scaled babies   (Bound) ×1",
     ],
   },
+
   {
     amount: 4500,
     rewards: [
@@ -135,6 +315,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "Glorius Albatross Wings   (Bound) ×1",
     ],
   },
+
   {
     amount: 5000,
     rewards: [
@@ -167,6 +348,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+9 Incense Burner of   Endurance (Bound) ×1",
     ],
   },
+
   {
     amount: 5500,
     rewards: [
@@ -202,6 +384,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+9 Die of Thunderbolts   (Bound) ×1",
     ],
   },
+
   {
     amount: 6000,
     rewards: [
@@ -236,6 +419,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+10 Incense Burner of   Endurance (Bound) ×1",
     ],
   },
+
   {
     amount: 6500,
     rewards: [
@@ -271,6 +455,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+10 Die of Thunderbolts   (Bound) ×1",
     ],
   },
+
   {
     amount: 7000,
     rewards: [
@@ -306,6 +491,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "Tiaraka of Flushing (Bound) ×1",
     ],
   },
+
   {
     amount: 7500,
     rewards: [
@@ -341,6 +527,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+10 Die of Thunderbolts   (Bound) ×1",
     ],
   },
+
   {
     amount: 8000,
     rewards: [
@@ -374,6 +561,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+11 Incense Burner of   Endurance (Bound) ×1",
     ],
   },
+
   {
     amount: 8500,
     rewards: [
@@ -406,6 +594,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "crusade Loot Chest   (Attributed) ×200",
     ],
   },
+
   {
     amount: 9000,
     rewards: [
@@ -438,6 +627,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "Guardian's   Scepter(Attribution) 150000",
     ],
   },
+
   {
     amount: 9500,
     rewards: [
@@ -470,6 +660,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "Guardian's   Scepter(Attribution) 200000",
     ],
   },
+
   {
     amount: 10000,
     rewards: [
@@ -509,5 +700,5 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "Guardian's   Scepter(Attribution) 250000",
       "crusade Loot Chest   (Attributed) ×400",
     ],
-  },
+  }
 ]
