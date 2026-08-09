@@ -270,7 +270,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes'
+        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -409,7 +409,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes'
+        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id'
       )
       .single()
 
@@ -424,8 +424,60 @@ const openReceipt = async () => {
       current.map(item => (item.id === updated.id ? updated : item))
     )
     setSelected(updated)
-    setSaveMessage('Review saved successfully.')
-    setSaving(false)
+
+    try {
+      const {
+        data: { session: activeSession },
+      } = await supabase.auth.getSession()
+
+      if (!activeSession) {
+        throw new Error('Your admin session has expired.')
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/update-donation-discord-status`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: publishableKey,
+            Authorization: `Bearer ${activeSession.access_token}`,
+          },
+          body: JSON.stringify({
+            donationId: updated.id,
+          }),
+        }
+      )
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        const message =
+          payload &&
+          typeof payload === 'object' &&
+          'error' in payload &&
+          typeof payload.error === 'string'
+            ? payload.error
+            : `Discord status sync failed (${response.status}).`
+
+        throw new Error(message)
+      }
+
+      setSaveMessage('Review saved successfully and Discord status updated.')
+    } catch (discordError) {
+      console.error('Discord status sync error:', discordError)
+      setSaveMessage(
+        `Review saved, but Discord was not updated: ${
+          discordError instanceof Error
+            ? discordError.message
+            : 'Unknown Discord sync error.'
+        }`
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   const signOut = async () => {
