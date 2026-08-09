@@ -1,9 +1,136 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { cumulativeRewards } from '../cumulativeRewards'
 import { useI18n } from '../i18n'
 
 function formatAmount(amount: number) {
   return `$${amount.toLocaleString()}`
+}
+
+const REWARD_ICON_ALIASES: Record<string, string> = {
+  'Morion': 'morion.png',
+  'Gold Chest': 'gold_chest.png',
+  "Sunset's Mount Summon Style x11": 'sunset_mount_summon.png',
+  "Sunset's Weapon Summon Style x11": 'sunset_weapon_summon.png',
+  '[L] Weapon Style Challenge Ticket': 'weapon_style_challenge_ticket.png',
+  '[L] Mount Summon Challenge Ticket': 'mount_challenge_ticket.png',
+  'Pupil Aircraft Toolbox': 'pupil_aircraft_toolbox.png',
+  "Artisan's Aircaft Toolbox": 'artisans_aircraft_toolbox.png',
+  "Artisan's Aircraft Toolbox": 'artisans_aircraft_toolbox.png',
+  'Artisan Aircraft Toolbox': 'artisans_aircraft_toolbox.png',
+  "Master's Aircraft Toolbox": 'masters_aircraft_toolbox.png',
+  'NightCrow Claw Talisman Chest': 'night_crow_claw_talisman.png',
+  'Night Crow Beak Circlet Chest': 'night_crow_beak_circle.png',
+  'Night Crow Flight Feather Jewel Chest': 'night_crow_flight_feather.png',
+  'Night Crow Feather Brooch Chest': 'night_crow_feather_brooch.png',
+  'Night Hawk Mask Chest': 'night_crow_mask.png',
+  'Night Hawk TailFeather Whistle Box': 'night_crow_tailfeather_whistle.png',
+  'Hourglass of Desert': 'hourglass_of_deserts.png',
+  'Die of Scorching Heat': 'die_of_scorching_heat.png',
+  'Die of Oceans': 'die_of_oceans.png',
+  'Die of Thunderbolts': 'die_of_thunderbolts.png',
+  'Element Extraction of Harmony': 'element_extraction_of_harmony.png',
+  'Seal of Advancement': 'seal_of_advancement.png',
+  'Higher Seal of Advancement': 'higher_seal_advancement.png',
+  'Metal Fragment': 'metal_fragment.png',
+  'MealBasket': 'meal_basket.png',
+  '[UC] Crafting Material Selection Chest': 'uc_crafting_chest.png',
+  '[C] Crafting Material x40 Selection Chest': 'advanced_crafting_box.png',
+  '[R] Arcane Scroll Selection Chest': 'rare_scroll_box.png',
+  'Time Recharger - Masarta Special Dungeon': 'time_recharger_masarta_special_dungeon.png',
+  'Time Charging Device - Harphenon Sanctum': 'time_charging_harpenon.png',
+  'Elemental Extraction of Fusion 11 times': 'element_extraction.png',
+  'Brilliant Weapon Refinement Stone': 'brilliant_weapon_refinement_stone.png',
+  'Brilliant Armor Refinement Stone': 'brilliant_armor_refinement_stone.png',
+  'Brilliant Accessory Refinement Stone': 'brilliant_accessory_refinement_stone.png',
+  'Shining Weapon Enhancement Chest': 'shining_weapon_enhancement.png',
+  'Shining Armor Enhancement Chest': 'shining_armor_enhancement.png',
+  'Shining Accessory Enhancement Chest': 'shining_accessory_enhancement.png',
+  'Knight Jewel': 'knight_jewel.png',
+  'Fighter Jewel': 'fighter_jewel.png',
+  "Philosopher's Jewel": 'philosophers_jewel.png',
+  'Incense Burner of Vitality': 'incense_burner_of_vitality.png',
+  'Incense Burner of Mentality': 'incense_burner_of_mentality.png',
+  'Incense Burner of Endurance': 'incense_burner_of_endurance.png',
+  'Nightcrows Stimulant of Growth': 'growth_stimulant.png',
+  'Eligio Stimulant of EXP': 'exp_bottle.png',
+  'crusade Loot Chest': 'crusader_spoils_chest.png',
+  'Tiaraka of Flushing': 'taraka.png',
+  "Guardian's Scepter": 'guardian_scepter.png',
+}
+
+function splitRewardText(reward: string) {
+  const normalized = reward.replace(/\s+/g, ' ').trim()
+  const quantityMatch = normalized.match(/\s+(?:×|\*|x)\s*([\d,]+)\s*$/i)
+  const bareQuantityMatch = !quantityMatch
+    ? normalized.match(/\s+([\d,]+)\s*$/)
+    : null
+  const match = quantityMatch ?? bareQuantityMatch
+
+  let name = match ? normalized.slice(0, match.index).trim() : normalized
+  const quantity = match ? Number(match[1].replace(/,/g, '')) : null
+
+  name = name
+    .replace(/\s*·\s*\+\d+\s*$/i, '')
+    .replace(/^\+\d+\s+/, '')
+    .replace(/\s*\((?:bound|attributed|attribution)\)\s*/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  return { name, quantity }
+}
+
+function rewardNameToFilename(name: string) {
+  return `${name
+    .toLowerCase()
+    .replace(/['’]/g, '')
+    .replace(/&/g, 'and')
+    .replace(/\bx11\b/gi, '')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')}.png`
+}
+
+function getRewardIconCandidates(name: string) {
+  const alias = REWARD_ICON_ALIASES[name]
+  const generated = rewardNameToFilename(name)
+  const withoutOf = generated.replace(/_of_/g, '_')
+  return Array.from(new Set([alias, generated, withoutOf].filter(Boolean) as string[]))
+    .map(filename => `/images/${filename}`)
+}
+
+function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: string; unavailable: string }) {
+  const candidates = useMemo(() => getRewardIconCandidates(name), [name])
+  const [candidateIndex, setCandidateIndex] = useState(0)
+
+  useEffect(() => {
+    setCandidateIndex(0)
+  }, [name])
+
+  const iconPath = candidates[candidateIndex]
+  const failed = !iconPath
+
+  if (failed) {
+    return (
+      <div
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#353c52] bg-[#171b24] text-sm font-bold text-[#7c879d]"
+        title={`${tMissing}: ${name}`}
+        aria-label={`${name} ${unavailable}`}
+      >
+        {name.charAt(0).toUpperCase()}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#353c52] bg-[#171b24] p-1">
+      <img
+        src={iconPath}
+        alt=""
+        className="h-full w-full object-contain"
+        loading="lazy"
+        onError={() => setCandidateIndex(current => current + 1)}
+      />
+    </div>
+  )
 }
 
 export function CumulativeRewards() {
@@ -14,24 +141,24 @@ export function CumulativeRewards() {
 
   return (
     <section className="flex flex-col gap-6">
-    <div>
-      <h2 className="mb-2 text-2xl font-bold text-[#e8eaf0]">
-        {t('cumulativeRewards')}
-      </h2>
+      <div>
+        <h2 className="mb-2 text-2xl font-bold text-[#e8eaf0]">
+          {t('cumulativeRewards')}
+        </h2>
 
-      <p className="text-sm leading-6 text-[#7c879d]">
-        {t('cumulativeIntro')}
-      </p>
+        <p className="text-sm leading-6 text-[#7c879d]">
+          {t('cumulativeIntro')}
+        </p>
 
-      <a
-        href="https://account.playcrows.com/bonus.php"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-4 py-2 text-sm font-bold text-[#66d4ff] transition-all hover:border-[#66d4ff] hover:bg-[#66d4ff]/20"
-      >
-        {t('claimCumulative')}
-      </a>
-    </div>
+        <a
+          href="https://account.playcrows.com/bonus.php"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-4 py-2 text-sm font-bold text-[#66d4ff] transition-all hover:border-[#66d4ff] hover:bg-[#66d4ff]/20"
+        >
+          {t('claimCumulative')}
+        </a>
+      </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-xl border border-[#252a38] bg-[#13161e] p-4">
@@ -57,9 +184,7 @@ export function CumulativeRewards() {
             {t('highestTier')}
           </div>
           <div className="mt-1 text-xl font-bold text-[#e8eaf0]">
-            {formatAmount(
-              cumulativeRewards[cumulativeRewards.length - 1]?.amount ?? 0
-            )}
+            {formatAmount(cumulativeRewards[cumulativeRewards.length - 1]?.amount ?? 0)}
           </div>
         </div>
       </div>
@@ -91,7 +216,6 @@ export function CumulativeRewards() {
                   <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
                     {t('cumulativeMilestone')}
                   </div>
-
                   <div className="mt-1 text-xl font-extrabold text-[#66d4ff]">
                     {formatAmount(tier.amount)}
                   </div>
@@ -102,14 +226,11 @@ export function CumulativeRewards() {
                     {tier.rewards.length}{' '}
                     {tier.rewards.length === 1 ? t('reward') : t('rewards')}
                   </span>
-
                   <span
-                    className={`text-xl text-[#66d4ff] transition-transform ${
-                      expanded ? 'rotate-180' : ''
-                    }`}
+                    className={`text-xl text-[#66d4ff] transition-transform ${expanded ? 'rotate-180' : ''}`}
                     aria-hidden="true"
                   >
-                   ⌄
+                    ⌄
                   </span>
                 </div>
               </button>
@@ -117,20 +238,34 @@ export function CumulativeRewards() {
               {expanded && (
                 <div className="border-t border-[#252a38] px-5 py-4">
                   <ul className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-                    {tier.rewards.map((reward, index) => (
-                      <li
-                        key={`${tier.amount}-${index}-${reward}`}
-                        className="flex min-w-0 items-start gap-3 rounded-lg border border-[#252a38] bg-[#0f1219] px-3 py-3"
-                      >
-                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#66d4ff]/10 px-1 text-[10px] font-bold text-[#66d4ff]">
-                          {index + 1}
-                        </span>
+                    {tier.rewards.map((reward, index) => {
+                      const parsed = splitRewardText(reward)
 
-                        <span className="min-w-0 break-words text-xs leading-5 text-[#cbd2de]">
-                          {reward}
-                        </span>
-                      </li>
-                    ))}
+                      return (
+                        <li
+                          key={`${tier.amount}-${index}-${reward}`}
+                          className="flex min-h-[62px] min-w-0 items-center gap-3 rounded-xl border border-[#252a38] bg-[#0f1219] px-3 py-2.5 transition-colors hover:border-[#353c52]"
+                        >
+                          <RewardIcon
+                            name={parsed.name}
+                            tMissing={t('missingIcon')}
+                            unavailable={t('iconUnavailable')}
+                          />
+
+                          <div className="min-w-0 flex-1">
+                            <div className="break-words text-sm font-semibold leading-5 text-[#dfe5ef]">
+                              {parsed.name}
+                            </div>
+                          </div>
+
+                          {parsed.quantity !== null && Number.isFinite(parsed.quantity) && (
+                            <strong className="shrink-0 pl-2 text-sm font-bold tabular-nums text-[#66d4ff]">
+                              ×{parsed.quantity.toLocaleString()}
+                            </strong>
+                          )}
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
               )}
