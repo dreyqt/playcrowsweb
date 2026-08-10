@@ -231,19 +231,19 @@ function PublicApp() {
       'min-h-11 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-colors duration-200'
 
     if (disabled) {
-      return `${base} cursor-not-allowed border border-transparent text-[#475569] opacity-60`
+      return `${base} cursor-not-allowed border border-transparent text-[#5d5b57] opacity-60`
     }
 
     if (activeTab === tab) {
-      return `${base} border border-[#66d4ff] bg-[#66d4ff]/10 text-[#66d4ff]`
+      return `${base} border border-[#c9aa68] bg-[#c9aa68]/10 text-[#c9aa68]`
     }
 
-    return `${base} border border-transparent text-[#7c879d] hover:bg-[#171b24] hover:text-[#e8eaf0]`
+    return `${base} border border-transparent text-[#8f8b84] hover:bg-[#181b21] hover:text-[#eee9df]`
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0f14] text-[#e8eaf0]">
-      <header className="sticky top-0 z-50 border-b border-[#191d27] bg-[#0d0f14]">
+    <div className="min-h-screen bg-[#0a0b0d] text-[#eee9df]">
+      <header className="sticky top-0 z-50 border-b border-[#171a20] bg-[#0a0b0d]">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-4">
           <div className="flex min-w-0 items-center gap-3">
             <img
@@ -253,11 +253,11 @@ function PublicApp() {
             />
 
             <div className="min-w-0">
-              <div className="text-base font-bold leading-tight tracking-tight text-[#e8eaf0]">
+              <div className="text-base font-bold leading-tight tracking-tight text-[#eee9df]">
                 PLAYCROWS
               </div>
 
-              <div className="truncate text-[10px] uppercase tracking-widest text-[#6b7280]">
+              <div className="truncate text-[10px] uppercase tracking-widest text-[#77746e]">
                 {t('developmentTeam')}
               </div>
             </div>
@@ -269,24 +269,24 @@ function PublicApp() {
 
       <main className="mx-auto max-w-2xl px-4 py-10">
         {submitted ? (
-          <section className="mx-auto flex max-w-xl flex-col items-center rounded-2xl border border-[#66d4ff]/35 bg-[#13161e] px-6 py-10 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#66d4ff]/40 bg-[#66d4ff]/10 text-3xl text-[#66d4ff]">
+          <section className="mx-auto flex max-w-xl flex-col items-center rounded-2xl border border-[#c9aa68]/35 bg-[#111318] px-6 py-10 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#c9aa68]/40 bg-[#c9aa68]/10 text-3xl text-[#c9aa68]">
               ✓
             </div>
 
-            <h1 className="mt-5 text-2xl font-bold text-[#e8eaf0]">
+            <h1 className="mt-5 text-2xl font-bold text-[#eee9df]">
               {t('donationSubmitted')}
             </h1>
 
-            <p className="mt-3 max-w-md text-sm leading-6 text-[#7c879d]">
+            <p className="mt-3 max-w-md text-sm leading-6 text-[#8f8b84]">
               {t('donationSubmittedDesc')}
             </p>
 
-            <div className="mt-6 w-full rounded-xl border border-[#66d4ff]/30 bg-[#66d4ff]/5 px-4 py-4">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-[#7c879d]">
+            <div className="mt-6 w-full rounded-xl border border-[#c9aa68]/30 bg-[#c9aa68]/5 px-4 py-4">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-[#8f8b84]">
                 {t('referenceCode')}
               </div>
-              <div className="mt-2 break-all font-mono text-xl font-bold text-[#66d4ff]">
+              <div className="mt-2 break-all font-mono text-xl font-bold text-[#c9aa68]">
                 {submissionReference}
               </div>
             </div>
@@ -294,7 +294,7 @@ function PublicApp() {
             <button
               type="button"
               onClick={reset}
-              className="mt-7 min-h-11 rounded-lg border border-[#66d4ff] bg-[#66d4ff] px-5 py-2 text-sm font-bold text-[#06141b] transition-colors hover:bg-[#8ae2ff]"
+              className="mt-7 min-h-11 rounded-lg border border-[#c9aa68] bg-[#c9aa68] px-5 py-2 text-sm font-bold text-[#16120b] transition-colors hover:bg-[#e1c88d]"
             >
               {t('submitAnother')}
             </button>
@@ -306,7 +306,7 @@ function PublicApp() {
             {step === 1 && (
               <>
                 <nav
-                  className="mb-8 mt-8 grid grid-cols-1 gap-1 rounded-xl border border-[#242a36] bg-[#11151d] p-1 sm:grid-cols-3"
+                  className="mb-8 mt-8 grid grid-cols-1 gap-1 rounded-xl border border-[#292d34] bg-[#0f1115] p-1 sm:grid-cols-3"
                   aria-label="Support information"
                 >
                   <button
@@ -381,17 +381,17 @@ function PublicApp() {
                 {activeTab === 'support' &&
                   hasSelectedPackage && (
                     <section>
-                      <div className="mb-6 flex flex-col gap-4 rounded-xl border border-[#66d4ff]/30 bg-[#66d4ff]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="mb-6 flex flex-col gap-4 rounded-xl border border-[#c9aa68]/30 bg-[#c9aa68]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                          <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#7c879d]">
+                          <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#8f8b84]">
                             {t('initialPackage')}
                           </div>
 
-                          <div className="text-xl font-bold text-[#66d4ff]">
+                          <div className="text-xl font-bold text-[#c9aa68]">
                             {selectedPackage?.title} · ${selectedPackage?.amount.toLocaleString()}
                           </div>
 
-                          <p className="mt-1 text-xs text-[#7c879d]">
+                          <p className="mt-1 text-xs text-[#8f8b84]">
                             {t('packageSelectionDesc')}
                           </p>
                         </div>
@@ -399,7 +399,7 @@ function PublicApp() {
                         <button
                           type="button"
                           onClick={changeGiftPackage}
-                          className="min-h-10 rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-4 py-2 text-xs font-bold text-[#66d4ff] transition-colors hover:border-[#66d4ff] hover:bg-[#66d4ff]/20"
+                          className="min-h-10 rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-4 py-2 text-xs font-bold text-[#c9aa68] transition-colors hover:border-[#c9aa68] hover:bg-[#c9aa68]/20"
                         >
                           {t('changePackage')}
                         </button>
@@ -468,8 +468,8 @@ function PublicApp() {
         )}
       </main>
 
-      <footer className="mt-16 border-t border-[#191d27]">
-        <div className="mx-auto max-w-2xl px-4 py-6 text-center text-xs text-[#6b7280]">
+      <footer className="mt-16 border-t border-[#171a20]">
+        <div className="mx-auto max-w-2xl px-4 py-6 text-center text-xs text-[#77746e]">
           {t('voluntaryFooter')}
         </div>
       </footer>

@@ -11,7 +11,7 @@ const STATUS_LABELS: Record<DonationStatus, string> = {
 }
 
 const STATUS_CLASSES: Record<DonationStatus, string> = {
-  pending: 'border-[#f5a623]/40 bg-[#f5a623]/10 text-[#f5a623]',
+  pending: 'border-[#d3ad62]/40 bg-[#d3ad62]/10 text-[#d3ad62]',
   approved: 'border-[#22c55e]/40 bg-[#22c55e]/10 text-[#22c55e]',
   rejected: 'border-[#ef4444]/40 bg-[#ef4444]/10 text-[#ef4444]',
 }
@@ -92,10 +92,10 @@ function PackageCategoryBadge({ packageId }: { packageId: string | null | undefi
   const category = getPackageCategory(packageId)
   const className =
     category === 'Currency'
-      ? 'border-[#66d4ff]/40 bg-[#66d4ff]/10 text-[#66d4ff]'
+      ? 'border-[#c9aa68]/40 bg-[#c9aa68]/10 text-[#c9aa68]'
       : category === 'Support Package'
-        ? 'border-[#f5a623]/40 bg-[#f5a623]/10 text-[#f5a623]'
-        : 'border-[#353c52] bg-[#353c52]/20 text-[#9aa6ba]'
+        ? 'border-[#d3ad62]/40 bg-[#d3ad62]/10 text-[#d3ad62]'
+        : 'border-[#3b414b] bg-[#3b414b]/20 text-[#aaa49a]'
 
   return (
     <span className={`inline-flex whitespace-nowrap rounded-full border px-2 py-0.5 text-[9px] font-bold ${className}`}>
@@ -140,42 +140,42 @@ function LoginScreen({ onSignedIn }: { onSignedIn: () => Promise<void> }) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0d0f14] px-4 text-[#e8eaf0]">
+    <div className="flex min-h-screen items-center justify-center bg-[#0a0b0d] px-4 text-[#eee9df]">
       <form
         onSubmit={submit}
-        className="w-full max-w-md rounded-2xl border border-[#252a38] bg-[#13161e] p-6 shadow-2xl"
+        className="w-full max-w-md rounded-2xl border border-[#292d34] bg-[#111318] p-6 shadow-2xl"
       >
         <div className="mb-6">
-          <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#66d4ff]">
+          <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#c9aa68]">
             PlayCrows
           </div>
           <h1 className="mt-2 text-2xl font-bold">Admin Dashboard</h1>
-          <p className="mt-2 text-sm leading-6 text-[#7c879d]">
+          <p className="mt-2 text-sm leading-6 text-[#8f8b84]">
             Sign in with an authorized Supabase administrator account.
           </p>
         </div>
 
         <label className="block">
-          <span className="text-xs font-semibold text-[#9aa6ba]">Email</span>
+          <span className="text-xs font-semibold text-[#aaa49a]">Email</span>
           <input
             type="email"
             required
             value={email}
             onChange={event => setEmail(event.target.value)}
             autoComplete="email"
-            className="mt-2 min-h-11 w-full rounded-lg border border-[#353c52] bg-[#0f1219] px-3 text-sm text-[#e8eaf0] outline-none transition focus:border-[#66d4ff]"
+            className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-sm text-[#eee9df] outline-none transition focus:border-[#c9aa68]"
           />
         </label>
 
         <label className="mt-4 block">
-          <span className="text-xs font-semibold text-[#9aa6ba]">Password</span>
+          <span className="text-xs font-semibold text-[#aaa49a]">Password</span>
           <input
             type="password"
             required
             value={password}
             onChange={event => setPassword(event.target.value)}
             autoComplete="current-password"
-            className="mt-2 min-h-11 w-full rounded-lg border border-[#353c52] bg-[#0f1219] px-3 text-sm text-[#e8eaf0] outline-none transition focus:border-[#66d4ff]"
+            className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-sm text-[#eee9df] outline-none transition focus:border-[#c9aa68]"
           />
         </label>
 
@@ -188,14 +188,14 @@ function LoginScreen({ onSignedIn }: { onSignedIn: () => Promise<void> }) {
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 min-h-11 w-full rounded-lg bg-[#66d4ff] px-4 text-sm font-bold text-[#06141b] transition hover:bg-[#8ae2ff] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-6 min-h-11 w-full rounded-lg bg-[#c9aa68] px-4 text-sm font-bold text-[#16120b] transition hover:bg-[#e1c88d] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? 'Signing in…' : 'Sign In'}
         </button>
 
         <a
           href="/"
-          className="mt-4 block text-center text-xs text-[#7c879d] hover:text-[#66d4ff]"
+          className="mt-4 block text-center text-xs text-[#8f8b84] hover:text-[#c9aa68]"
         >
           Return to donation website
         </a>
@@ -206,11 +206,11 @@ function LoginScreen({ onSignedIn }: { onSignedIn: () => Promise<void> }) {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-b border-[#252a38] py-3 last:border-0">
-      <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
+    <div className="border-b border-[#292d34] py-3 last:border-0">
+      <div className="text-[10px] font-bold uppercase tracking-widest text-[#77746e]">
         {label}
       </div>
-      <div className="mt-1 break-words text-sm text-[#e8eaf0]">{value}</div>
+      <div className="mt-1 break-words text-sm text-[#eee9df]">{value}</div>
     </div>
   )
 }
@@ -365,8 +365,8 @@ const openReceipt = async () => {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #0d0f14;
-      color: #e8eaf0;
+      background: #0a0b0d;
+      color: #eee9df;
       font-family: Arial, sans-serif;
     ">
       Loading private receipt...
@@ -490,7 +490,7 @@ const openReceipt = async () => {
 
   if (checkingSession) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0d0f14] text-sm text-[#7c879d]">
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0b0d] text-sm text-[#8f8b84]">
         Checking administrator access…
       </div>
     )
@@ -510,21 +510,21 @@ const openReceipt = async () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0f14] text-[#e8eaf0]">
-      <header className="border-b border-[#191d27] bg-[#0d0f14]">
+    <div className="min-h-screen bg-[#0a0b0d] text-[#eee9df]">
+      <header className="border-b border-[#171a20] bg-[#0a0b0d]">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#66d4ff]">
+            <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#c9aa68]">
               PlayCrows
             </div>
             <h1 className="mt-1 text-xl font-bold">Donation Admin Dashboard</h1>
-            <div className="mt-1 text-xs text-[#6b7280]">{session.user.email}</div>
+            <div className="mt-1 text-xs text-[#77746e]">{session.user.email}</div>
           </div>
 
           <div className="flex gap-2">
             <a
               href="/"
-              className="inline-flex min-h-10 items-center rounded-lg border border-[#353c52] px-4 text-xs font-bold text-[#cbd2de] hover:border-[#66d4ff]/60 hover:text-[#66d4ff]"
+              className="inline-flex min-h-10 items-center rounded-lg border border-[#3b414b] px-4 text-xs font-bold text-[#d7d2c8] hover:border-[#c9aa68]/60 hover:text-[#c9aa68]"
             >
               Open Website
             </a>
@@ -553,31 +553,31 @@ const openReceipt = async () => {
               onClick={() => setStatusFilter(filter)}
               className={`rounded-xl border p-4 text-left transition ${
                 statusFilter === filter
-                  ? 'border-[#66d4ff] bg-[#66d4ff]/5'
-                  : 'border-[#252a38] bg-[#13161e] hover:border-[#353c52]'
+                  ? 'border-[#c9aa68] bg-[#c9aa68]/5'
+                  : 'border-[#292d34] bg-[#111318] hover:border-[#3b414b]'
               }`}
             >
-              <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-[#77746e]">
                 {label}
               </div>
-              <div className="mt-1 text-2xl font-bold text-[#e8eaf0]">{count}</div>
+              <div className="mt-1 text-2xl font-bold text-[#eee9df]">{count}</div>
             </button>
           ))}
         </div>
 
-        <div className="mt-6 flex flex-col gap-3 rounded-xl border border-[#252a38] bg-[#13161e] p-4 sm:flex-row">
+        <div className="mt-6 flex flex-col gap-3 rounded-xl border border-[#292d34] bg-[#111318] p-4 sm:flex-row">
           <input
             type="search"
             value={search}
             onChange={event => setSearch(event.target.value)}
             placeholder="Search reference, player, package, or payment method"
-            className="min-h-11 flex-1 rounded-lg border border-[#353c52] bg-[#0f1219] px-3 text-sm outline-none focus:border-[#66d4ff]"
+            className="min-h-11 flex-1 rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-sm outline-none focus:border-[#c9aa68]"
           />
           <button
             type="button"
             onClick={() => void loadDonations()}
             disabled={loading}
-            className="min-h-11 rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-4 text-xs font-bold text-[#66d4ff] hover:bg-[#66d4ff]/20 disabled:opacity-60"
+            className="min-h-11 rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-4 text-xs font-bold text-[#c9aa68] hover:bg-[#c9aa68]/20 disabled:opacity-60"
           >
             {loading ? 'Refreshing…' : 'Refresh'}
           </button>
@@ -589,10 +589,10 @@ const openReceipt = async () => {
           </div>
         )}
 
-        <div className="mt-6 overflow-hidden rounded-xl border border-[#252a38] bg-[#13161e]">
+        <div className="mt-6 overflow-hidden rounded-xl border border-[#292d34] bg-[#111318]">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1180px] table-fixed border-collapse text-left">
-              <thead className="bg-[#191d27] text-[10px] uppercase tracking-widest text-[#7c879d]">
+              <thead className="bg-[#171a20] text-[10px] uppercase tracking-widest text-[#8f8b84]">
                 <tr>
                   <th className="w-[135px] px-4 py-3">Reference</th>
                   <th className="w-[150px] px-4 py-3">Submitted</th>
@@ -608,28 +608,28 @@ const openReceipt = async () => {
               </thead>
               <tbody>
                 {filteredDonations.map(donation => (
-                  <tr key={donation.id} className="border-t border-[#252a38] text-sm">
-                    <td className="px-4 py-4 font-mono text-xs text-[#66d4ff]">
+                  <tr key={donation.id} className="border-t border-[#292d34] text-sm">
+                    <td className="px-4 py-4 font-mono text-xs text-[#c9aa68]">
                       {donation.reference_code}
                     </td>
-                    <td className="px-4 py-4 text-xs text-[#9aa6ba]">
+                    <td className="px-4 py-4 text-xs text-[#aaa49a]">
                       <div>{formatTableDate(donation.created_at).date}</div>
-                      <div className="mt-1 text-[10px] text-[#6b7280]">
+                      <div className="mt-1 text-[10px] text-[#77746e]">
                         {formatTableDate(donation.created_at).time}
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="font-semibold text-[#e8eaf0]">{donation.username}</div>
-                      <div className="mt-1 text-xs text-[#6b7280]">{donation.player_id}</div>
+                      <div className="font-semibold text-[#eee9df]">{donation.username}</div>
+                      <div className="mt-1 text-xs text-[#77746e]">{donation.player_id}</div>
                     </td>
                     <td className="px-3 py-4">
                       <PackageCategoryBadge packageId={donation.selected_package_id} />
                     </td>
                     <td className="px-3 py-4">
-                      <div className="truncate font-semibold text-[#e8eaf0]">
+                      <div className="truncate font-semibold text-[#eee9df]">
                         {getPackageDisplayName(donation)}
                       </div>
-                      <div className="mt-1 truncate font-mono text-[9px] text-[#6b7280]">
+                      <div className="mt-1 truncate font-mono text-[9px] text-[#77746e]">
                         {donation.selected_package_id ?? 'Before package tracking'}
                       </div>
                     </td>
@@ -649,7 +649,7 @@ const openReceipt = async () => {
                       <button
                         type="button"
                         onClick={() => openDonation(donation)}
-                        className="whitespace-nowrap rounded-lg border border-[#353c52] px-3 py-2 text-xs font-bold hover:border-[#66d4ff] hover:text-[#66d4ff]"
+                        className="whitespace-nowrap rounded-lg border border-[#3b414b] px-3 py-2 text-xs font-bold hover:border-[#c9aa68] hover:text-[#c9aa68]"
                       >
                         Review
                       </button>
@@ -659,7 +659,7 @@ const openReceipt = async () => {
 
                 {!loading && filteredDonations.length === 0 && (
                   <tr>
-                    <td colSpan={10} className="px-4 py-12 text-center text-sm text-[#6b7280]">
+                    <td colSpan={10} className="px-4 py-12 text-center text-sm text-[#77746e]">
                       No donation submissions match the current filters.
                     </td>
                   </tr>
@@ -672,16 +672,16 @@ const openReceipt = async () => {
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4">
-          <div className="max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl border border-[#353c52] bg-[#13161e] sm:rounded-2xl">
-            <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-[#252a38] bg-[#13161e] px-5 py-4">
+          <div className="max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl border border-[#3b414b] bg-[#111318] sm:rounded-2xl">
+            <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-[#292d34] bg-[#111318] px-5 py-4">
               <div>
-                <div className="font-mono text-sm font-bold text-[#66d4ff]">{selected.reference_code}</div>
-                <div className="mt-1 text-xs text-[#6b7280]">{formatDate(selected.created_at)}</div>
+                <div className="font-mono text-sm font-bold text-[#c9aa68]">{selected.reference_code}</div>
+                <div className="mt-1 text-xs text-[#77746e]">{formatDate(selected.created_at)}</div>
               </div>
               <button
                 type="button"
                 onClick={() => setSelected(null)}
-                className="h-9 w-9 rounded-lg border border-[#353c52] text-lg text-[#9aa6ba] hover:text-white"
+                className="h-9 w-9 rounded-lg border border-[#3b414b] text-lg text-[#aaa49a] hover:text-white"
                 aria-label="Close review"
               >
                 ×
@@ -691,12 +691,12 @@ const openReceipt = async () => {
             <div className="grid gap-6 p-5 lg:grid-cols-2">
               <div>
                 <h2 className="text-sm font-bold">Submission Details</h2>
-                <div className="mt-3 rounded-xl border border-[#252a38] bg-[#0f1219] px-4">
+                <div className="mt-3 rounded-xl border border-[#292d34] bg-[#0d0f13] px-4">
                   <DetailRow label="Player ID" value={selected.player_id} />
                   <DetailRow label="Username" value={selected.username} />
                   <DetailRow label="Amount" value={formatMoney(selected.currency, selected.amount)} />
-                  <div className="border-b border-[#252a38] py-3">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
+                  <div className="border-b border-[#292d34] py-3">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#77746e]">
                       Package Category
                     </div>
                     <div className="mt-2">
@@ -726,7 +726,7 @@ const openReceipt = async () => {
                 <button
                   type="button"
                   onClick={() => void openReceipt()}
-                  className="mt-4 min-h-11 w-full rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-4 text-sm font-bold text-[#66d4ff] hover:bg-[#66d4ff]/20"
+                  className="mt-4 min-h-11 w-full rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-4 text-sm font-bold text-[#c9aa68] hover:bg-[#c9aa68]/20"
                 >
                   Open Private Receipt
                 </button>
@@ -736,11 +736,11 @@ const openReceipt = async () => {
                 <h2 className="text-sm font-bold">Admin Review</h2>
 
                 <label className="mt-3 block">
-                  <span className="text-xs font-semibold text-[#9aa6ba]">Status</span>
+                  <span className="text-xs font-semibold text-[#aaa49a]">Status</span>
                   <select
                     value={status}
                     onChange={event => setStatus(event.target.value as DonationStatus)}
-                    className="mt-2 min-h-11 w-full rounded-lg border border-[#353c52] bg-[#0f1219] px-3 text-sm outline-none focus:border-[#66d4ff]"
+                    className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-sm outline-none focus:border-[#c9aa68]"
                   >
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
@@ -749,18 +749,18 @@ const openReceipt = async () => {
                 </label>
 
                 <label className="mt-4 block">
-                  <span className="text-xs font-semibold text-[#9aa6ba]">Internal Notes</span>
+                  <span className="text-xs font-semibold text-[#aaa49a]">Internal Notes</span>
                   <textarea
                     value={notes}
                     onChange={event => setNotes(event.target.value)}
                     rows={8}
                     placeholder="Add verification details or rejection reason…"
-                    className="mt-2 w-full resize-y rounded-lg border border-[#353c52] bg-[#0f1219] p-3 text-sm leading-6 outline-none focus:border-[#66d4ff]"
+                    className="mt-2 w-full resize-y rounded-lg border border-[#3b414b] bg-[#0d0f13] p-3 text-sm leading-6 outline-none focus:border-[#c9aa68]"
                   />
                 </label>
 
                 {saveMessage && (
-                  <div className="mt-4 rounded-lg border border-[#353c52] bg-[#0f1219] px-3 py-3 text-xs leading-5 text-[#9aa6ba]">
+                  <div className="mt-4 rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 py-3 text-xs leading-5 text-[#aaa49a]">
                     {saveMessage}
                   </div>
                 )}
@@ -769,7 +769,7 @@ const openReceipt = async () => {
                   type="button"
                   onClick={() => void saveReview()}
                   disabled={saving}
-                  className="mt-4 min-h-11 w-full rounded-lg bg-[#66d4ff] px-4 text-sm font-bold text-[#06141b] hover:bg-[#8ae2ff] disabled:opacity-60"
+                  className="mt-4 min-h-11 w-full rounded-lg bg-[#c9aa68] px-4 text-sm font-bold text-[#16120b] hover:bg-[#e1c88d] disabled:opacity-60"
                 >
                   {saving ? 'Saving…' : 'Save Review'}
                 </button>

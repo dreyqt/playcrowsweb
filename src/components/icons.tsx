@@ -54,10 +54,10 @@ export function BybitIcon({ size = 32 }: { size?: number }) {
 export function CrowIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <path d="M14 3C8.477 3 4 7.477 4 13c0 3.1 1.4 5.87 3.6 7.73L6 24h4l1.2-2.4A9.93 9.93 0 0014 22c1.85 0 3.58-.5 5.07-1.37L20.5 24H24l-1.8-3.6A9.97 9.97 0 0024 13c0-5.523-4.477-10-10-10z" fill="#f5a623" />
-      <circle cx="10.5" cy="12" r="1.5" fill="#0d0f14" />
-      <circle cx="17.5" cy="12" r="1.5" fill="#0d0f14" />
-      <path d="M11 16.5c.83 1 2 1.5 3 1.5s2.17-.5 3-1.5" stroke="#0d0f14" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M14 3C8.477 3 4 7.477 4 13c0 3.1 1.4 5.87 3.6 7.73L6 24h4l1.2-2.4A9.93 9.93 0 0014 22c1.85 0 3.58-.5 5.07-1.37L20.5 24H24l-1.8-3.6A9.97 9.97 0 0024 13c0-5.523-4.477-10-10-10z" fill="#d3ad62" />
+      <circle cx="10.5" cy="12" r="1.5" fill="#0a0b0d" />
+      <circle cx="17.5" cy="12" r="1.5" fill="#0a0b0d" />
+      <path d="M11 16.5c.83 1 2 1.5 3 1.5s2.17-.5 3-1.5" stroke="#0a0b0d" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }
@@ -73,8 +73,8 @@ export function CheckIcon({ size = 16 }: { size?: number }) {
 export function UploadIcon() {
   return (
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-      <path d="M20 28V16M20 16l-5 5M20 16l5 5" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <rect x="8" y="30" width="24" height="3" rx="1.5" fill="#252a38" />
+      <path d="M20 28V16M20 16l-5 5M20 16l5 5" stroke="#77746e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="8" y="30" width="24" height="3" rx="1.5" fill="#292d34" />
     </svg>
   )
 }

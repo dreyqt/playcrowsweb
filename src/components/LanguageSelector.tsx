@@ -20,13 +20,13 @@ export function LanguageSelector() {
       <button
         type="button"
         onClick={() => setOpen(value => !value)}
-        className="flex min-h-10 items-center gap-2 rounded-lg border border-[#353c52] bg-[#11151d] px-3 text-xs font-bold text-[#e8eaf0] transition hover:border-[#66d4ff]/70"
+        className="flex min-h-10 items-center gap-2 rounded-lg border border-[#3b414b] bg-[#0f1115] px-3 text-xs font-bold text-[#eee9df] transition hover:border-[#c9aa68]/70"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="text-[#66d4ff]" aria-hidden="true">◎</span>
+        <span className="text-[#c9aa68]" aria-hidden="true">◎</span>
         <span>{current.short}</span>
-        <span className={`text-[10px] text-[#7c879d] transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true">▼</span>
+        <span className={`text-[10px] text-[#8f8b84] transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true">▼</span>
       </button>
 
       {open && (
@@ -49,8 +49,8 @@ export function LanguageSelector() {
                 }}
                 className={`block w-full px-4 py-3 text-left text-sm transition ${
                   active
-                    ? 'bg-[#102036] text-[#66d4ff]'
-                    : 'text-[#cbd2de] hover:bg-[#131b29] hover:text-white'
+                    ? 'bg-[#102036] text-[#c9aa68]'
+                    : 'text-[#d7d2c8] hover:bg-[#131b29] hover:text-white'
                 }`}
               >
                 {item.label}

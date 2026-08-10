@@ -114,7 +114,7 @@ function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: s
   if (failed) {
     return (
       <div
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#353c52] bg-[#171b24] text-sm font-bold text-[#7c879d]"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#3b414b] bg-[#181b21] text-sm font-bold text-[#8f8b84]"
         title={`${tMissing}: ${name}`}
         aria-label={`${name} ${unavailable}`}
       >
@@ -124,7 +124,7 @@ function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: s
   }
 
   return (
-    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#353c52] bg-[#171b24] p-1">
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#3b414b] bg-[#181b21] p-1">
       <img
         src={iconPath}
         alt=""
@@ -145,11 +145,11 @@ export function CumulativeRewards() {
   return (
     <section className="flex flex-col gap-6">
       <div>
-        <h2 className="mb-2 text-2xl font-bold text-[#e8eaf0]">
+        <h2 className="mb-2 text-2xl font-bold text-[#eee9df]">
           {t('cumulativeRewards')}
         </h2>
 
-        <p className="text-sm leading-6 text-[#7c879d]">
+        <p className="text-sm leading-6 text-[#8f8b84]">
           {t('cumulativeIntro')}
         </p>
 
@@ -157,36 +157,36 @@ export function CumulativeRewards() {
           href="https://account.playcrows.com/bonus.php"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-4 py-2 text-sm font-bold text-[#66d4ff] transition-all hover:border-[#66d4ff] hover:bg-[#66d4ff]/20"
+          className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-4 py-2 text-sm font-bold text-[#c9aa68] transition-all hover:border-[#c9aa68] hover:bg-[#c9aa68]/20"
         >
           {t('claimCumulative')}
         </a>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-[#252a38] bg-[#13161e] p-4">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
+        <div className="rounded-xl border border-[#292d34] bg-[#111318] p-4">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-[#77746e]">
             {t('milestones')}
           </div>
-          <div className="mt-1 text-xl font-bold text-[#66d4ff]">
+          <div className="mt-1 text-xl font-bold text-[#c9aa68]">
             {cumulativeRewards.length}
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#252a38] bg-[#13161e] p-4">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
+        <div className="rounded-xl border border-[#292d34] bg-[#111318] p-4">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-[#77746e]">
             {t('startingTier')}
           </div>
-          <div className="mt-1 text-xl font-bold text-[#e8eaf0]">
+          <div className="mt-1 text-xl font-bold text-[#eee9df]">
             {formatAmount(cumulativeRewards[0]?.amount ?? 0)}
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#252a38] bg-[#13161e] p-4">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
+        <div className="rounded-xl border border-[#292d34] bg-[#111318] p-4">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-[#77746e]">
             {t('highestTier')}
           </div>
-          <div className="mt-1 text-xl font-bold text-[#e8eaf0]">
+          <div className="mt-1 text-xl font-bold text-[#eee9df]">
             {formatAmount(cumulativeRewards[cumulativeRewards.length - 1]?.amount ?? 0)}
           </div>
         </div>
@@ -201,8 +201,8 @@ export function CumulativeRewards() {
               key={tier.amount}
               className={`overflow-hidden rounded-xl border transition-colors ${
                 expanded
-                  ? 'border-[#66d4ff]/60 bg-[#66d4ff]/5'
-                  : 'border-[#252a38] bg-[#13161e]'
+                  ? 'border-[#c9aa68]/60 bg-[#c9aa68]/5'
+                  : 'border-[#292d34] bg-[#111318]'
               }`}
             >
               <button
@@ -216,21 +216,21 @@ export function CumulativeRewards() {
                 aria-expanded={expanded}
               >
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#77746e]">
                     {t('cumulativeMilestone')}
                   </div>
-                  <div className="mt-1 text-xl font-extrabold text-[#66d4ff]">
+                  <div className="mt-1 text-xl font-extrabold text-[#c9aa68]">
                     {formatAmount(tier.amount)}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span className="rounded-full border border-[#353c52] px-3 py-1 text-[11px] font-semibold text-[#9aa6ba]">
+                  <span className="rounded-full border border-[#3b414b] px-3 py-1 text-[11px] font-semibold text-[#aaa49a]">
                     {tier.rewards.length}{' '}
                     {tier.rewards.length === 1 ? t('reward') : t('rewards')}
                   </span>
                   <span
-                    className={`text-xl text-[#66d4ff] transition-transform ${expanded ? 'rotate-180' : ''}`}
+                    className={`text-xl text-[#c9aa68] transition-transform ${expanded ? 'rotate-180' : ''}`}
                     aria-hidden="true"
                   >
                     ⌄
@@ -239,7 +239,7 @@ export function CumulativeRewards() {
               </button>
 
               {expanded && (
-                <div className="border-t border-[#252a38] px-5 py-4">
+                <div className="border-t border-[#292d34] px-5 py-4">
                   <ul className="grid grid-cols-1 gap-2 lg:grid-cols-2">
                     {tier.rewards.map((reward, index) => {
                       const parsed = splitRewardText(reward)
@@ -247,7 +247,7 @@ export function CumulativeRewards() {
                       return (
                         <li
                           key={`${tier.amount}-${index}-${reward}`}
-                          className="flex min-h-[62px] min-w-0 items-center gap-3 rounded-xl border border-[#252a38] bg-[#0f1219] px-3 py-2.5 transition-colors hover:border-[#353c52]"
+                          className="flex min-h-[62px] min-w-0 items-center gap-3 rounded-xl border border-[#292d34] bg-[#0d0f13] px-3 py-2.5 transition-colors hover:border-[#3b414b]"
                         >
                           <RewardIcon
                             name={parsed.iconName}
@@ -262,7 +262,7 @@ export function CumulativeRewards() {
                           </div>
 
                           {parsed.quantity !== null && Number.isFinite(parsed.quantity) && (
-                            <strong className="shrink-0 pl-2 text-sm font-bold tabular-nums text-[#66d4ff]">
+                            <strong className="shrink-0 pl-2 text-sm font-bold tabular-nums text-[#c9aa68]">
                               ×{parsed.quantity.toLocaleString()}
                             </strong>
                           )}
@@ -277,7 +277,7 @@ export function CumulativeRewards() {
         })}
       </div>
 
-      <div className="rounded-r-xl border border-[#252a38] border-l-2 border-l-[#66d4ff] bg-[#11151d] px-4 py-3 text-xs leading-5 text-[#8792a8]">
+      <div className="rounded-r-xl border border-[#292d34] border-l-2 border-l-[#c9aa68] bg-[#0f1115] px-4 py-3 text-xs leading-5 text-[#99938a]">
         {t('cumulativeNotice')}
       </div>
     </section>

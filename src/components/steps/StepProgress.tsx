@@ -8,9 +8,9 @@ export function StepProgress({ current }: { current: number }) {
   return (
     <div className="w-full max-w-2xl mx-auto mb-10 px-4">
       <div className="flex items-center justify-between relative">
-        <div className="absolute top-4 left-0 right-0 h-px bg-[#252a38]" />
+        <div className="absolute top-4 left-0 right-0 h-px bg-[#292d34]" />
         <div
-          className="absolute top-4 left-0 h-px bg-[#f5a623] transition-all duration-500"
+          className="absolute top-4 left-0 h-px bg-[#d3ad62] transition-all duration-500"
           style={{ width: `${((current - 1) / (steps.length - 1)) * 100}%` }}
         />
         {steps.map((label, i) => {
@@ -19,10 +19,10 @@ export function StepProgress({ current }: { current: number }) {
           const active = step === current
           return (
             <div key={`${i}-${label}`} className="relative flex flex-col items-center gap-2 z-10">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${done ? 'bg-[#f5a623] text-[#0d0f14]' : active ? 'bg-[#f5a623] text-[#0d0f14] ring-4 ring-[#f5a623]/20' : 'bg-[#191d27] border border-[#252a38] text-[#6b7280]'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${done ? 'bg-[#d3ad62] text-[#0a0b0d]' : active ? 'bg-[#d3ad62] text-[#0a0b0d] ring-4 ring-[#d3ad62]/20' : 'bg-[#171a20] border border-[#292d34] text-[#77746e]'}`}>
                 {done ? <CheckIcon size={14} /> : step}
               </div>
-              <span className={`text-[10px] font-medium tracking-wide hidden sm:block ${active ? 'text-[#f5a623]' : done ? 'text-[#e8eaf0]' : 'text-[#6b7280]'}`}>
+              <span className={`text-[10px] font-medium tracking-wide hidden sm:block ${active ? 'text-[#d3ad62]' : done ? 'text-[#eee9df]' : 'text-[#77746e]'}`}>
                 {label}
               </span>
             </div>

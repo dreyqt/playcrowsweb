@@ -57,7 +57,7 @@ function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: s
   if (failed) {
     return (
       <div
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#353c52] bg-[#171b24] text-sm font-bold text-[#7c879d]"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#3b414b] bg-[#181b21] text-sm font-bold text-[#8f8b84]"
         title={`${tMissing}: ${iconPath}`}
         aria-label={`${name} ${unavailable}`}
       >
@@ -67,7 +67,7 @@ function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: s
   }
 
   return (
-    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#353c52] bg-[#171b24] p-1">
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#3b414b] bg-[#181b21] p-1">
       <img
         src={iconPath}
         alt=""
@@ -130,8 +130,8 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
 
       <div className="gift-package-category">
         <div className="mb-4">
-          <h3 className="text-xl font-bold text-[#e8eaf0]">{section.title}</h3>
-          <p className="mt-1 text-sm text-[#7c879d]">{section.description}</p>
+          <h3 className="text-xl font-bold text-[#eee9df]">{section.title}</h3>
+          <p className="mt-1 text-sm text-[#8f8b84]">{section.description}</p>
         </div>
 
         <div className="gift-packages__grid">
@@ -149,7 +149,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                       {giftPackage.category === 'currency' ? t('currency') : t('supportPackage')}
                     </span>
                     <h3>{giftPackage.title}</h3>
-                    <div className="mt-1 text-xl font-bold text-[#66d4ff]">
+                    <div className="mt-1 text-xl font-bold text-[#c9aa68]">
                       ${giftPackage.amount.toLocaleString()}
                     </div>
                   </div>
@@ -163,7 +163,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                   {giftPackage.rewards.map(reward => (
                     <li
                       key={reward.name}
-                      className="flex min-h-[62px] items-center gap-3 rounded-xl border border-[#252a38] bg-[#0f1219] px-3 py-2.5 transition-colors hover:border-[#353c52]"
+                      className="flex min-h-[62px] items-center gap-3 rounded-xl border border-[#292d34] bg-[#0d0f13] px-3 py-2.5 transition-colors hover:border-[#3b414b]"
                     >
                       <RewardIcon name={reward.name} tMissing={t('missingIcon')} unavailable={t('iconUnavailable')} />
 
@@ -174,7 +174,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                       </div>
 
                       {reward.quantity !== undefined && (
-                        <strong className="shrink-0 pl-2 text-sm font-bold tabular-nums text-[#66d4ff]">
+                        <strong className="shrink-0 pl-2 text-sm font-bold tabular-nums text-[#c9aa68]">
                           ×{reward.quantity.toLocaleString()}
                         </strong>
                       )}

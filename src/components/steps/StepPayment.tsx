@@ -55,7 +55,7 @@ function MethodIcon({
 
 function GCashQR() {
   return (
-    <div className="mx-auto h-40 w-40 overflow-hidden rounded-xl border border-[#252a38] bg-white p-2">
+    <div className="mx-auto h-40 w-40 overflow-hidden rounded-xl border border-[#292d34] bg-white p-2">
       <img
         src={gcashQr}
         alt="GCash QR code"
@@ -67,7 +67,7 @@ function GCashQR() {
 
 function BybitQR() {
   return (
-    <div className="mx-auto h-48 w-48 overflow-hidden rounded-xl border border-[#66d4ff]/40 bg-white p-2">
+    <div className="mx-auto h-48 w-48 overflow-hidden rounded-xl border border-[#c9aa68]/40 bg-white p-2">
       <img
         src={bybitQr}
         alt="Bybit USDT TRC20 wallet QR code"
@@ -87,13 +87,13 @@ function PaymentDetailRow({
   mono?: boolean
 }) {
   return (
-    <div className="flex flex-col gap-1 border-b border-[#252a38] px-4 py-3 last:border-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-      <span className="text-xs text-[#6b7280]">
+    <div className="flex flex-col gap-1 border-b border-[#292d34] px-4 py-3 last:border-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <span className="text-xs text-[#77746e]">
         {label}
       </span>
 
       <span
-        className={`break-all text-sm font-medium text-[#e8eaf0] ${
+        className={`break-all text-sm font-medium text-[#eee9df] ${
           mono ? 'font-mono' : ''
         }`}
       >
@@ -191,11 +191,11 @@ export function StepPayment({
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div>
-        <h2 className="mb-2 text-2xl font-bold text-[#e8eaf0]">
+        <h2 className="mb-2 text-2xl font-bold text-[#eee9df]">
           {t('choosePayment')}
         </h2>
 
-        <p className="text-sm text-[#6b7280]">
+        <p className="text-sm text-[#77746e]">
           {t('choosePaymentDesc')}
         </p>
       </div>
@@ -204,28 +204,28 @@ export function StepPayment({
       <Card className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
         <div className="flex flex-wrap gap-6">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6b7280]">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-[#77746e]">
               {t('username')}
             </div>
 
-            <div className="text-sm font-medium text-[#66d4ff]">
+            <div className="text-sm font-medium text-[#c9aa68]">
               {data.playerId}
             </div>
           </div>
 
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6b7280]">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-[#77746e]">
               {t('characterName')}
             </div>
 
-            <div className="text-sm font-medium text-[#66d4ff]">
+            <div className="text-sm font-medium text-[#c9aa68]">
               {data.username}
             </div>
           </div>
         </div>
 
         <div className="text-right">
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-[#6b7280]">
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-[#77746e]">
             {promoApplied ? t('amountToPay') : t('amount')}
           </div>
 
@@ -233,14 +233,14 @@ export function StepPayment({
           originalPackageAmount !== null &&
           discountedPackageAmount !== null ? (
             <>
-              <div className="text-xs text-[#6b7280] line-through">
+              <div className="text-xs text-[#77746e] line-through">
                 {formatCurrencyAmount(
                   data.currency,
                   originalPackageAmount
                 )}
               </div>
 
-              <div className="text-xl font-bold text-[#66d4ff]">
+              <div className="text-xl font-bold text-[#c9aa68]">
                 {formatCurrencyAmount(
                   data.currency,
                   discountedPackageAmount
@@ -252,13 +252,13 @@ export function StepPayment({
               </div>
             </>
           ) : (
-            <div className="text-lg font-bold text-[#e8eaf0]">
+            <div className="text-lg font-bold text-[#eee9df]">
               {amtDisplay}
             </div>
           )}
 
           {data.currency !== 'USD' && (
-            <div className="text-[10px] text-[#6b7280]">
+            <div className="text-[10px] text-[#77746e]">
               ≈ ${usdEquivalent.toFixed(2)} USD
             </div>
           )}
@@ -269,11 +269,11 @@ export function StepPayment({
       <Card className="p-5">
         <div className="flex flex-col gap-4">
           <div>
-            <div className="text-sm font-bold text-[#e8eaf0]">
+            <div className="text-sm font-bold text-[#eee9df]">
               {t('redeemCode')}
             </div>
 
-            <p className="mt-1 text-xs leading-5 text-[#6b7280]">
+            <p className="mt-1 text-xs leading-5 text-[#77746e]">
               {t('redeemDesc')}
             </p>
           </div>
@@ -295,7 +295,7 @@ export function StepPayment({
               }}
               placeholder={t('enterRedeem')}
               disabled={promoApplied}
-              className="min-h-11 flex-1 rounded-lg border border-[#353c52] bg-[#0f1219] px-3 text-sm font-semibold uppercase tracking-wider text-[#e8eaf0] outline-none transition focus:border-[#66d4ff] disabled:cursor-not-allowed disabled:opacity-70"
+              className="min-h-11 flex-1 rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-sm font-semibold uppercase tracking-wider text-[#eee9df] outline-none transition focus:border-[#c9aa68] disabled:cursor-not-allowed disabled:opacity-70"
             />
 
             {promoApplied ? (
@@ -311,7 +311,7 @@ export function StepPayment({
                 type="button"
                 onClick={applyCode}
                 disabled={!redeemCode.trim()}
-                className="min-h-11 rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-5 text-xs font-bold text-[#66d4ff] transition hover:bg-[#66d4ff]/20 disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-h-11 rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-5 text-xs font-bold text-[#c9aa68] transition hover:bg-[#c9aa68]/20 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {t('applyCode')}
               </button>
@@ -328,10 +328,10 @@ export function StepPayment({
 
               <p className="mt-1 text-xs leading-5 text-[#b8c3d4]">
                 {t('pay')}{' '}
-                <strong className="text-[#e8eaf0]">
+                <strong className="text-[#eee9df]">
                   {formatCurrencyAmount(data.currency, discountedPackageAmount)}
                 </strong>{' '}
-                <strong className="text-[#e8eaf0]">${selectedPackageAmount.toLocaleString()}</strong>{' '}
+                <strong className="text-[#eee9df]">${selectedPackageAmount.toLocaleString()}</strong>{' '}
                 {t('receiveFullPackage')}
               </p>
             </div>
@@ -343,7 +343,7 @@ export function StepPayment({
                     ? 'border-[#ef4444]/35 bg-[#ef4444]/5 text-[#ef4444]'
                     : promoMessageType === 'success'
                       ? 'border-[#22c55e]/35 bg-[#22c55e]/5 text-[#22c55e]'
-                      : 'border-[#353c52] bg-[#0f1219] text-[#9aa6ba]'
+                      : 'border-[#3b414b] bg-[#0d0f13] text-[#aaa49a]'
                 }`}
               >
                 {promoMessage}
@@ -376,8 +376,8 @@ export function StepPayment({
               }
               className={`flex w-full cursor-pointer items-center gap-4 rounded-xl border p-4 text-left transition-all duration-200 ${
                 selected
-                  ? 'border-[#66d4ff] bg-[#66d4ff]/5'
-                  : 'border-[#252a38] bg-[#13161e] hover:border-[#353c52]'
+                  ? 'border-[#c9aa68] bg-[#c9aa68]/5'
+                  : 'border-[#292d34] bg-[#111318] hover:border-[#3b414b]'
               }`}
             >
               <MethodIcon
@@ -386,11 +386,11 @@ export function StepPayment({
               />
 
               <div className="flex-1">
-                <div className="text-sm font-semibold text-[#e8eaf0]">
+                <div className="text-sm font-semibold text-[#eee9df]">
                   {method.label}
                 </div>
 
-                <div className="mt-0.5 text-xs text-[#6b7280]">
+                <div className="mt-0.5 text-xs text-[#77746e]">
                   {method.id === 'paypal' ? t('paypalDesc') : method.id === 'gcash' ? t('gcashDesc') : method.id === 'wise' ? t('wiseDesc') : t('bybitDesc')}
                 </div>
               </div>
@@ -398,8 +398,8 @@ export function StepPayment({
               <div
                 className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200 ${
                   selected
-                    ? 'border-[#66d4ff] bg-[#66d4ff] text-[#0d0f14]'
-                    : 'border-[#353c52]'
+                    ? 'border-[#c9aa68] bg-[#c9aa68] text-[#0a0b0d]'
+                    : 'border-[#3b414b]'
                 }`}
               >
                 {selected && (
@@ -421,7 +421,7 @@ export function StepPayment({
               size={28}
             />
 
-            <div className="text-sm font-bold text-[#e8eaf0]">
+            <div className="text-sm font-bold text-[#eee9df]">
               {data.paymentMethod === 'gcash' &&
                 `GCash ${t('paymentDetails')}`}
 
@@ -441,27 +441,27 @@ export function StepPayment({
             <>
               <GCashQR />
 
-              <p className="text-center text-xs text-[#6b7280]">
+              <p className="text-center text-xs text-[#77746e]">
                 {t('scanGcash')}
               </p>
 
-              <div className="flex flex-col gap-2 rounded-xl bg-[#13161e] p-4">
+              <div className="flex flex-col gap-2 rounded-xl bg-[#111318] p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#6b7280]">
+                  <span className="text-xs text-[#77746e]">
                     {t('accountName')}
                   </span>
 
-                  <span className="text-sm font-medium text-[#e8eaf0]">
+                  <span className="text-sm font-medium text-[#eee9df]">
                     {PAYMENT_INFO.gcash.name}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#6b7280]">
+                  <span className="text-xs text-[#77746e]">
                     {t('accountNumber')}
                   </span>
 
-                  <span className="font-mono text-sm font-medium text-[#e8eaf0]">
+                  <span className="font-mono text-sm font-medium text-[#eee9df]">
                     {PAYMENT_INFO.gcash.number}
                   </span>
                 </div>
@@ -472,14 +472,14 @@ export function StepPayment({
           {/* PayPal */}
           {data.paymentMethod === 'paypal' && (
             <>
-              <div className="rounded-xl border border-[#f5a623]/40 bg-[#f5a623]/5 p-4">
+              <div className="rounded-xl border border-[#d3ad62]/40 bg-[#d3ad62]/5 p-4">
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 text-lg text-[#f5a623]">
+                  <div className="flex-shrink-0 text-lg text-[#d3ad62]">
                     ⚠️
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <div className="text-sm font-bold text-[#f5a623]">
+                    <div className="text-sm font-bold text-[#d3ad62]">
                       {t('paypalInstructions')}
                     </div>
 
@@ -487,22 +487,22 @@ export function StepPayment({
                       {t('paypalFriendsFamily')}
                     </p>
 
-                    <p className="text-xs leading-relaxed text-[#6b7280]">
+                    <p className="text-xs leading-relaxed text-[#77746e]">
                       {t('paypalCorrectType')}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 rounded-xl bg-[#13161e] p-4">
+              <div className="flex items-center gap-3 rounded-xl bg-[#111318] p-4">
                 <PayPalIcon size={40} />
 
                 <div>
-                  <div className="text-xs text-[#6b7280]">
+                  <div className="text-xs text-[#77746e]">
                     {t('paypalEmail')}
                   </div>
 
-                  <div className="text-sm font-medium text-[#e8eaf0]">
+                  <div className="text-sm font-medium text-[#eee9df]">
                     {PAYMENT_INFO.paypal.email}
                   </div>
                 </div>
@@ -525,7 +525,7 @@ export function StepPayment({
 {/* Wise */}
 {data.paymentMethod === 'wise' && (
   <>
-    <div className="mx-auto h-48 w-48 overflow-hidden rounded-xl border border-[#66d4ff]/40 bg-white p-2">
+    <div className="mx-auto h-48 w-48 overflow-hidden rounded-xl border border-[#c9aa68]/40 bg-white p-2">
       <img
         src={wiseQr}
         alt="Wise payment QR code"
@@ -533,11 +533,11 @@ export function StepPayment({
       />
     </div>
 
-    <p className="text-center text-xs leading-5 text-[#6b7280]">
+    <p className="text-center text-xs leading-5 text-[#77746e]">
       {t('scanWise')}
     </p>
 
-    <div className="flex flex-col gap-0 overflow-hidden rounded-xl bg-[#13161e]">
+    <div className="flex flex-col gap-0 overflow-hidden rounded-xl bg-[#111318]">
       <PaymentDetailRow label={t('accountName')} value={PAYMENT_INFO.wise.accountName} mono />
       <PaymentDetailRow label={t('wisetag')} value={PAYMENT_INFO.wise.wisetag} mono />
     </div>
@@ -546,13 +546,13 @@ export function StepPayment({
       href={PAYMENT_INFO.wise.link}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#66d4ff] bg-[#66d4ff] px-4 py-2 text-sm font-bold text-[#06141b] transition-colors hover:bg-[#8ae2ff]"
+      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#c9aa68] bg-[#c9aa68] px-4 py-2 text-sm font-bold text-[#16120b] transition-colors hover:bg-[#e1c88d]"
     >
       <WiseIcon size={18} />
       {t('openWise')}
     </a>
 
-    <p className="text-center text-xs leading-5 text-[#6b7280]">
+    <p className="text-center text-xs leading-5 text-[#77746e]">
       {t('saveScreenshotNext')}
     </p>
   </>
@@ -561,8 +561,8 @@ export function StepPayment({
           {/* Bybit */}
           {data.paymentMethod === 'bybit' && (
             <>
-              <div className="rounded-xl border border-[#66d4ff]/30 bg-[#66d4ff]/5 p-4">
-                <div className="text-sm font-bold text-[#66d4ff]">
+              <div className="rounded-xl border border-[#c9aa68]/30 bg-[#c9aa68]/5 p-4">
+                <div className="text-sm font-bold text-[#c9aa68]">
                   {t('chooseBybitMethod')}
                 </div>
 
@@ -572,13 +572,13 @@ export function StepPayment({
               </div>
 
               {/* Internal Transfer */}
-              <div className="overflow-hidden rounded-xl border border-[#252a38] bg-[#13161e]">
-                <div className="border-b border-[#252a38] px-4 py-3">
-                  <div className="text-sm font-bold text-[#e8eaf0]">
+              <div className="overflow-hidden rounded-xl border border-[#292d34] bg-[#111318]">
+                <div className="border-b border-[#292d34] px-4 py-3">
+                  <div className="text-sm font-bold text-[#eee9df]">
                     {t('bybitInternal')}
                   </div>
 
-                  <div className="mt-1 text-xs text-[#6b7280]">
+                  <div className="mt-1 text-xs text-[#77746e]">
                     {t('bybitUidDesc')}
                   </div>
                 </div>
@@ -591,23 +591,23 @@ export function StepPayment({
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-[#252a38]" />
+                <div className="h-px flex-1 bg-[#292d34]" />
 
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#77746e]">
                   {t('or')}
                 </span>
 
-                <div className="h-px flex-1 bg-[#252a38]" />
+                <div className="h-px flex-1 bg-[#292d34]" />
               </div>
 
               {/* USDT Transfer */}
-              <div className="overflow-hidden rounded-xl border border-[#252a38] bg-[#13161e]">
-                <div className="border-b border-[#252a38] px-4 py-3">
-                  <div className="text-sm font-bold text-[#e8eaf0]">
+              <div className="overflow-hidden rounded-xl border border-[#292d34] bg-[#111318]">
+                <div className="border-b border-[#292d34] px-4 py-3">
+                  <div className="text-sm font-bold text-[#eee9df]">
                     {t('usdtOnchain')}
                   </div>
 
-                  <div className="mt-1 text-xs text-[#6b7280]">
+                  <div className="mt-1 text-xs text-[#77746e]">
                     {t('usdtDesc')}
                   </div>
                 </div>
@@ -651,7 +651,7 @@ export function StepPayment({
                 </div>
               </div>
 
-              <p className="text-center text-xs leading-relaxed text-[#6b7280]">
+              <p className="text-center text-xs leading-relaxed text-[#77746e]">
                 {t('saveTransferReceipt')}
               </p>
             </>

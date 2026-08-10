@@ -20,9 +20,9 @@ const PAYMENT_LABELS = {
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1 border-b border-[#252a38] px-4 py-3 last:border-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-      <span className="text-xs text-[#6b7280]">{label}</span>
-      <span className="break-all text-sm font-medium text-[#e8eaf0]">{value}</span>
+    <div className="flex flex-col gap-1 border-b border-[#292d34] px-4 py-3 last:border-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <span className="text-xs text-[#77746e]">{label}</span>
+      <span className="break-all text-sm font-medium text-[#eee9df]">{value}</span>
     </div>
   )
 }
@@ -46,12 +46,12 @@ export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="mb-2 text-2xl font-bold text-[#e8eaf0]">{t('reviewSubmission')}</h2>
-        <p className="text-sm leading-6 text-[#6b7280]">{t('reviewSubmissionDesc')}</p>
+        <h2 className="mb-2 text-2xl font-bold text-[#eee9df]">{t('reviewSubmission')}</h2>
+        <p className="text-sm leading-6 text-[#77746e]">{t('reviewSubmissionDesc')}</p>
       </div>
 
       <Card className="overflow-hidden">
-        <div className="border-b border-[#252a38] px-5 py-4"><div className="text-sm font-bold text-[#e8eaf0]">{t('donationDetails')}</div></div>
+        <div className="border-b border-[#292d34] px-5 py-4"><div className="text-sm font-bold text-[#eee9df]">{t('donationDetails')}</div></div>
         <SummaryRow label={t('playerId')} value={data.playerId} />
         <SummaryRow label={t('username')} value={data.username} />
 
@@ -78,8 +78,8 @@ export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle
         <SummaryRow label={t('additionalNotes')} value={data.additionalNotes.trim() || t('none')} />
       </Card>
 
-      <div className="rounded-xl border border-[#66d4ff]/25 bg-[#66d4ff]/5 px-4 py-4">
-        <div className="text-sm font-bold text-[#66d4ff]">{t('whatNext')}</div>
+      <div className="rounded-xl border border-[#c9aa68]/25 bg-[#c9aa68]/5 px-4 py-4">
+        <div className="text-sm font-bold text-[#c9aa68]">{t('whatNext')}</div>
         <p className="mt-2 text-xs leading-5 text-[#a8b2c5]">
           {t('whatNextDesc')}
           {promoApplied && <> {t('cumulativeCreditDesc')}</>}
