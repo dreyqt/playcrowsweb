@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import type { FormData } from './types'
 import {
   StepProgress,
@@ -38,7 +38,6 @@ const INITIAL: FormData = {
 
 function PublicApp() {
   const { t } = useI18n()
-  const shopRef = useRef<HTMLElement>(null)
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [submissionReference, setSubmissionReference] = useState('')
@@ -48,10 +47,6 @@ function PublicApp() {
   const [activeTab, setActiveTab] = useState<InformationTab>('packages')
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
   const [form, setForm] = useState<FormData>(INITIAL)
-
-  const scrollToShop = () => {
-    shopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
 
   const update = (partial: Partial<FormData>) => {
     if ('amount' in partial || 'packageQuantity' in partial || 'currency' in partial) {
@@ -185,68 +180,31 @@ function PublicApp() {
 
   return (
     <div className="site-shell">
-      <section className="cinematic-hero" aria-label="PlayCrows">
-        <div className="cinematic-hero__backdrop" />
-        <div className="cinematic-hero__embers" aria-hidden="true" />
-
-        <header className="cinematic-nav">
-          <button type="button" className="brand-lockup" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <span className="brand-lockup__mark" aria-hidden="true">♜</span>
-            <span>
-              <strong>PLAYCROWS</strong>
-              <small>{t('developmentTeam')}</small>
-            </span>
-          </button>
-
-          <div className="cinematic-nav__actions">
-            <button type="button" className="nav-icon-button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Home">⌂</button>
-            <button type="button" className="nav-icon-button" onClick={scrollToShop} aria-label="Open web shop">◇</button>
-            <LanguageSelector />
-          </div>
-        </header>
-
-        <div className="cinematic-hero__content">
-          <div className="cinematic-copy">
-            <div className="cinematic-copy__eyebrow">NIGHT CROWS · PRIVATE WORLD</div>
-            <h1>
-              <span>PLAY</span>
-              <span>CROWS</span>
-            </h1>
-            <div className="cinematic-copy__rule" />
-            <p className="cinematic-copy__subtitle">Rise. Fight. Conquer.</p>
-            <p className="cinematic-copy__description">
-              Enter a dark fantasy battlefield rebuilt for a faster, community-driven Night Crows experience.
-            </p>
-
-            <div className="hero-settings" aria-label="Server settings">
-              <span>EXP <strong>50×</strong></span>
-              <span>DROP <strong>30×</strong></span>
-              <span>ENHANCE <strong>3×</strong></span>
-            </div>
-
-            <button type="button" className="hero-primary" onClick={scrollToShop}>
-              <span>{t('webShop')}</span>
-            </button>
-          </div>
-        </div>
-
-        <button type="button" className="hero-scroll" onClick={scrollToShop} aria-label="Explore PlayCrows Web Shop">
-          <span>EXPLORE</span>
-          <i aria-hidden="true">⌄</i>
-        </button>
-      </section>
-
-      <section ref={shopRef} className="shop-stage" id="web-shop">
+      <section className="shop-stage" id="web-shop">
         <div className="shop-stage__veil" aria-hidden="true" />
         <div className="shop-wrap">
-          <header className="shop-heading">
-            <div>
-              <span className="shop-heading__eyebrow">PLAYCROWS SUPPORT CENTER</span>
-              <h2>{t('webShop')}</h2>
-              <p>Choose a package, complete your support transaction, and submit your payment details for verification.</p>
+          <header className="shop-topbar">
+            <div className="shop-brand">
+              <span className="shop-brand__crest">♜</span>
+              <div><strong>PLAYCROWS</strong><small>{t('developmentTeam')}</small></div>
             </div>
             <LanguageSelector />
           </header>
+
+          <div className="shop-heading">
+            <div>
+              <span className="shop-heading__eyebrow">NIGHT CROWS · PREMIUM SUPPORT CENTER</span>
+              <h2>{t('webShop')}</h2>
+              <p>Support the server and choose the package that gives you the rewards you want.</p>
+            </div>
+            <div className="shop-status"><i /> SECURE SUBMISSION</div>
+          </div>
+
+          <div className="shop-benefits">
+            <div><strong>Premium Packages</strong><span>Curated progression rewards</span></div>
+            <div><strong>Multiple Payment Options</strong><span>Choose your preferred method</span></div>
+            <div><strong>Manual Verification</strong><span>Every submission is reviewed</span></div>
+          </div>
 
           <div className="shop-panel">
             {submitted ? (
