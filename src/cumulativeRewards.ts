@@ -683,8 +683,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+12 Die of Thunderbolts   (Bound) ×1",
       "Guardian's   Scepter(Attribution) 250000",
       "crusade Loot Chest   (Attributed) ×400",
-      "golden Necklace Insignia (Attributed) ×4",
-      "golden Ring Insignia (Attribution) ×8",
     ],
   }
 ]
