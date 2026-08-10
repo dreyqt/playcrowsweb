@@ -316,6 +316,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
   {
     amount: 5000,
     rewards: [
+      "Diamond ×2000000",
       "Mileage ×400000",
       "Seal of Advancement (Bound) ×100000",
       "Higher Seal of Advancement   (Bound) ×5000",
@@ -649,6 +650,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
   {
     amount: 10000,
     rewards: [
+      "Diamond ×5000000",
       "Mileage ×1000000",
       "Master's Aircraft Toolbox   (Bound) ×4000",
       "Gold Chest (Bound) ×25000",
