@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { FormData } from './types'
 import {
   StepProgress,
@@ -18,7 +18,6 @@ import {
   normalizePromoCode,
   type PromoApplyResult,
 } from './promo'
-import CrowLogo from './assets/playcrows-icon.jpg'
 import { findGiftPackage } from './giftPackageData'
 import { I18nProvider, useI18n } from './i18n'
 import { LanguageSelector } from './components/LanguageSelector'
@@ -39,36 +38,27 @@ const INITIAL: FormData = {
 
 function PublicApp() {
   const { t } = useI18n()
+  const shopRef = useRef<HTMLElement>(null)
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [submissionReference, setSubmissionReference] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  const [appliedPromoCode, setAppliedPromoCode] =
-    useState<string | null>(null)
-  const [activeTab, setActiveTab] =
-    useState<InformationTab>('packages')
+  const [appliedPromoCode, setAppliedPromoCode] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<InformationTab>('packages')
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
   const [form, setForm] = useState<FormData>(INITIAL)
 
+  const scrollToShop = () => {
+    shopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   const update = (partial: Partial<FormData>) => {
-    /*
-     * Changing the amount or currency invalidates an already-applied
-     * promo code. The player can apply the code again after finishing
-     * their new selection.
-     */
-    if (
-      'amount' in partial ||
-      'packageQuantity' in partial ||
-      'currency' in partial
-    ) {
+    if ('amount' in partial || 'packageQuantity' in partial || 'currency' in partial) {
       setAppliedPromoCode(null)
     }
 
-    setForm(current => ({
-      ...current,
-      ...partial,
-    }))
+    setForm(current => ({ ...current, ...partial }))
   }
 
   const next = () => {
@@ -89,9 +79,7 @@ function PublicApp() {
   }
 
   const reset = () => {
-    if (form.receiptPreview) {
-      URL.revokeObjectURL(form.receiptPreview)
-    }
+    if (form.receiptPreview) URL.revokeObjectURL(form.receiptPreview)
 
     setForm(INITIAL)
     setStep(1)
@@ -109,89 +97,54 @@ function PublicApp() {
 
     setAppliedPromoCode(null)
     setSelectedPackageId(packageId)
-
     update({
       currency: 'USD',
       amount: String(giftPackage.amount),
       packageQuantity: '1',
     })
-
     setActiveTab('support')
   }
 
   const changeGiftPackage = () => {
     setAppliedPromoCode(null)
     setSelectedPackageId(null)
-
-    update({
-      amount: '',
-      packageQuantity: '1',
-    })
-
+    update({ amount: '', packageQuantity: '1' })
     setActiveTab('packages')
   }
+
+  const selectedPackage = findGiftPackage(selectedPackageId)
+  const hasSelectedPackage = selectedPackage !== null
 
   const applyPromoCode = (code: string): PromoApplyResult => {
     const normalizedCode = normalizePromoCode(code)
 
     if (!isEarlyPromoActive()) {
       setAppliedPromoCode(null)
-
-      return {
-        success: false,
-        message:
-          t('promoEnded'),
-      }
+      return { success: false, message: t('promoEnded') }
     }
 
     if (normalizedCode !== EARLY_PROMO_CODE) {
       setAppliedPromoCode(null)
-
-      return {
-        success: false,
-        message: t('invalidRedeem'),
-      }
+      return { success: false, message: t('invalidRedeem') }
     }
 
-    if (
-      !isPackageEligibleForPromo(
-        form,
-        selectedPackage?.amount ?? null
-      )
-    ) {
+    if (!isPackageEligibleForPromo(form, selectedPackage?.amount ?? null)) {
       setAppliedPromoCode(null)
-
-      return {
-        success: false,
-        message:
-          t('promoNotEligible'),
-      }
+      return { success: false, message: t('promoNotEligible') }
     }
 
     setAppliedPromoCode(EARLY_PROMO_CODE)
-
-    return {
-      success: true,
-      message:
-        t('promoApplied'),
-    }
+    return { success: true, message: t('promoApplied') }
   }
 
-  const removePromoCode = () => {
-    setAppliedPromoCode(null)
-  }
+  const removePromoCode = () => setAppliedPromoCode(null)
 
   const submitForm = async () => {
     if (isSubmitting) return
 
-    if (
-      appliedPromoCode &&
-      !isEarlyPromoActive()
-    ) {
+    if (appliedPromoCode && !isEarlyPromoActive()) {
       setAppliedPromoCode(null)
-      setSubmitError(
-        t('promoExpiredReview')
-      )
+      setSubmitError(t('promoExpiredReview'))
       return
     }
 
@@ -210,273 +163,206 @@ function PublicApp() {
       setSubmissionReference(result.donation.referenceCode)
       setSubmitted(true)
     } catch (error) {
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : t('unableSubmit')
-      )
+      setSubmitError(error instanceof Error ? error.message : t('unableSubmit'))
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const selectedPackage = findGiftPackage(selectedPackageId)
-  const hasSelectedPackage = selectedPackage !== null
-
-  const tabClass = (
-    tab: InformationTab,
-    disabled = false
-  ) => {
-    const base =
-      'min-h-11 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-colors duration-200'
+  const tabClass = (tab: InformationTab, disabled = false) => {
+    const base = 'min-h-11 rounded-sm px-3 py-2 text-xs sm:text-sm font-semibold transition-all duration-200'
 
     if (disabled) {
-      return `${base} cursor-not-allowed border border-transparent text-[#475569] opacity-60`
+      return `${base} cursor-not-allowed border border-transparent text-[#635c58] opacity-50`
     }
 
     if (activeTab === tab) {
-      return `${base} border border-[#66d4ff] bg-[#66d4ff]/10 text-[#66d4ff]`
+      return `${base} border border-[#a76636] bg-[#7a321e]/25 text-[#f0c08a] shadow-[inset_0_0_20px_rgba(159,65,37,.12)]`
     }
 
-    return `${base} border border-transparent text-[#7c879d] hover:bg-[#171b24] hover:text-[#e8eaf0]`
+    return `${base} border border-transparent text-[#9b918c] hover:bg-[#2a1713]/45 hover:text-[#f0ddd0]`
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0f14] text-[#e8eaf0]">
-      <header className="sticky top-0 z-50 border-b border-[#191d27] bg-[#0d0f14]">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <img
-              src={CrowLogo}
-              alt="PlayCrows logo"
-              className="h-10 w-10 rounded-full object-cover"
-            />
+    <div className="site-shell">
+      <section className="cinematic-hero" aria-label="PlayCrows">
+        <div className="cinematic-hero__backdrop" />
+        <div className="cinematic-hero__embers" aria-hidden="true" />
 
-            <div className="min-w-0">
-              <div className="text-base font-bold leading-tight tracking-tight text-[#e8eaf0]">
-                PLAYCROWS
-              </div>
+        <header className="cinematic-nav">
+          <button type="button" className="brand-lockup" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <span className="brand-lockup__mark" aria-hidden="true">♜</span>
+            <span>
+              <strong>PLAYCROWS</strong>
+              <small>{t('developmentTeam')}</small>
+            </span>
+          </button>
 
-              <div className="truncate text-[10px] uppercase tracking-widest text-[#6b7280]">
-                {t('developmentTeam')}
-              </div>
-            </div>
+          <div className="cinematic-nav__actions">
+            <button type="button" className="nav-icon-button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Home">⌂</button>
+            <button type="button" className="nav-icon-button" onClick={scrollToShop} aria-label="Open web shop">◇</button>
+            <LanguageSelector />
           </div>
+        </header>
 
-          <LanguageSelector />
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-2xl px-4 py-10">
-        {submitted ? (
-          <section className="mx-auto flex max-w-xl flex-col items-center rounded-2xl border border-[#66d4ff]/35 bg-[#13161e] px-6 py-10 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#66d4ff]/40 bg-[#66d4ff]/10 text-3xl text-[#66d4ff]">
-              ✓
-            </div>
-
-            <h1 className="mt-5 text-2xl font-bold text-[#e8eaf0]">
-              {t('donationSubmitted')}
+        <div className="cinematic-hero__content">
+          <div className="cinematic-copy">
+            <div className="cinematic-copy__eyebrow">NIGHT CROWS · PRIVATE WORLD</div>
+            <h1>
+              <span>PLAY</span>
+              <span>CROWS</span>
             </h1>
-
-            <p className="mt-3 max-w-md text-sm leading-6 text-[#7c879d]">
-              {t('donationSubmittedDesc')}
+            <div className="cinematic-copy__rule" />
+            <p className="cinematic-copy__subtitle">Rise. Fight. Conquer.</p>
+            <p className="cinematic-copy__description">
+              Enter a dark fantasy battlefield rebuilt for a faster, community-driven Night Crows experience.
             </p>
 
-            <div className="mt-6 w-full rounded-xl border border-[#66d4ff]/30 bg-[#66d4ff]/5 px-4 py-4">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-[#7c879d]">
-                {t('referenceCode')}
-              </div>
-              <div className="mt-2 break-all font-mono text-xl font-bold text-[#66d4ff]">
-                {submissionReference}
-              </div>
+            <div className="hero-settings" aria-label="Server settings">
+              <span>EXP <strong>50×</strong></span>
+              <span>DROP <strong>30×</strong></span>
+              <span>ENHANCE <strong>3×</strong></span>
             </div>
 
-            <button
-              type="button"
-              onClick={reset}
-              className="mt-7 min-h-11 rounded-lg border border-[#66d4ff] bg-[#66d4ff] px-5 py-2 text-sm font-bold text-[#06141b] transition-colors hover:bg-[#8ae2ff]"
-            >
-              {t('submitAnother')}
+            <button type="button" className="hero-primary" onClick={scrollToShop}>
+              <span>{t('webShop')}</span>
             </button>
-          </section>
-        ) : (
-          <>
-            <StepProgress current={step} />
+          </div>
+        </div>
 
-            {step === 1 && (
+        <button type="button" className="hero-scroll" onClick={scrollToShop} aria-label="Explore PlayCrows Web Shop">
+          <span>EXPLORE</span>
+          <i aria-hidden="true">⌄</i>
+        </button>
+      </section>
+
+      <section ref={shopRef} className="shop-stage" id="web-shop">
+        <div className="shop-stage__veil" aria-hidden="true" />
+        <div className="shop-wrap">
+          <header className="shop-heading">
+            <div>
+              <span className="shop-heading__eyebrow">PLAYCROWS SUPPORT CENTER</span>
+              <h2>{t('webShop')}</h2>
+              <p>Choose a package, complete your support transaction, and submit your payment details for verification.</p>
+            </div>
+            <LanguageSelector />
+          </header>
+
+          <div className="shop-panel">
+            {submitted ? (
+              <section className="submission-success">
+                <div className="submission-success__icon">✓</div>
+                <h1>{t('donationSubmitted')}</h1>
+                <p>{t('donationSubmittedDesc')}</p>
+                <div className="submission-reference">
+                  <span>{t('referenceCode')}</span>
+                  <strong>{submissionReference}</strong>
+                </div>
+                <button type="button" onClick={reset} className="cinematic-button">
+                  {t('submitAnother')}
+                </button>
+              </section>
+            ) : (
               <>
-                <nav
-                  className="mb-8 mt-8 grid grid-cols-1 gap-1 rounded-xl border border-[#242a36] bg-[#11151d] p-1 sm:grid-cols-3"
-                  aria-label="Support information"
-                >
-                  <button
-                    type="button"
-                    disabled={hasSelectedPackage}
-                    className={tabClass(
-                      'packages',
-                      hasSelectedPackage
-                    )}
-                    onClick={() => {
-                      if (!hasSelectedPackage) {
-                        setActiveTab('packages')
-                      }
-                    }}
-                    title={
-                      hasSelectedPackage
-                        ? t('changePackageHint')
-                        : t('choosePackageHint')
-                    }
-                  >
-                    {t('webShop')}
-                    {hasSelectedPackage && (
-                      <span className="ml-1 text-[10px]">
-                        🔒
-                      </span>
-                    )}
-                  </button>
+                <StepProgress current={step} />
 
-                  <button
-                    type="button"
-                    disabled={!hasSelectedPackage}
-                    className={tabClass(
-                      'support',
-                      !hasSelectedPackage
+                {step === 1 && (
+                  <>
+                    <nav className="shop-tabs" aria-label="Support information">
+                      <button
+                        type="button"
+                        disabled={hasSelectedPackage}
+                        className={tabClass('packages', hasSelectedPackage)}
+                        onClick={() => !hasSelectedPackage && setActiveTab('packages')}
+                        title={hasSelectedPackage ? t('changePackageHint') : t('choosePackageHint')}
+                      >
+                        {t('webShop')}{hasSelectedPackage && <span className="ml-1 text-[10px]">◆</span>}
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={!hasSelectedPackage}
+                        className={tabClass('support', !hasSelectedPackage)}
+                        onClick={() => hasSelectedPackage && setActiveTab('support')}
+                        title={hasSelectedPackage ? t('chooseSupportHint') : t('selectPackageFirst')}
+                      >
+                        {t('supportAmount')}{!hasSelectedPackage && <span className="ml-1 text-[10px]">◆</span>}
+                      </button>
+
+                      <button type="button" className={tabClass('cumulative')} onClick={() => setActiveTab('cumulative')}>
+                        {t('cumulativeRewards')}
+                      </button>
+                    </nav>
+
+                    {activeTab === 'packages' && !hasSelectedPackage && (
+                      <GiftPackages selectedPackageId={selectedPackageId} onSelectPackage={selectGiftPackage} />
                     )}
-                    onClick={() => {
-                      if (hasSelectedPackage) {
-                        setActiveTab('support')
-                      }
-                    }}
-                    title={
-                      hasSelectedPackage
-                        ? t('chooseSupportHint')
-                        : t('selectPackageFirst')
-                    }
-                  >
-                    {t('supportAmount')}
-                    {!hasSelectedPackage && (
-                      <span className="ml-1 text-[10px]">
-                        🔒
-                      </span>
-                    )}
-                  </button>
 
-                  <button
-                    type="button"
-                    className={tabClass('cumulative')}
-                    onClick={() => setActiveTab('cumulative')}
-                  >
-                    {t('cumulativeRewards')}
-                  </button>
-                </nav>
-
-                {activeTab === 'packages' &&
-                  !hasSelectedPackage && (
-                    <GiftPackages
-                      selectedPackageId={selectedPackageId}
-                      onSelectPackage={selectGiftPackage}
-                    />
-                  )}
-
-                {activeTab === 'support' &&
-                  hasSelectedPackage && (
-                    <section>
-                      <div className="mb-6 flex flex-col gap-4 rounded-xl border border-[#66d4ff]/30 bg-[#66d4ff]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#7c879d]">
-                            {t('initialPackage')}
+                    {activeTab === 'support' && hasSelectedPackage && (
+                      <section>
+                        <div className="selected-package-banner">
+                          <div>
+                            <div className="selected-package-banner__label">{t('initialPackage')}</div>
+                            <div className="selected-package-banner__title">
+                              {selectedPackage?.title} · ${selectedPackage?.amount.toLocaleString()}
+                            </div>
+                            <p>{t('packageSelectionDesc')}</p>
                           </div>
-
-                          <div className="text-xl font-bold text-[#66d4ff]">
-                            {selectedPackage?.title} · ${selectedPackage?.amount.toLocaleString()}
-                          </div>
-
-                          <p className="mt-1 text-xs text-[#7c879d]">
-                            {t('packageSelectionDesc')}
-                          </p>
+                          <button type="button" onClick={changeGiftPackage} className="ghost-cinematic-button">
+                            {t('changePackage')}
+                          </button>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={changeGiftPackage}
-                          className="min-h-10 rounded-lg border border-[#66d4ff]/50 bg-[#66d4ff]/10 px-4 py-2 text-xs font-bold text-[#66d4ff] transition-colors hover:border-[#66d4ff] hover:bg-[#66d4ff]/20"
-                        >
-                          {t('changePackage')}
-                        </button>
-                      </div>
+                        <StepAmount
+                          data={form}
+                          packageAmount={selectedPackage?.amount ?? 0}
+                          packageTitle={selectedPackage?.title ?? ''}
+                          onUpdate={update}
+                          onNext={next}
+                        />
+                      </section>
+                    )}
 
-                      <StepAmount
-                        data={form}
-                        packageAmount={selectedPackage?.amount ?? 0}
-                        packageTitle={selectedPackage?.title ?? ''}
-                        onUpdate={update}
-                        onNext={next}
-                      />
-                    </section>
-                  )}
+                    {activeTab === 'cumulative' && <CumulativeRewards />}
+                  </>
+                )}
 
-                {activeTab === 'cumulative' && (
-                  <CumulativeRewards />
+                {step === 2 && <StepPlayerInfo data={form} onUpdate={update} onNext={next} onBack={back} />}
+                {step === 3 && (
+                  <StepPayment
+                    data={form}
+                    selectedPackageAmount={selectedPackage?.amount ?? null}
+                    appliedPromoCode={appliedPromoCode}
+                    onApplyPromoCode={applyPromoCode}
+                    onRemovePromoCode={removePromoCode}
+                    onUpdate={update}
+                    onNext={next}
+                    onBack={back}
+                  />
+                )}
+                {step === 4 && <StepReceipt data={form} onUpdate={update} onNext={next} onBack={back} />}
+                {step === 5 && (
+                  <StepComplete
+                    data={form}
+                    selectedPackageAmount={selectedPackage?.amount ?? null}
+                    selectedPackageTitle={selectedPackage?.title ?? null}
+                    promoCode={appliedPromoCode}
+                    onSubmit={submitForm}
+                    onBack={back}
+                    isSubmitting={isSubmitting}
+                    submitError={submitError}
+                  />
                 )}
               </>
             )}
-
-            {step === 2 && (
-              <StepPlayerInfo
-                data={form}
-                onUpdate={update}
-                onNext={next}
-                onBack={back}
-              />
-            )}
-
-            {step === 3 && (
-              <StepPayment
-                data={form}
-                selectedPackageAmount={selectedPackage?.amount ?? null}
-                appliedPromoCode={appliedPromoCode}
-                onApplyPromoCode={applyPromoCode}
-                onRemovePromoCode={removePromoCode}
-                onUpdate={update}
-                onNext={next}
-                onBack={back}
-              />
-            )}
-
-            {step === 4 && (
-              <StepReceipt
-                data={form}
-                onUpdate={update}
-                onNext={next}
-                onBack={back}
-              />
-            )}
-
-            {step === 5 && (
-              <StepComplete
-                data={form}
-                selectedPackageAmount={selectedPackage?.amount ?? null}
-                selectedPackageTitle={selectedPackage?.title ?? null}
-                promoCode={appliedPromoCode}
-                onSubmit={submitForm}
-                onBack={back}
-                isSubmitting={isSubmitting}
-                submitError={submitError}
-              />
-            )}
-          </>
-        )}
-      </main>
-
-      <footer className="mt-16 border-t border-[#191d27]">
-        <div className="mx-auto max-w-2xl px-4 py-6 text-center text-xs text-[#6b7280]">
-          {t('voluntaryFooter')}
+          </div>
         </div>
-      </footer>
+
+        <footer className="cinematic-footer">{t('voluntaryFooter')}</footer>
+      </section>
     </div>
   )
 }
-
 
 export default function App() {
   return (

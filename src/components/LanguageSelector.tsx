@@ -20,11 +20,11 @@ export function LanguageSelector() {
       <button
         type="button"
         onClick={() => setOpen(value => !value)}
-        className="flex min-h-10 items-center gap-2 rounded-lg border border-[#353c52] bg-[#11151d] px-3 text-xs font-bold text-[#e8eaf0] transition hover:border-[#66d4ff]/70"
+        className="flex min-h-10 items-center gap-2 rounded-full border border-[#7f685e] bg-black/30 px-3 text-xs font-bold text-[#eadfd7] backdrop-blur transition hover:border-[#b76c45]"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="text-[#66d4ff]" aria-hidden="true">◎</span>
+        <span className="text-[#d08b5b]" aria-hidden="true">◎</span>
         <span>{current.short}</span>
         <span className={`text-[10px] text-[#7c879d] transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true">▼</span>
       </button>
@@ -33,7 +33,7 @@ export function LanguageSelector() {
         <div
           role="listbox"
           aria-label="Language"
-          className="absolute right-0 top-[calc(100%+8px)] z-[70] w-44 overflow-hidden rounded-lg border border-[#243044] bg-[#0c111a] shadow-2xl"
+          className="absolute right-0 top-[calc(100%+8px)] z-[70] w-44 overflow-hidden rounded-sm border border-[#5a3c30] bg-[#0d0908]/95 shadow-2xl backdrop-blur"
         >
           {LANGUAGES.map(item => {
             const active = item.code === language
@@ -49,8 +49,8 @@ export function LanguageSelector() {
                 }}
                 className={`block w-full px-4 py-3 text-left text-sm transition ${
                   active
-                    ? 'bg-[#102036] text-[#66d4ff]'
-                    : 'text-[#cbd2de] hover:bg-[#131b29] hover:text-white'
+                    ? 'bg-[#4b2118] text-[#e4aa78]'
+                    : 'text-[#c7b8ae] hover:bg-[#261510] hover:text-white'
                 }`}
               >
                 {item.label}
