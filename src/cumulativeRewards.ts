@@ -180,7 +180,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       'Element Extraction of Harmony(Bound) ×100000',
     ],
   },
-
   {
     amount: 3000,
     rewards: [
@@ -210,10 +209,10 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+8 Incense Burner of Vitality   (Bound) ×1",
       "+8 Incense Burner of   Mentality (Bound) ×1",
       "+8 Incense Burner of   Endurance (Bound) ×1",
+      "crusade Loot Chest   (Attributed) ×20",
       "Gilded Monarch Raven (Bound) ×1",
     ],
   },
-
   {
     amount: 3500,
     rewards: [
@@ -224,7 +223,7 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "Eligio Stimulant of EXP   (Bound) ×2500",
       "Artisan Aircraft Toolbox   (Bound) ×500",
       "Gold Chest (Bound) ×6250",
-      "Metal Fragment ×25000",
+      "Metal Fragment ×50000",
       "MealBasket ×3125",
       "Morion (Bound) ×50000",
       "[UC] Crafting Material   Selection Chest (Bound) ×1000",
@@ -245,9 +244,9 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+8 Die of Scorching Heat   (Bound) ×1",
       "+8 Die of Oceans (Bound) ×1",
       "+8 Die of Thunderbolts   (Bound) ×1",
+      "Guardian's   Scepter(Attribution) ×10000",
     ],
   },
-
   {
     amount: 4000,
     rewards: [
@@ -280,7 +279,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "for gray-scaled babies   (Bound) ×1",
     ],
   },
-
   {
     amount: 4500,
     rewards: [
@@ -315,11 +313,9 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "Glorius Albatross Wings   (Bound) ×1",
     ],
   },
-
   {
     amount: 5000,
     rewards: [
-      "Diamonds ×2000000",
       "Mileage ×400000",
       "Seal of Advancement (Bound) ×100000",
       "Higher Seal of Advancement   (Bound) ×5000",
@@ -348,7 +344,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+9 Incense Burner of   Endurance (Bound) ×1",
     ],
   },
-
   {
     amount: 5500,
     rewards: [
@@ -384,7 +379,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+9 Die of Thunderbolts   (Bound) ×1",
     ],
   },
-
   {
     amount: 6000,
     rewards: [
@@ -419,7 +413,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+10 Incense Burner of   Endurance (Bound) ×1",
     ],
   },
-
   {
     amount: 6500,
     rewards: [
@@ -455,7 +448,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+10 Die of Thunderbolts   (Bound) ×1",
     ],
   },
-
   {
     amount: 7000,
     rewards: [
@@ -491,7 +483,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "Tiaraka of Flushing (Bound) ×1",
     ],
   },
-
   {
     amount: 7500,
     rewards: [
@@ -527,7 +518,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+10 Die of Thunderbolts   (Bound) ×1",
     ],
   },
-
   {
     amount: 8000,
     rewards: [
@@ -561,7 +551,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+11 Incense Burner of   Endurance (Bound) ×1",
     ],
   },
-
   {
     amount: 8500,
     rewards: [
@@ -591,10 +580,8 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+11 Die of Scorching Heat   (Bound) ×1",
       "+11 Die of Oceans (Bound) ×1",
       "+11 Die of Thunderbolts   (Bound) ×1",
-      "crusade Loot Chest   (Attributed) ×200",
     ],
   },
-
   {
     amount: 9000,
     rewards: [
@@ -627,7 +614,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "Guardian's   Scepter(Attribution) 150000",
     ],
   },
-
   {
     amount: 9500,
     rewards: [
@@ -660,11 +646,9 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "Guardian's   Scepter(Attribution) 200000",
     ],
   },
-
   {
     amount: 10000,
     rewards: [
-      "Diamonds ×10000000",
       "Mileage ×1000000",
       "Master's Aircraft Toolbox   (Bound) ×4000",
       "Gold Chest (Bound) ×25000",
@@ -699,6 +683,8 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "+12 Die of Thunderbolts   (Bound) ×1",
       "Guardian's   Scepter(Attribution) 250000",
       "crusade Loot Chest   (Attributed) ×400",
+      "golden Necklace Insignia (Attributed) ×4",
+      "golden Ring Insignia (Attribution) ×8",
     ],
   }
 ]
