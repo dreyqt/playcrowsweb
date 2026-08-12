@@ -70,6 +70,202 @@ function formatBytes(bytes: number | null) {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
 }
 
+
+
+type EvidencePdfPage = {
+  jpeg: Uint8Array
+  widthPt: number
+  heightPt: number
+}
+
+function dataUrlToBytes(dataUrl: string) {
+  const base64 = dataUrl.split(',')[1] ?? ''
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i)
+  return bytes
+}
+
+function canvasToPdfPage(canvas: HTMLCanvasElement, widthPt: number, heightPt: number): EvidencePdfPage {
+  return {
+    jpeg: dataUrlToBytes(canvas.toDataURL('image/jpeg', 0.9)),
+    widthPt,
+    heightPt,
+  }
+}
+
+function concatBytes(parts: Uint8Array[]) {
+  const total = parts.reduce((sum, part) => sum + part.length, 0)
+  const out = new Uint8Array(total)
+  let offset = 0
+  for (const part of parts) {
+    out.set(part, offset)
+    offset += part.length
+  }
+  return out
+}
+
+function buildImageOnlyPdf(pages: EvidencePdfPage[]) {
+  const encoder = new TextEncoder()
+  const header = encoder.encode('%PDF-1.4\n%PCROWS\n')
+  const objectParts: Uint8Array[] = []
+  const offsets: number[] = [0]
+  let byteOffset = header.length
+  const pageObjectIds: number[] = []
+  const imageObjectIds: number[] = []
+  const contentObjectIds: number[] = []
+  const objectCount = 2 + pages.length * 3
+
+  const pushObject = (id: number, bodyParts: Uint8Array[]) => {
+    offsets[id] = byteOffset
+    const start = encoder.encode(`${id} 0 obj\n`)
+    const end = encoder.encode('\nendobj\n')
+    const all = concatBytes([start, ...bodyParts, end])
+    objectParts.push(all)
+    byteOffset += all.length
+  }
+
+  pages.forEach((_, index) => {
+    pageObjectIds.push(3 + index * 3)
+    imageObjectIds.push(4 + index * 3)
+    contentObjectIds.push(5 + index * 3)
+  })
+
+  pushObject(1, [encoder.encode('<< /Type /Catalog /Pages 2 0 R >>')])
+  pushObject(2, [encoder.encode(`<< /Type /Pages /Count ${pages.length} /Kids [${pageObjectIds.map(id => `${id} 0 R`).join(' ')}] >>`)])
+
+  pages.forEach((page, index) => {
+    const pageId = pageObjectIds[index]
+    const imageId = imageObjectIds[index]
+    const contentId = contentObjectIds[index]
+    pushObject(pageId, [encoder.encode(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${page.widthPt} ${page.heightPt}] /Resources << /XObject << /Im0 ${imageId} 0 R >> >> /Contents ${contentId} 0 R >>`)])
+    pushObject(imageId, [
+      encoder.encode(`<< /Type /XObject /Subtype /Image /Width ${Math.round(page.widthPt * 2)} /Height ${Math.round(page.heightPt * 2)} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${page.jpeg.length} >>\nstream\n`),
+      page.jpeg,
+      encoder.encode('\nendstream'),
+    ])
+    const content = `q\n${page.widthPt} 0 0 ${page.heightPt} 0 0 cm\n/Im0 Do\nQ`
+    const contentBytes = encoder.encode(content)
+    pushObject(contentId, [encoder.encode(`<< /Length ${contentBytes.length} >>\nstream\n`), contentBytes, encoder.encode('\nendstream')])
+  })
+
+  const xrefOffset = byteOffset
+  const xrefLines = [`xref`, `0 ${objectCount + 1}`, '0000000000 65535 f ']
+  for (let id = 1; id <= objectCount; id += 1) {
+    xrefLines.push(`${String(offsets[id] ?? 0).padStart(10, '0')} 00000 n `)
+  }
+  const trailer = encoder.encode(`${xrefLines.join('\n')}\ntrailer\n<< /Size ${objectCount + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`)
+  return concatBytes([header, ...objectParts, trailer])
+}
+
+function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  const words = String(text || 'Not recorded').split(/\s+/)
+  const lines: string[] = []
+  let line = ''
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word
+    if (ctx.measureText(candidate).width <= maxWidth || !line) line = candidate
+    else { lines.push(line); line = word }
+  }
+  if (line) lines.push(line)
+  return lines
+}
+
+async function blobUrlToImage(url: string) {
+  const response = await fetch(url)
+  if (!response.ok) throw new Error('Unable to load stored evidence image.')
+  const blob = await response.blob()
+  const objectUrl = URL.createObjectURL(blob)
+  try {
+    const image = new Image()
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve()
+      image.onerror = () => reject(new Error('Unable to decode stored evidence image.'))
+      image.src = objectUrl
+    })
+    return image
+  } finally {
+    // Keep the object URL alive until after the image has decoded.
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
+  }
+}
+
+function makeSummaryEvidencePage(title: string, subtitle: string, rows: Array<[string, string]>) {
+  const canvas = document.createElement('canvas')
+  canvas.width = 1190
+  canvas.height = 1684
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = '#111111'
+  ctx.font = 'bold 42px Arial, sans-serif'
+  ctx.fillText(title, 72, 90)
+  ctx.fillStyle = '#555555'
+  ctx.font = '22px Arial, sans-serif'
+  let y = 130
+  for (const line of wrapCanvasText(ctx, subtitle, canvas.width - 144)) {
+    ctx.fillText(line, 72, y)
+    y += 31
+  }
+  y += 28
+  const labelWidth = 340
+  const rowWidth = canvas.width - 144
+  for (const [label, value] of rows) {
+    ctx.font = 'bold 20px Arial, sans-serif'
+    const valueLines = (() => {
+      ctx.font = '20px Arial, sans-serif'
+      return wrapCanvasText(ctx, value || 'Not recorded', rowWidth - labelWidth - 36)
+    })()
+    const rowHeight = Math.max(64, 28 + valueLines.length * 28)
+    if (y + rowHeight > canvas.height - 90) break
+    ctx.fillStyle = '#f4f4f4'
+    ctx.fillRect(72, y, labelWidth, rowHeight)
+    ctx.strokeStyle = '#cfcfcf'
+    ctx.strokeRect(72, y, rowWidth, rowHeight)
+    ctx.beginPath()
+    ctx.moveTo(72 + labelWidth, y)
+    ctx.lineTo(72 + labelWidth, y + rowHeight)
+    ctx.stroke()
+    ctx.fillStyle = '#222222'
+    ctx.font = 'bold 20px Arial, sans-serif'
+    ctx.fillText(label, 90, y + 37)
+    ctx.font = '20px Arial, sans-serif'
+    valueLines.forEach((line, i) => ctx.fillText(line, 72 + labelWidth + 18, y + 37 + i * 28))
+    y += rowHeight
+  }
+  ctx.fillStyle = '#666666'
+  ctx.font = '18px Arial, sans-serif'
+  ctx.fillText(`Generated ${new Date().toLocaleString()} - original evidence files remain stored in PlayCrows.`, 72, canvas.height - 45)
+  return canvasToPdfPage(canvas, 595, 842)
+}
+
+function makeImageEvidencePage(title: string, image: HTMLImageElement, caption: string) {
+  const landscape = image.naturalWidth / Math.max(1, image.naturalHeight) > 1.35
+  const canvas = document.createElement('canvas')
+  canvas.width = landscape ? 1684 : 1190
+  canvas.height = landscape ? 1190 : 1684
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = '#111111'
+  ctx.font = 'bold 38px Arial, sans-serif'
+  ctx.fillText(title, 60, 75)
+  ctx.fillStyle = '#555555'
+  ctx.font = '20px Arial, sans-serif'
+  ctx.fillText(caption, 60, 110)
+  const boxX = 60
+  const boxY = 145
+  const boxW = canvas.width - 120
+  const boxH = canvas.height - 205
+  ctx.fillStyle = '#f7f7f7'
+  ctx.fillRect(boxX, boxY, boxW, boxH)
+  const scale = Math.min(boxW / image.naturalWidth, boxH / image.naturalHeight)
+  const drawW = image.naturalWidth * scale
+  const drawH = image.naturalHeight * scale
+  ctx.drawImage(image, boxX + (boxW - drawW) / 2, boxY + (boxH - drawH) / 2, drawW, drawH)
+  return canvasToPdfPage(canvas, landscape ? 842 : 595, landscape ? 595 : 842)
+}
+
 function getPackageCategory(packageId: string | null | undefined) {
   if (packageId?.startsWith('currency-')) return 'Currency'
   if (packageId?.startsWith('support-')) return 'Support Package'
@@ -237,6 +433,7 @@ export function AdminApp() {
   const [itemsDelivered, setItemsDelivered] = useState('')
   const [backendLedgerTimestamp, setBackendLedgerTimestamp] = useState('')
   const [fulfillmentEvidence, setFulfillmentEvidence] = useState<File | null>(null)
+  const [generatingEvidencePdf, setGeneratingEvidencePdf] = useState(false)
 
   const verifyAdmin = async (currentSession?: Session | null) => {
     const activeSession =
@@ -455,25 +652,75 @@ const openReceipt = async () => {
     setFulfillmentEvidence(null); setSaveMessage('Package marked as delivered. Fulfillment evidence is now locked.')
   }
 
-  const generateEvidenceReport = () => {
+  const downloadEvidencePdf = async () => {
     if (!selected) return
-    const w = window.open('', '_blank')
-    if (!w) return setSaveMessage('Allow pop-ups and try again.')
-    const esc = (v: unknown) => String(v ?? 'Not recorded').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!))
-    const rows = [
-      ['PlayCrows Reference', selected.reference_code], ['Submitted', formatDate(selected.created_at)],
-      ['Player ID', selected.player_id], ['Character / Username', selected.username],
-      ['Payment Method', PAYMENT_LABELS[selected.payment_method]], ['Amount', formatMoney(selected.currency, selected.amount)],
-      ['PayPal Transaction ID', selected.paypal_transaction_id], ['Payment Verified', selected.payment_verified_at ? formatDate(selected.payment_verified_at) : 'No'],
-      ['Package', getPackageDisplayName(selected)], ['Quantity', selected.package_quantity ?? 1],
-      ['Fulfillment Status', selected.fulfillment_status === 'delivered' ? 'DELIVERED' : 'NOT DELIVERED'],
-      ['Delivered At', selected.fulfilled_at ? formatDate(selected.fulfilled_at) : null], ['Processed By', selected.fulfilled_by],
-      ['Delivered To', selected.delivered_to], ['Items Delivered', selected.items_delivered],
-      ['Backend Ledger Timestamp', selected.backend_ledger_timestamp ? formatDate(selected.backend_ledger_timestamp) : null],
-      ['Fulfillment Notes', selected.fulfillment_notes], ['Receipt File', selected.receipt_original_name], ['Backend Evidence File', selected.fulfillment_evidence_name],
-    ]
-    w.document.write(`<!doctype html><html><head><title>Dispute Evidence - ${esc(selected.reference_code)}</title><style>body{font:14px Arial;max-width:850px;margin:40px auto;color:#111}h1{font-size:24px}p{color:#555}table{width:100%;border-collapse:collapse;margin-top:24px}td{border:1px solid #ccc;padding:10px;vertical-align:top}td:first-child{font-weight:bold;width:32%;background:#f5f5f5}.note{margin-top:24px;padding:12px;border:1px solid #bbb;background:#fafafa}@media print{button{display:none}}</style></head><body><h1>PlayCrows Transaction & Fulfillment Evidence</h1><p>Contemporaneous administrative record for digital-goods fulfillment. This report summarizes stored records; supporting receipt and backend evidence files should be attached separately.</p><table>${rows.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table><div class="note">Generated ${esc(new Date().toLocaleString())}. Do not alter original evidence files.</div><br><button onclick="window.print()">Print / Save as PDF</button></body></html>`)
-    w.document.close()
+    if (selected.fulfillment_status !== 'delivered') return setSaveMessage('Mark the package as delivered before downloading the evidence PDF.')
+    setGeneratingEvidencePdf(true)
+    setSaveMessage('Building evidence PDF…')
+    try {
+      const rows: Array<[string, string]> = [
+        ['PlayCrows Reference', selected.reference_code],
+        ['Submitted', formatDate(selected.created_at)],
+        ['Player ID', selected.player_id],
+        ['Character / Username', selected.username],
+        ['Payment Method', PAYMENT_LABELS[selected.payment_method]],
+        ['Amount', formatMoney(selected.currency, selected.amount)],
+        ['PayPal Transaction ID', selected.paypal_transaction_id ?? 'Not recorded'],
+        ['Payment Verified', selected.payment_verified_at ? formatDate(selected.payment_verified_at) : 'No'],
+        ['Package', getPackageDisplayName(selected)],
+        ['Quantity', String(selected.package_quantity ?? 1)],
+        ['Fulfillment Status', 'DELIVERED'],
+        ['Delivered At', selected.fulfilled_at ? formatDate(selected.fulfilled_at) : 'Not recorded'],
+        ['Processed By', selected.fulfilled_by ?? 'Admin'],
+        ['Delivered To', selected.delivered_to ?? 'Not recorded'],
+        ['Items Delivered', selected.items_delivered ?? 'Not recorded'],
+        ['Backend Ledger Timestamp', selected.backend_ledger_timestamp ? formatDate(selected.backend_ledger_timestamp) : 'Not recorded'],
+        ['Fulfillment Notes', selected.fulfillment_notes ?? 'None'],
+        ['Payment Receipt File', selected.receipt_original_name ?? 'Not recorded'],
+        ['Backend Evidence File', selected.fulfillment_evidence_name ?? 'Not recorded'],
+      ]
+      const pages: EvidencePdfPage[] = [
+        makeSummaryEvidencePage(
+          'PlayCrows Transaction & Fulfillment Evidence',
+          'Administrative record for a digital-goods transaction. Original uploaded files remain stored privately in PlayCrows; image evidence is reproduced below for convenient dispute submission.',
+          rows
+        ),
+      ]
+
+      const signedPaths = [
+        { kind: 'receipt', path: selected.receipt_path, mime: selected.receipt_mime_type, name: selected.receipt_original_name },
+        { kind: 'ledger', path: selected.fulfillment_evidence_path, mime: selected.fulfillment_evidence_mime_type, name: selected.fulfillment_evidence_name },
+      ] as const
+
+      for (const evidence of signedPaths) {
+        if (!evidence.path || !evidence.mime?.startsWith('image/')) continue
+        const { data, error } = await supabase.storage.from('payment-receipts').createSignedUrl(evidence.path, 300)
+        if (error || !data?.signedUrl) throw new Error(error?.message ?? `Unable to load ${evidence.kind} evidence.`)
+        const image = await blobUrlToImage(data.signedUrl)
+        pages.push(makeImageEvidencePage(
+          evidence.kind === 'receipt' ? 'Payment Receipt' : 'Backend Delivery Evidence',
+          image,
+          evidence.name ?? (evidence.kind === 'receipt' ? 'Original payment receipt' : 'Original backend ledger screenshot')
+        ))
+      }
+
+      const pdf = buildImageOnlyPdf(pages)
+      const blob = new Blob([pdf.buffer as ArrayBuffer], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `PlayCrows-Evidence-${selected.reference_code}.pdf`
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 5000)
+      const omittedPdf = signedPaths.filter(item => item.path && item.mime === 'application/pdf').map(item => item.kind)
+      setSaveMessage(omittedPdf.length ? `Evidence PDF downloaded. Stored ${omittedPdf.join(' and ')} PDF files are referenced in the report but cannot be embedded by the browser generator.` : 'Evidence PDF downloaded with the stored image evidence embedded.')
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : 'Unable to generate the evidence PDF.')
+    } finally {
+      setGeneratingEvidencePdf(false)
+    }
   }
 
   const saveReview = async () => {
@@ -843,7 +1090,7 @@ const openReceipt = async () => {
                   <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">Items Delivered</span><input value={itemsDelivered} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setItemsDelivered(e.target.value)} placeholder="e.g. $100 Diamond Package / 210,000 Diamonds" className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#11141a] px-3 text-sm outline-none disabled:opacity-60" /></label>
                   <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">Backend Ledger Timestamp</span><input type="datetime-local" step="1" value={backendLedgerTimestamp} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setBackendLedgerTimestamp(e.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#11141a] px-3 text-sm outline-none disabled:opacity-60" /></label>
                   <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">Fulfillment Notes</span><textarea value={fulfillmentNotes} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setFulfillmentNotes(e.target.value)} rows={3} placeholder="Optional context about the backend ledger action…" className="mt-2 w-full rounded-lg border border-[#3b414b] bg-[#11141a] p-3 text-sm disabled:opacity-60" /></label>
-                  {selected.fulfillment_status !== 'delivered' ? <><div className="mt-4"><span className="text-xs text-[#aaa49a]">Backend Ledger Screenshot (required)</span><label className="mt-2 flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-dashed border-[#c9aa68]/60 bg-[#c9aa68]/5 px-4 text-sm font-semibold text-[#c9aa68] hover:bg-[#c9aa68]/10"><input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={e => setFulfillmentEvidence(e.target.files?.[0] ?? null)} className="sr-only" />{fulfillmentEvidence ? `Selected: ${fulfillmentEvidence.name}` : 'Upload Backend Ledger Screenshot'}</label>{fulfillmentEvidence && <div className="mt-2 text-[11px] text-[#aaa49a]">Evidence ready to upload when you mark the package as delivered.</div>}</div><button type="button" disabled={saving} onClick={() => void markDelivered()} className="mt-4 min-h-11 w-full rounded-lg border border-[#22c55e]/50 bg-[#22c55e]/10 px-4 text-sm font-bold text-[#22c55e] hover:bg-[#22c55e]/20 disabled:opacity-60">Mark Package as Delivered & Lock Evidence</button></> : <div className="mt-4 space-y-2 text-xs text-[#aaa49a]"><div>Delivered: {selected.fulfilled_at ? formatDate(selected.fulfilled_at) : 'Recorded'}</div><div>Processed by: {selected.fulfilled_by ?? 'Admin'}</div><button type="button" onClick={() => void openFulfillmentEvidence()} className="min-h-10 w-full rounded-lg border border-[#3b414b] px-3 font-semibold text-[#eee9df]">Open Backend Delivery Evidence</button><button type="button" onClick={generateEvidenceReport} className="min-h-10 w-full rounded-lg border border-[#c9aa68]/50 px-3 font-bold text-[#c9aa68]">Generate Dispute Evidence Report</button></div>}
+                  {selected.fulfillment_status !== 'delivered' ? <><div className="mt-4"><span className="text-xs text-[#aaa49a]">Backend Ledger Screenshot (required)</span><label className="mt-2 flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-dashed border-[#c9aa68]/60 bg-[#c9aa68]/5 px-4 text-sm font-semibold text-[#c9aa68] hover:bg-[#c9aa68]/10"><input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={e => setFulfillmentEvidence(e.target.files?.[0] ?? null)} className="sr-only" />{fulfillmentEvidence ? `Selected: ${fulfillmentEvidence.name}` : 'Upload Backend Ledger Screenshot'}</label>{fulfillmentEvidence && <div className="mt-2 text-[11px] text-[#aaa49a]">Evidence ready to upload when you mark the package as delivered.</div>}</div><button type="button" disabled={saving} onClick={() => void markDelivered()} className="mt-4 min-h-11 w-full rounded-lg border border-[#22c55e]/50 bg-[#22c55e]/10 px-4 text-sm font-bold text-[#22c55e] hover:bg-[#22c55e]/20 disabled:opacity-60">Mark Package as Delivered & Lock Evidence</button></> : <div className="mt-4 space-y-2 text-xs text-[#aaa49a]"><div>Delivered: {selected.fulfilled_at ? formatDate(selected.fulfilled_at) : 'Recorded'}</div><div>Processed by: {selected.fulfilled_by ?? 'Admin'}</div><button type="button" onClick={() => void openFulfillmentEvidence()} className="min-h-10 w-full rounded-lg border border-[#3b414b] px-3 font-semibold text-[#eee9df]">Open Backend Delivery Evidence</button><button type="button" disabled={generatingEvidencePdf} onClick={() => void downloadEvidencePdf()} className="min-h-10 w-full rounded-lg border border-[#c9aa68]/50 px-3 font-bold text-[#c9aa68] disabled:opacity-60">{generatingEvidencePdf ? 'Building Evidence PDF…' : 'Download Evidence PDF'}</button></div>}
                 </div>
 
                 <label className="mt-4 block">

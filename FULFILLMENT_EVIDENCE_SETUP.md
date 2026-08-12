@@ -16,6 +16,6 @@
 7. Upload the original, unedited backend ledger screenshot. The upload button is clearly labeled **Upload Backend Ledger Screenshot**.
 8. Add optional fulfillment notes if the raw ledger needs context.
 9. Click **Mark Package as Delivered & Lock Evidence**.
-10. If a dispute occurs, click **Generate Dispute Evidence Report**, then Print / Save as PDF. Attach the original payment receipt and backend delivery evidence separately.
+10. If a dispute occurs, click **Download Evidence PDF**. The browser will directly download `PlayCrows-Evidence-<REFERENCE>.pdf`. Image-based payment receipts and backend ledger screenshots are embedded automatically. If an original evidence file is itself a PDF, it remains referenced/stored separately because the browser generator does not merge existing PDFs.
 
 Important: this creates a better evidence trail; it cannot guarantee the outcome of a PayPal or card chargeback.
