@@ -269,6 +269,7 @@ function makeImageEvidencePage(title: string, image: HTMLImageElement, caption: 
 function getPackageCategory(packageId: string | null | undefined) {
   if (packageId?.startsWith('currency-')) return 'Currency'
   if (packageId?.startsWith('support-')) return 'Support Package'
+  if (packageId?.startsWith('august-supply-')) return 'August Supply Package'
   return 'Legacy'
 }
 

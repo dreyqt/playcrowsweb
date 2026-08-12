@@ -25,6 +25,15 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   "Star's Memory (Bound)": 'star_memory.png',
   'Aura of Intense Expression (Attribution)': 'aura_intense_expression.png',
   'Cyclical Manifestation Energy (Attribution)': 'cyclical_manifestation_energy.png',
+  'Diamonds': 'diamonds.png',
+  'Mileage': 'mileage.png',
+  'Crusade Loot Chest (Attributed)': 'crusader_spoils_chest.png',
+  "Guardian's Scepter (Attribution)": 'guardian_scepter.png',
+  'Shining Armor Enhancement Scroll Chest (Bound)': 'shining_armor_enhancement.png',
+  'Shining Weapon Enhancement Scroll Chest (Bound)': 'shining_weapon_enhancement.png',
+  'Shining Accessory Enhancement Scroll Chest (Bound)': 'shining_accessory_enhancement.png',
+  'Wind Orb Chest (Attributed)': 'wind_orb_box.png',
+  "Forgotten One's Remnant Selection Chest (Bound)": 'forgotten_ones_remnant_selection_chest.png',
 }
 
 function rewardNameToFilename(name: string) {
@@ -84,6 +93,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
   const sections: Record<GiftPackageCategory, { title: string; description: string }> = {
     currency: { title: t('currency'), description: t('currencyDesc') },
     support: { title: t('supportPackages'), description: t('supportPackagesDesc') },
+    'august-supply': { title: t('augustSupplyPackages'), description: t('augustSupplyPackagesDesc') },
   }
   const selectedCategory = useMemo<GiftPackageCategory | null>(() => {
     if (!selectedPackageId) return null
@@ -146,7 +156,11 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                 <header className="gift-package-card__header">
                   <div>
                     <span className="gift-package-card__label">
-                      {giftPackage.category === 'currency' ? t('currency') : t('supportPackage')}
+                      {giftPackage.category === 'currency'
+                        ? t('currency')
+                        : giftPackage.category === 'august-supply'
+                          ? t('augustSupplyPackage')
+                          : t('supportPackage')}
                     </span>
                     <h3>{giftPackage.title}</h3>
                     <div className="mt-1 text-xl font-bold text-[#c9aa68]">
