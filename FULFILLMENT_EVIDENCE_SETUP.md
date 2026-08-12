@@ -12,9 +12,10 @@
 3. For PayPal, enter the PayPal Transaction ID.
 4. Check **Payment independently verified**.
 5. Deliver the package through the game backend.
-6. Capture the backend's successful delivery screen and upload it.
-7. Add useful fulfillment notes (items delivered, character, backend confirmation, etc.).
-8. Click **Mark Package as Delivered & Lock Evidence**.
-9. If a dispute occurs, click **Generate Dispute Evidence Report**, then Print / Save as PDF. Attach the original payment receipt and backend delivery evidence separately.
+6. Enter **Delivered To**, **Items Delivered**, and the exact **Backend Ledger Timestamp** shown by your backend.
+7. Upload the original, unedited backend ledger screenshot. The upload button is clearly labeled **Upload Backend Ledger Screenshot**.
+8. Add optional fulfillment notes if the raw ledger needs context.
+9. Click **Mark Package as Delivered & Lock Evidence**.
+10. If a dispute occurs, click **Generate Dispute Evidence Report**, then Print / Save as PDF. Attach the original payment receipt and backend delivery evidence separately.
 
 Important: this creates a better evidence trail; it cannot guarantee the outcome of a PayPal or card chargeback.

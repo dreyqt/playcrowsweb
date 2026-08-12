@@ -25,6 +25,9 @@ export interface DonationRecord {
   fulfillment_status: 'not_delivered' | 'delivered'
   fulfilled_at: string | null
   fulfillment_notes: string | null
+  delivered_to: string | null
+  items_delivered: string | null
+  backend_ledger_timestamp: string | null
   fulfillment_evidence_path: string | null
   fulfillment_evidence_name: string | null
   fulfillment_evidence_mime_type: string | null
