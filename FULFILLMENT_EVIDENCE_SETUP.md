@@ -12,7 +12,7 @@
 3. For PayPal, enter the PayPal Transaction ID.
 4. Check **Payment independently verified**.
 5. Deliver the package through the game backend.
-6. Enter **Delivered To**, **Items Delivered**, and the exact **Backend Ledger Timestamp** shown by your backend.
+6. Enter **Delivered To** and **Items Delivered**. Do not manually copy the backend timestamp; the timestamp visible in the original backend ledger screenshot is treated as the source timestamp.
 7. Upload the original, unedited backend ledger screenshot. The upload button is clearly labeled **Upload Backend Ledger Screenshot**.
 8. Add optional fulfillment notes if the raw ledger needs context.
 9. Click **Mark Package as Delivered & Lock Evidence**.
