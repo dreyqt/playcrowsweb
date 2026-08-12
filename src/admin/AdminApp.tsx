@@ -230,6 +230,10 @@ export function AdminApp() {
   const [status, setStatus] = useState<DonationStatus>('pending')
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+  const [paypalTransactionId, setPaypalTransactionId] = useState('')
+  const [paymentVerified, setPaymentVerified] = useState(false)
+  const [fulfillmentNotes, setFulfillmentNotes] = useState('')
+  const [fulfillmentEvidence, setFulfillmentEvidence] = useState<File | null>(null)
 
   const verifyAdmin = async (currentSession?: Session | null) => {
     const activeSession =
@@ -270,7 +274,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id'
+        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -338,6 +342,10 @@ export function AdminApp() {
     setSelected(donation)
     setNotes(donation.admin_notes ?? '')
     setStatus(donation.status)
+    setPaypalTransactionId(donation.paypal_transaction_id ?? '')
+    setPaymentVerified(Boolean(donation.payment_verified_at))
+    setFulfillmentNotes(donation.fulfillment_notes ?? '')
+    setFulfillmentEvidence(null)
     setSaveMessage('')
   }
 
@@ -395,6 +403,65 @@ const openReceipt = async () => {
   )
 }
 
+  const openFulfillmentEvidence = async () => {
+    if (!selected?.fulfillment_evidence_path) return
+    const evidenceWindow = window.open('about:blank', '_blank')
+    if (!evidenceWindow) return setSaveMessage('Allow pop-ups and try again.')
+    const { data, error } = await supabase.storage.from('payment-receipts').createSignedUrl(selected.fulfillment_evidence_path, 300)
+    if (error || !data?.signedUrl) { evidenceWindow.close(); return setSaveMessage(error?.message ?? 'Unable to open fulfillment evidence.') }
+    evidenceWindow.location.replace(data.signedUrl)
+  }
+
+  const markDelivered = async () => {
+    if (!selected || selected.fulfillment_status === 'delivered') return
+    if (!paymentVerified) return setSaveMessage('Verify the payment before marking this package delivered.')
+    if (selected.payment_method === 'paypal' && !paypalTransactionId.trim()) return setSaveMessage('PayPal Transaction ID is required before delivery.')
+    if (!fulfillmentEvidence) return setSaveMessage('Upload a backend delivery screenshot before marking this package delivered.')
+    setSaving(true); setSaveMessage('Uploading fulfillment evidence…')
+    const safeName = fulfillmentEvidence.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const evidencePath = `fulfillment/${selected.reference_code}/${Date.now()}-${safeName}`
+    const upload = await supabase.storage.from('payment-receipts').upload(evidencePath, fulfillmentEvidence, { upsert: false, contentType: fulfillmentEvidence.type })
+    if (upload.error) { setSaving(false); return setSaveMessage(upload.error.message) }
+    const now = new Date().toISOString()
+    const { data, error } = await supabase.from('donations').update({
+      paypal_transaction_id: paypalTransactionId.trim() || null,
+      payment_verified_at: selected.payment_verified_at ?? now,
+      fulfillment_status: 'delivered', fulfilled_at: now,
+      fulfillment_notes: fulfillmentNotes.trim() || null,
+      fulfillment_evidence_path: evidencePath,
+      fulfillment_evidence_name: fulfillmentEvidence.name,
+      fulfillment_evidence_mime_type: fulfillmentEvidence.type,
+      fulfillment_evidence_size_bytes: fulfillmentEvidence.size,
+      fulfilled_by: session?.user.email ?? session?.user.id ?? 'admin',
+      status: 'approved',
+    }).eq('id', selected.id).select('*').single()
+    setSaving(false)
+    if (error) return setSaveMessage(error.message)
+    const updated = data as DonationRecord
+    setSelected(updated); setStatus(updated.status)
+    setDonations(current => current.map(item => item.id === updated.id ? updated : item))
+    setFulfillmentEvidence(null); setSaveMessage('Package marked as delivered. Fulfillment evidence is now locked.')
+  }
+
+  const generateEvidenceReport = () => {
+    if (!selected) return
+    const w = window.open('', '_blank')
+    if (!w) return setSaveMessage('Allow pop-ups and try again.')
+    const esc = (v: unknown) => String(v ?? 'Not recorded').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!))
+    const rows = [
+      ['PlayCrows Reference', selected.reference_code], ['Submitted', formatDate(selected.created_at)],
+      ['Player ID', selected.player_id], ['Character / Username', selected.username],
+      ['Payment Method', PAYMENT_LABELS[selected.payment_method]], ['Amount', formatMoney(selected.currency, selected.amount)],
+      ['PayPal Transaction ID', selected.paypal_transaction_id], ['Payment Verified', selected.payment_verified_at ? formatDate(selected.payment_verified_at) : 'No'],
+      ['Package', getPackageDisplayName(selected)], ['Quantity', selected.package_quantity ?? 1],
+      ['Fulfillment Status', selected.fulfillment_status === 'delivered' ? 'DELIVERED' : 'NOT DELIVERED'],
+      ['Delivered At', selected.fulfilled_at ? formatDate(selected.fulfilled_at) : null], ['Processed By', selected.fulfilled_by],
+      ['Fulfillment Notes', selected.fulfillment_notes], ['Receipt File', selected.receipt_original_name], ['Backend Evidence File', selected.fulfillment_evidence_name],
+    ]
+    w.document.write(`<!doctype html><html><head><title>Dispute Evidence - ${esc(selected.reference_code)}</title><style>body{font:14px Arial;max-width:850px;margin:40px auto;color:#111}h1{font-size:24px}p{color:#555}table{width:100%;border-collapse:collapse;margin-top:24px}td{border:1px solid #ccc;padding:10px;vertical-align:top}td:first-child{font-weight:bold;width:32%;background:#f5f5f5}.note{margin-top:24px;padding:12px;border:1px solid #bbb;background:#fafafa}@media print{button{display:none}}</style></head><body><h1>PlayCrows Transaction & Fulfillment Evidence</h1><p>Contemporaneous administrative record for digital-goods fulfillment. This report summarizes stored records; supporting receipt and backend evidence files should be attached separately.</p><table>${rows.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table><div class="note">Generated ${esc(new Date().toLocaleString())}. Do not alter original evidence files.</div><br><button onclick="window.print()">Print / Save as PDF</button></body></html>`)
+    w.document.close()
+  }
+
   const saveReview = async () => {
     if (!selected) return
 
@@ -406,10 +473,13 @@ const openReceipt = async () => {
       .update({
         status,
         admin_notes: notes.trim() || null,
+        paypal_transaction_id: selected.fulfillment_status === 'delivered' ? selected.paypal_transaction_id : (paypalTransactionId.trim() || null),
+        payment_verified_at: selected.fulfillment_status === 'delivered' ? selected.payment_verified_at : (paymentVerified ? (selected.payment_verified_at ?? new Date().toISOString()) : null),
+        fulfillment_notes: selected.fulfillment_status === 'delivered' ? selected.fulfillment_notes : (fulfillmentNotes.trim() || null),
       })
       .eq('id', selected.id)
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id'
+        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
       )
       .single()
 
@@ -747,6 +817,14 @@ const openReceipt = async () => {
                     <option value="rejected">Rejected</option>
                   </select>
                 </label>
+
+                <div className="mt-4 rounded-xl border border-[#3b414b] bg-[#0d0f13] p-4">
+                  <div className="flex items-center justify-between gap-3"><span className="text-xs font-bold uppercase tracking-widest text-[#c9aa68]">Payment & Fulfillment Evidence</span><span className={`rounded-full border px-2 py-1 text-[9px] font-bold ${selected.fulfillment_status === 'delivered' ? 'border-[#22c55e]/40 text-[#22c55e]' : 'border-[#77746e]/40 text-[#aaa49a]'}`}>{selected.fulfillment_status === 'delivered' ? 'DELIVERED' : 'NOT DELIVERED'}</span></div>
+                  {selected.payment_method === 'paypal' && <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">PayPal Transaction ID</span><input value={paypalTransactionId} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setPaypalTransactionId(e.target.value)} placeholder="Enter the transaction ID from PayPal" className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#11141a] px-3 text-sm outline-none disabled:opacity-60" /></label>}
+                  <label className="mt-4 flex items-center gap-2 text-xs text-[#aaa49a]"><input type="checkbox" checked={paymentVerified} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setPaymentVerified(e.target.checked)} /> Payment independently verified in the payment provider</label>
+                  <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">Fulfillment Notes</span><textarea value={fulfillmentNotes} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setFulfillmentNotes(e.target.value)} rows={3} placeholder="What was delivered, backend result, character details…" className="mt-2 w-full rounded-lg border border-[#3b414b] bg-[#11141a] p-3 text-sm disabled:opacity-60" /></label>
+                  {selected.fulfillment_status !== 'delivered' ? <><label className="mt-4 block"><span className="text-xs text-[#aaa49a]">Backend Delivery Screenshot (required)</span><input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={e => setFulfillmentEvidence(e.target.files?.[0] ?? null)} className="mt-2 block w-full text-xs text-[#aaa49a]" /></label><button type="button" disabled={saving} onClick={() => void markDelivered()} className="mt-4 min-h-11 w-full rounded-lg border border-[#22c55e]/50 bg-[#22c55e]/10 px-4 text-sm font-bold text-[#22c55e] hover:bg-[#22c55e]/20 disabled:opacity-60">Mark Package as Delivered & Lock Evidence</button></> : <div className="mt-4 space-y-2 text-xs text-[#aaa49a]"><div>Delivered: {selected.fulfilled_at ? formatDate(selected.fulfilled_at) : 'Recorded'}</div><div>Processed by: {selected.fulfilled_by ?? 'Admin'}</div><button type="button" onClick={() => void openFulfillmentEvidence()} className="min-h-10 w-full rounded-lg border border-[#3b414b] px-3 font-semibold text-[#eee9df]">Open Backend Delivery Evidence</button><button type="button" onClick={generateEvidenceReport} className="min-h-10 w-full rounded-lg border border-[#c9aa68]/50 px-3 font-bold text-[#c9aa68]">Generate Dispute Evidence Report</button></div>}
+                </div>
 
                 <label className="mt-4 block">
                   <span className="text-xs font-semibold text-[#aaa49a]">Internal Notes</span>
