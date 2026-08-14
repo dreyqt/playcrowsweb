@@ -5,6 +5,17 @@ export type SubmissionStatus = 'pending' | 'approved' | 'rejected'
 export type EventFieldType = 'text' | 'textarea' | 'url' | 'links'
 export type ClaimFrequency = 'once' | 'weekly'
 
+export type EventActionLinkTranslation = {
+  label?: string
+}
+
+export type EventActionLink = {
+  id: string
+  label: string
+  url: string
+  translations?: Partial<Record<LanguageCode, EventActionLinkTranslation>>
+}
+
 export type EventFieldTranslation = {
   label?: string
   placeholder?: string
@@ -41,6 +52,7 @@ export type PlayCrowsEvent = {
   mechanics: string[]
   rewards: string[]
   form_fields: EventFormField[]
+  action_links?: EventActionLink[]
   translations?: Partial<Record<LanguageCode, EventTranslation>>
   status: EventStatus
   starts_at: string | null

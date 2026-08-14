@@ -67,3 +67,11 @@ This upgrade adds:
 - optional localized title, descriptions, mechanics, rewards, and custom-field labels
 
 For Event #001, recommended security settings are **One claim per week**, **Monday**, **04:00**, timezone **Asia/Manila**, with Character Name and Player ID / UID required. Add one **Multiple Links** field with minimum = 3 and maximum = 3.
+
+
+## v3 update: Event Links / Action Buttons
+If you already installed Event Center v2, run this additional migration in Supabase SQL Editor:
+
+`supabase/migrations/20260814_event_center_v3_action_links.sql`
+
+This adds configurable clickable action buttons to events. URLs inside Description, Mechanics, and Rewards are also automatically rendered as clickable links.
