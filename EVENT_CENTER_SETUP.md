@@ -48,3 +48,22 @@ Open an event in `/admin/events`. The Submission Review table shows the player, 
 ## Notes
 
 The public Results tab exposes only the Discord username, Approved/Rejected status, rejection reason, and reward-sent timestamp. Player IDs, character names, proof links/answers, reviewer identity, and admin notes remain private to admins.
+
+## Event Center v2 upgrade
+
+After the original Event Center migration, run:
+
+`supabase/migrations/20260814_event_center_v2_security_links_translation.sql`
+
+This upgrade adds:
+
+- server-side duplicate-claim protection (Discord + Character + Player ID / UID)
+- one-time or weekly claim limits
+- configurable weekly reset day/hour/timezone
+- server-side required-field and URL validation
+- dynamic multi-link claim fields with minimum/maximum link counts
+- required Character Name / Player ID switches
+- Event Center language selector using the same saved language as the Donation Center
+- optional localized title, descriptions, mechanics, rewards, and custom-field labels
+
+For Event #001, recommended security settings are **One claim per week**, **Monday**, **04:00**, timezone **Asia/Manila**, with Character Name and Player ID / UID required. Add one **Multiple Links** field with minimum = 3 and maximum = 3.

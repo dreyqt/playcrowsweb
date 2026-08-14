@@ -1,6 +1,15 @@
+import type { LanguageCode } from '../i18n'
+
 export type EventStatus = 'draft' | 'active' | 'ended'
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected'
-export type EventFieldType = 'text' | 'textarea' | 'url'
+export type EventFieldType = 'text' | 'textarea' | 'url' | 'links'
+export type ClaimFrequency = 'once' | 'weekly'
+
+export type EventFieldTranslation = {
+  label?: string
+  placeholder?: string
+  helpText?: string
+}
 
 export type EventFormField = {
   id: string
@@ -9,6 +18,17 @@ export type EventFormField = {
   required: boolean
   placeholder?: string
   helpText?: string
+  minItems?: number
+  maxItems?: number
+  translations?: Partial<Record<LanguageCode, EventFieldTranslation>>
+}
+
+export type EventTranslation = {
+  title?: string
+  short_description?: string
+  description?: string
+  mechanics?: string[]
+  rewards?: string[]
 }
 
 export type PlayCrowsEvent = {
@@ -21,13 +41,22 @@ export type PlayCrowsEvent = {
   mechanics: string[]
   rewards: string[]
   form_fields: EventFormField[]
+  translations?: Partial<Record<LanguageCode, EventTranslation>>
   status: EventStatus
   starts_at: string | null
   ends_at: string | null
   published_at: string | null
+  claim_frequency?: ClaimFrequency
+  weekly_reset_day?: number
+  weekly_reset_hour?: number
+  weekly_reset_timezone?: string
+  require_character_name?: boolean
+  require_player_id?: boolean
   created_at: string
   updated_at: string
 }
+
+export type EventAnswerValue = string | string[]
 
 export type EventSubmission = {
   id: string
@@ -36,7 +65,7 @@ export type EventSubmission = {
   discord_username: string
   character_name: string | null
   player_id: string | null
-  answers: Record<string, string>
+  answers: Record<string, EventAnswerValue>
   status: SubmissionStatus
   rejection_reason: string | null
   reward_sent_at: string | null
