@@ -87,3 +87,13 @@ This update makes each language's **Action Buttons**, **Dynamic Claim Fields**, 
 The event-wide claim frequency and weekly reset remain shared across languages. Duplicate protection also remains event-wide, so changing the website language cannot be used to claim the same event twice.
 
 Existing translations are safely initialized from the current English claim configuration by the migration. After the migration, open **Admin → Events → Edit Event**, select the language tab, remove/change that language's action buttons and claim fields, then save the event.
+
+## v6 - Dynamic field placeholders
+
+No database migration is required for this update.
+
+- Text and Long Text claim fields now use a text-answer placeholder instead of `https://...`.
+- Single URL and Multiple Links fields continue to use a URL placeholder.
+- Changing a custom field's type in Event Admin automatically resets its placeholder to the appropriate default.
+- Event Admin now includes an optional **Placeholder** setting and **Help text** setting for every custom claim field.
+- Text placeholder fallbacks are localized for EN, KO, TH, PT, Traditional Chinese, and RU.
