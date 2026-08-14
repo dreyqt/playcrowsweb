@@ -929,6 +929,13 @@ const openReceipt = async () => {
             placeholder="Search reference, player, package, or payment method"
             className="min-h-11 flex-1 rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-sm outline-none focus:border-[#c9aa68]"
           />
+          <a
+            href="/admin/events"
+            className="rounded-lg border border-[#c9aa68]/45 bg-[#c9aa68]/8 px-3 py-2 text-xs font-bold text-[#c9aa68] no-underline hover:bg-[#c9aa68]/12"
+          >
+            Event Admin
+          </a>
+
           <button
             type="button"
             onClick={() => void loadDonations()}

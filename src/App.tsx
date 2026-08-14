@@ -263,7 +263,15 @@ function PublicApp() {
             </div>
           </div>
 
-          <LanguageSelector />
+          <div className="flex items-center gap-2">
+            <a
+              href="/events"
+              className="rounded-lg border border-[#c9aa68]/35 bg-[#c9aa68]/5 px-3 py-2 text-xs font-bold text-[#c9aa68] no-underline transition-colors hover:bg-[#c9aa68]/10"
+            >
+              Events
+            </a>
+            <LanguageSelector />
+          </div>
         </div>
       </header>
 
