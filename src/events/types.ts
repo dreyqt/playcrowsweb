@@ -82,6 +82,9 @@ export type EventSubmission = {
   rejection_reason: string | null
   reward_sent_at: string | null
   admin_notes: string | null
+  moderator_verified_at?: string | null
+  moderator_verified_by?: string | null
+  reviewed_by?: string | null
   created_at: string
   updated_at: string
   event?: Pick<PlayCrowsEvent, 'event_number' | 'title' | 'slug'>
