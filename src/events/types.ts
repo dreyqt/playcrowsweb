@@ -40,6 +40,11 @@ export type EventTranslation = {
   description?: string
   mechanics?: string[]
   rewards?: string[]
+  // Locale-specific claim experience. These arrays are independent from English.
+  form_fields?: EventFormField[]
+  action_links?: EventActionLink[]
+  require_character_name?: boolean
+  require_player_id?: boolean
 }
 
 export type PlayCrowsEvent = {
@@ -84,6 +89,7 @@ export type EventSubmission = {
   admin_notes: string | null
   moderator_verified_at?: string | null
   moderator_verified_by?: string | null
+  submission_language?: LanguageCode | string | null
   reviewed_by?: string | null
   created_at: string
   updated_at: string

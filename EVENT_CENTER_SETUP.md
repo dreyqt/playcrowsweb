@@ -75,3 +75,15 @@ If you already installed Event Center v2, run this additional migration in Supab
 `supabase/migrations/20260814_event_center_v3_action_links.sql`
 
 This adds configurable clickable action buttons to events. URLs inside Description, Mechanics, and Rewards are also automatically rendered as clickable links.
+
+## v5 — Independent per-language event configurations
+
+After deploying this version, run:
+
+`supabase/migrations/20260815_event_center_v5_independent_locale_configs.sql`
+
+This update makes each language's **Action Buttons**, **Dynamic Claim Fields**, and **Character/Player ID requirements** independent. For example, English Event #002 can link to Facebook and request Facebook proof, while Korean Event #002 can have no Facebook button and request Korean community links instead.
+
+The event-wide claim frequency and weekly reset remain shared across languages. Duplicate protection also remains event-wide, so changing the website language cannot be used to claim the same event twice.
+
+Existing translations are safely initialized from the current English claim configuration by the migration. After the migration, open **Admin → Events → Edit Event**, select the language tab, remove/change that language's action buttons and claim fields, then save the event.

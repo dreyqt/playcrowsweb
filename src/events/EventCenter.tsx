@@ -4,7 +4,7 @@ import CrowLogo from '../assets/playcrows-icon.jpg'
 import { LanguageSelector } from '../components/LanguageSelector'
 import { I18nProvider, useI18n, type LanguageCode } from '../i18n'
 import { supabase } from '../lib/supabase'
-import type { EventActionLink, EventAnswerValue, EventFormField, EventSubmission, PlayCrowsEvent } from './types'
+import type { EventAnswerValue, EventFormField, EventSubmission, PlayCrowsEvent } from './types'
 
 type UiText = {
   eventCenter: string; webShop: string; events: string; intro: string; loading: string; noEvents: string; unableLoad: string
@@ -31,18 +31,26 @@ const dateLabel = (value: string | null) => {
   return Number.isNaN(date.getTime()) ? null : date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
-function localizeActionLink(link: EventActionLink, language: LanguageCode): EventActionLink {
-  if (language === 'en') return link
-  const tr = link.translations?.[language]
-  return { ...link, label: tr?.label?.trim() || link.label }
-}
-
 function localizeEvent(event: PlayCrowsEvent, language: LanguageCode): PlayCrowsEvent {
-  const localizedLinks = (event.action_links ?? []).map(link => localizeActionLink(link, language))
-  if (language === 'en') return { ...event, action_links: localizedLinks }
+  if (language === 'en') return event
   const tr = event.translations?.[language]
-  if (!tr) return { ...event, action_links: localizedLinks }
-  return { ...event, title: tr.title?.trim() || event.title, short_description: tr.short_description?.trim() || event.short_description, description: tr.description?.trim() || event.description, mechanics: tr.mechanics?.length ? tr.mechanics : event.mechanics, rewards: tr.rewards?.length ? tr.rewards : event.rewards, action_links: localizedLinks }
+  if (!tr) return event
+  // Locale claim configuration is intentionally independent. If an older translation has
+  // not been upgraded yet, fall back to English until the admin saves that locale once.
+  const actionLinks = tr.action_links !== undefined ? tr.action_links : event.action_links
+  const formFields = tr.form_fields !== undefined ? tr.form_fields : event.form_fields
+  return {
+    ...event,
+    title: tr.title?.trim() || event.title,
+    short_description: tr.short_description?.trim() || event.short_description,
+    description: tr.description?.trim() || event.description,
+    mechanics: tr.mechanics?.length ? tr.mechanics : event.mechanics,
+    rewards: tr.rewards?.length ? tr.rewards : event.rewards,
+    action_links: actionLinks ?? [],
+    form_fields: formFields ?? [],
+    require_character_name: tr.require_character_name ?? event.require_character_name,
+    require_player_id: tr.require_player_id ?? event.require_player_id,
+  }
 }
 
 function RichText({ text }: { text: string }) {
@@ -83,7 +91,7 @@ function SubmissionForm({ event }: { event: PlayCrowsEvent }) {
   const { language } = useI18n(); const ui = UI[language]; const fields = (event.form_fields ?? []).map(f => localizeField(f, language))
   const [discord,setDiscord]=useState(''); const [character,setCharacter]=useState(''); const [playerId,setPlayerId]=useState(''); const [answers,setAnswers]=useState<Record<string,EventAnswerValue>>({}); const [submitting,setSubmitting]=useState(false); const [error,setError]=useState(''); const [reference,setReference]=useState('')
   const updateAnswer = (field: EventFormField, value: EventAnswerValue) => setAnswers(current => ({ ...current, [field.id]: value }))
-  const submit = async (e: FormEvent) => { e.preventDefault(); if (submitting) return; setError(''); if (!discord.trim()) return setError(`${ui.discord} ${ui.required}`); if (event.require_character_name && !character.trim()) return setError(`${ui.character} ${ui.required}`); if (event.require_player_id && !playerId.trim()) return setError(`${ui.playerId} ${ui.required}`); for (const field of fields) { const raw = answers[field.id]; if (field.type === 'links') { const values = Array.isArray(raw) ? raw.map(v => v.trim()).filter(Boolean) : []; const min = field.minItems ?? (field.required ? 1 : 0); if (values.length < min) return setError(`${field.label}: minimum ${min} link${min === 1 ? '' : 's'}.`) } else if (field.required && !String(raw ?? '').trim()) return setError(`${field.label} ${ui.required}`) } setSubmitting(true); const cleanAnswers = Object.fromEntries(Object.entries(answers).map(([k,v]) => [k, Array.isArray(v) ? v.map((x: string) => x.trim()).filter(Boolean) : String(v).trim()])); const { data,error:submitError } = await supabase.rpc('submit_event_claim',{ p_event_id:event.id,p_discord_username:discord.trim(),p_character_name:character.trim()||null,p_player_id:playerId.trim()||null,p_answers:cleanAnswers }); setSubmitting(false); if (submitError) return setError(submitError.message); const result=Array.isArray(data)?data[0]:data; setReference(result?.reference_code ?? '') }
+  const submit = async (e: FormEvent) => { e.preventDefault(); if (submitting) return; setError(''); if (!discord.trim()) return setError(`${ui.discord} ${ui.required}`); if (event.require_character_name && !character.trim()) return setError(`${ui.character} ${ui.required}`); if (event.require_player_id && !playerId.trim()) return setError(`${ui.playerId} ${ui.required}`); for (const field of fields) { const raw = answers[field.id]; if (field.type === 'links') { const values = Array.isArray(raw) ? raw.map(v => v.trim()).filter(Boolean) : []; const min = field.minItems ?? (field.required ? 1 : 0); if (values.length < min) return setError(`${field.label}: minimum ${min} link${min === 1 ? '' : 's'}.`) } else if (field.required && !String(raw ?? '').trim()) return setError(`${field.label} ${ui.required}`) } setSubmitting(true); const cleanAnswers = Object.fromEntries(Object.entries(answers).map(([k,v]) => [k, Array.isArray(v) ? v.map((x: string) => x.trim()).filter(Boolean) : String(v).trim()])); const { data,error:submitError } = await supabase.rpc('submit_event_claim_localized',{ p_event_id:event.id,p_language:language,p_discord_username:discord.trim(),p_character_name:character.trim()||null,p_player_id:playerId.trim()||null,p_answers:cleanAnswers }); setSubmitting(false); if (submitError) return setError(submitError.message); const result=Array.isArray(data)?data[0]:data; setReference(result?.reference_code ?? '') }
   if (reference) return <div className="rounded-2xl border border-[#22c55e]/30 bg-[#22c55e]/5 p-6 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-[#22c55e]/40 text-2xl text-[#22c55e]">✓</div><h3 className="mt-4 text-xl font-bold">{ui.claimSubmitted}</h3><p className="mt-2 text-sm text-[#8f8b84]">{ui.pendingSave}</p><div className="mt-4 rounded-xl border border-[#c9aa68]/25 bg-black/20 p-4 font-mono text-lg font-bold text-[#c9aa68]">{reference}</div></div>
   const inputClass='mt-2 w-full rounded-lg border border-[#292d34] bg-[#0d0f12] px-3 py-3 text-sm font-normal text-[#eee9df] outline-none focus:border-[#c9aa68]'
   return <form onSubmit={submit} className="rounded-2xl border border-[#292d34] bg-[#111318] p-5 sm:p-6"><div className="mb-5"><div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c9aa68]">{ui.submitClaim}</div><h3 className="mt-2 text-xl font-bold">Event #{event.event_number}</h3><p className="mt-2 text-[11px] leading-5 text-[#77746e]">{event.claim_frequency === 'weekly' ? ui.weeklyRule : ui.onceRule} {ui.duplicateHint}</p></div><div className="grid gap-4 sm:grid-cols-2"><label className="text-xs font-bold text-[#aaa49a]">{ui.discord} *<input value={discord} onChange={e=>setDiscord(e.target.value)} className={inputClass} placeholder="yourname" autoComplete="off" /></label><label className="text-xs font-bold text-[#aaa49a]">{ui.character}{event.require_character_name?' *':''}<input value={character} onChange={e=>setCharacter(e.target.value)} className={inputClass} /></label><label className="text-xs font-bold text-[#aaa49a] sm:col-span-2">{ui.playerId}{event.require_player_id?' *':''}<input value={playerId} onChange={e=>setPlayerId(e.target.value)} className={inputClass} /></label></div><div className="mt-4 grid gap-4">{fields.map(field => <label key={field.id} className="text-xs font-bold text-[#aaa49a]">{field.label}{field.required?' *':''}{field.type === 'links' ? <LinkGroup field={field} value={Array.isArray(answers[field.id]) ? answers[field.id] as string[] : []} onChange={v=>updateAnswer(field,v)} inputClass={inputClass} ui={ui} /> : field.type === 'textarea' ? <textarea rows={4} value={String(answers[field.id] ?? '')} onChange={e=>updateAnswer(field,e.target.value)} placeholder={field.placeholder} className={`${inputClass} resize-y`} /> : <input type={field.type === 'url' ? 'url' : 'text'} value={String(answers[field.id] ?? '')} onChange={e=>updateAnswer(field,e.target.value)} placeholder={field.placeholder} className={inputClass} />}{field.helpText && <span className="mt-1 block font-normal leading-5 text-[#77746e]">{field.helpText}</span>}</label>)}</div>{error && <div className="mt-4 rounded-lg border border-[#ef4444]/30 bg-[#ef4444]/8 px-3 py-2 text-xs text-[#ef4444]">{error}</div>}<button disabled={submitting} className="mt-5 w-full rounded-lg border border-[#c9aa68] bg-[#c9aa68] px-4 py-3 text-sm font-extrabold text-[#17120a] hover:bg-[#e1c88d] disabled:opacity-60">{submitting?ui.submitting:ui.submitEventClaim}</button></form>
