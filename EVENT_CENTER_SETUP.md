@@ -97,3 +97,22 @@ No database migration is required for this update.
 - Changing a custom field's type in Event Admin automatically resets its placeholder to the appropriate default.
 - Event Admin now includes an optional **Placeholder** setting and **Help text** setting for every custom claim field.
 - Text placeholder fallbacks are localized for EN, KO, TH, PT, Traditional Chinese, and RU.
+
+## v7 — Link Security / Duplicate Proof Detection
+
+If your Event Center already has the v1-v5 migrations applied, run only:
+
+`supabase/migrations/20260815_event_center_v7_link_security.sql`
+
+This migration does **not** reset or delete existing event submissions. It backfills their submitted URLs into a normalized link index so historical duplicates can be detected immediately.
+
+After v6:
+
+- Duplicate URLs inside the same new claim are rejected server-side.
+- URLs that were already used by a different player in an **Approved + Sent** claim for the same event are blocked.
+- Two still-pending submissions may temporarily contain the same URL; the admin dashboard flags them so a malicious first submitter cannot lock the legitimate owner out.
+- The first pending claim that is approved reserves that proof URL. A conflicting pending claim cannot also be approved with the same URL.
+- The **View Claims** tab now includes a **Link Security** column showing Unique, Duplicate Pending, Used in Approved Claim, or Previous Rejected Reuse.
+- Existing processed claims and their statuses are preserved.
+
+After running the SQL migration, redeploy the website.

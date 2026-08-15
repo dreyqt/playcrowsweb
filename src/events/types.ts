@@ -75,6 +75,17 @@ export type PlayCrowsEvent = {
 
 export type EventAnswerValue = string | string[]
 
+
+export type EventSubmissionLink = {
+  id: number
+  submission_id: string
+  event_id: string
+  field_id: string
+  raw_url: string
+  normalized_url: string
+  created_at: string
+}
+
 export type EventSubmission = {
   id: string
   reference_code: string
