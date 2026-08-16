@@ -8,6 +8,13 @@ function formatAmount(amount: number) {
 
 const REWARD_ICON_ALIASES: Record<string, string> = {
   'Morion': 'morion.png',
+  'Diamond': 'diamond.png',
+  'Diamonds': 'diamonds.png',
+  'golden Necklace Insignia': 'golden_necklace_insignia.png',
+  'golden Ring Insignia': 'golden_ring_insignia.png',
+  'Shining Weapon Enhancement Scroll Chest': 'shining_weapon_enhancement.png',
+  'Shining Armor Enhancement Scroll Chest': 'shining_armor_enhancement.png',
+  'Shining Accessory Enhancement Scroll Chest': 'shining_accessory_enhancement.png',
   'Gold Chest': 'gold_chest.png',
   "Sunset's Mount Summon Style x11": 'sunset_mount_summon.png',
   "Sunset's Weapon Summon Style x11": 'sunset_weapon_summon.png',
