@@ -588,5 +588,37 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
       "golden Ring Insignia (Attributed) ×40",
       "Lionheart's Sacred Insignia (Bound) ×1",
     ],
+  },
+  {
+    amount: 18000,
+    rewards: [
+      "Frozen Tear (Bound) ×20000",
+      "Morion (Bound) ×300000",
+      "[UC] Crafting Material Selection Chest (Bound) ×8000",
+      "[C] Crafting Material x40 Selection Chest (Bound) ×15000",
+      "[R] Arcane Scroll Selection Chest (Bound) ×10000",
+      "Guardian's Scepter (Attribution) ×350000",
+      "crusade Loot Chest (Attributed) ×400",
+      "golden Necklace Insignia (Attributed) ×20",
+      "golden Ring Insignia (Attributed) ×40",
+      "Lionheart's Sacred Insignia (Bound) ×1",
+    ],
+  },
+  {
+    amount: 20000,
+    rewards: [
+      "Diamonds ×8000000",
+      "Gaspar’s Savage Greatsword (Bound) ×5",
+      "Theophil’s Creed Spear (Bound) ×5",
+      "Ludwig’s Straight Sword of Justice (Bound) ×5",
+      "Brandt’s Domination Twin Sword (Bound) ×5",
+      "Clemen’s Freedom Dagger (Bound) ×5",
+      "Alyn’s Illusion Longbow (Bound) ×5",
+      "Ruling Segum of Zenesia (Bound) ×5",
+      "Johannes' Motive Scepter (Bound) ×5",
+      "Eleanor’s Ambition Staff (Bound) ×5",
+      "Guardian's Scepter (Attribution) ×350000",
+      "crusade Loot Chest (Attributed) ×400",
+    ],
   }
 ]
