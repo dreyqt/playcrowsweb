@@ -742,7 +742,7 @@ export function StepPayment({
                       PayPal Secure Checkout
                     </div>
                     <p className="text-xs leading-relaxed text-[#d1d5db]">
-                      Your PlayCrows Username, Character Name, package, and exact USD amount are passed automatically from the Donation Center. No need to enter them again.
+                      Your account details, selected package, and payment amount are automatically linked to this transaction.
                     </p>
                   </div>
                 </div>
