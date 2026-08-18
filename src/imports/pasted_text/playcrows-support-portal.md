@@ -83,7 +83,7 @@ Show three clean, selectable payment cards:
 
 ### PayPal
 
-**Pay securely using PayPal**
+**Pay securely with PayPal, debit or credit card**
 
 ### GCash
 
