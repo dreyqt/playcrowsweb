@@ -688,7 +688,7 @@ export function StepPayment({
                 `GCash ${t('paymentDetails')}`}
 
               {data.paymentMethod === 'paypal' &&
-                `PayPal ${t('paymentDetails')}`}
+                `PayPal ${t('paypalCheckout')}`}
 
               {data.paymentMethod === 'wise' &&
                 `Wise ${t('paymentDetails')}`}
