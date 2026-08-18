@@ -27,69 +27,83 @@ import gcashQr from '../../assets/gcash-qr.jpg'
 import bybitQr from '../../assets/bybit-qr.png'
 import wiseQr from '../../assets/wise-qr.png'
 
+const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID as string | undefined
+const PAYPAL_HOSTED_BUTTON_ID = 'SFGMYA4XDPEKY'
+
 function PayPalHostedButton() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   useEffect(() => {
     let cancelled = false
-    let attempts = 0
-    let retryTimer: number | undefined
+
+    const waitForSdk = () => new Promise<void>((resolve, reject) => {
+      const startedAt = Date.now()
+      const poll = () => {
+        if (cancelled) return
+        const paypal = (window as any).paypal
+        if (paypal?.HostedButtons) {
+          resolve()
+          return
+        }
+        if (Date.now() - startedAt > 10000) {
+          reject(new Error('PayPal SDK load timeout'))
+          return
+        }
+        window.setTimeout(poll, 100)
+      }
+      poll()
+    })
 
     const renderButton = async () => {
-      if (cancelled || !containerRef.current) return
-
-      const paypal = (window as any).paypal
-      if (!paypal?.HostedButtons) {
-        if (attempts++ < 100) {
-          retryTimer = window.setTimeout(renderButton, 100)
-        } else {
-          setStatus('error')
-        }
+      if (!PAYPAL_CLIENT_ID) {
+        console.error('Missing VITE_PAYPAL_CLIENT_ID')
+        setStatus('error')
         return
       }
 
       try {
-        containerRef.current.innerHTML = ''
-        await paypal
-          .HostedButtons({ hostedButtonId: 'SFGMYA4XDPEKY' })
-          .render('#paypal-hosted-button-container')
+        let script = document.querySelector<HTMLScriptElement>('script[data-playcrows-paypal-sdk="true"]')
 
+        if (!script) {
+          script = document.createElement('script')
+          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(PAYPAL_CLIENT_ID)}&components=hosted-buttons&disable-funding=venmo&currency=USD`
+          script.async = true
+          script.crossOrigin = 'anonymous'
+          script.dataset.playcrowsPaypalSdk = 'true'
+          document.head.appendChild(script)
+        }
+
+        await waitForSdk()
+        if (cancelled || !containerRef.current) return
+
+        const paypal = (window as any).paypal
+        containerRef.current.innerHTML = ''
+        await paypal.HostedButtons({ hostedButtonId: PAYPAL_HOSTED_BUTTON_ID }).render(containerRef.current)
         if (!cancelled) setStatus('ready')
       } catch (error) {
-        console.error('Unable to render PayPal Hosted Button:', error)
+        console.error('PayPal hosted button failed to render:', error)
         if (!cancelled) setStatus('error')
       }
     }
 
     renderButton()
-
-    return () => {
-      cancelled = true
-      if (retryTimer) window.clearTimeout(retryTimer)
-    }
+    return () => { cancelled = true }
   }, [])
 
   return (
     <div className="w-full">
       {status === 'loading' && (
-        <div className="py-3 text-center text-xs text-[#77746e]">
+        <div className="rounded-lg border border-[#3b414b] bg-[#0d0f13] px-4 py-3 text-center text-xs text-[#aaa49a]">
           Loading PayPal checkout…
         </div>
       )}
-
-      <div
-        id="paypal-hosted-button-container"
-        ref={containerRef}
-        className={status === 'ready' ? 'w-full' : 'h-0 overflow-hidden'}
-        aria-label="PayPal checkout"
-      />
-
       {status === 'error' && (
         <div className="rounded-lg border border-[#ef4444]/35 bg-[#ef4444]/5 px-4 py-3 text-center text-xs text-[#ef4444]">
           PayPal checkout could not be loaded. Please refresh the page and try again.
         </div>
       )}
+      <div ref={containerRef} className={status === 'ready' ? 'w-full' : 'hidden'} aria-label="PayPal checkout" />
     </div>
   )
 }
