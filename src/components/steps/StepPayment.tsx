@@ -29,27 +29,69 @@ import wiseQr from '../../assets/wise-qr.png'
 
 function PayPalHostedButton() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   useEffect(() => {
     let cancelled = false
     let attempts = 0
+    let retryTimer: number | undefined
 
-    const renderButton = () => {
+    const renderButton = async () => {
       if (cancelled || !containerRef.current) return
+
       const paypal = (window as any).paypal
-      if (paypal?.HostedButtons) {
-        containerRef.current.innerHTML = ''
-        paypal.HostedButtons({ hostedButtonId: 'SFGMYA4XDPEKY' }).render(containerRef.current)
+      if (!paypal?.HostedButtons) {
+        if (attempts++ < 100) {
+          retryTimer = window.setTimeout(renderButton, 100)
+        } else {
+          setStatus('error')
+        }
         return
       }
-      if (attempts++ < 50) window.setTimeout(renderButton, 100)
+
+      try {
+        containerRef.current.innerHTML = ''
+        await paypal
+          .HostedButtons({ hostedButtonId: 'SFGMYA4XDPEKY' })
+          .render('#paypal-hosted-button-container')
+
+        if (!cancelled) setStatus('ready')
+      } catch (error) {
+        console.error('Unable to render PayPal Hosted Button:', error)
+        if (!cancelled) setStatus('error')
+      }
     }
 
     renderButton()
-    return () => { cancelled = true }
+
+    return () => {
+      cancelled = true
+      if (retryTimer) window.clearTimeout(retryTimer)
+    }
   }, [])
 
-  return <div ref={containerRef} className="w-full min-h-[48px]" aria-label="PayPal checkout" />
+  return (
+    <div className="w-full">
+      {status === 'loading' && (
+        <div className="py-3 text-center text-xs text-[#77746e]">
+          Loading PayPal checkout…
+        </div>
+      )}
+
+      <div
+        id="paypal-hosted-button-container"
+        ref={containerRef}
+        className={status === 'ready' ? 'w-full' : 'h-0 overflow-hidden'}
+        aria-label="PayPal checkout"
+      />
+
+      {status === 'error' && (
+        <div className="rounded-lg border border-[#ef4444]/35 bg-[#ef4444]/5 px-4 py-3 text-center text-xs text-[#ef4444]">
+          PayPal checkout could not be loaded. Please refresh the page and try again.
+        </div>
+      )}
+    </div>
+  )
 }
 
 function MethodIcon({
