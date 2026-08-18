@@ -102,7 +102,19 @@ async function callPayPalCheckout(body: Record<string, unknown>) {
       payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string'
         ? payload.error
         : `PayPal request failed with status ${response.status}.`
-    throw new Error(message)
+
+    const error = new Error(message) as Error & { code?: string }
+
+    if (
+      payload &&
+      typeof payload === 'object' &&
+      'code' in payload &&
+      typeof payload.code === 'string'
+    ) {
+      error.code = payload.code
+    }
+
+    throw error
   }
 
   return payload as any
@@ -176,28 +188,48 @@ function PayPalCheckout({
             setMessage('Complete your payment securely with PayPal.')
             return result.orderId
           },
-          onApprove: async (approval: { orderID: string }) => {
+          onApprove: async (
+            approval: { orderID: string },
+            actions: any
+          ) => {
             setStatus('processing')
             setMessage('Confirming your PayPal payment…')
 
-            const result = await callPayPalCheckout({
-              action: 'capture',
-              orderId: approval.orderID,
-            })
+            try {
+              const result = await callPayPalCheckout({
+                action: 'capture',
+                orderId: approval.orderID,
+              })
 
-            if (result.status !== 'COMPLETED' || !result.captureId) {
-              throw new Error('PayPal did not return a completed payment.')
+              if (result.status !== 'COMPLETED' || !result.captureId) {
+                throw new Error('PayPal did not return a completed payment.')
+              }
+
+              if (cancelled) return
+
+              setStatus('completed')
+              setMessage(`Payment completed · ${result.captureId}`)
+              onCompleted({
+                orderId: approval.orderID,
+                captureId: result.captureId,
+                status: 'COMPLETED',
+              })
+            } catch (error) {
+              const paypalError = error as Error & { code?: string }
+
+              if (paypalError.code === 'INSTRUMENT_DECLINED') {
+                if (!cancelled) {
+                  setStatus('ready')
+                  setMessage(
+                    'Your payment method was declined. Please choose another card or payment method.'
+                  )
+                }
+
+                return actions.restart()
+              }
+
+              throw error
             }
-
-            if (cancelled) return
-
-            setStatus('completed')
-            setMessage(`Payment completed · ${result.captureId}`)
-            onCompleted({
-              orderId: approval.orderID,
-              captureId: result.captureId,
-              status: 'COMPLETED',
-            })
           },
           onCancel: () => {
             if (cancelled) return
