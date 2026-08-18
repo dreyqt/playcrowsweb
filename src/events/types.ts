@@ -12,7 +12,12 @@ export type EventActionLinkTranslation = {
 export type EventActionLink = {
   id: string
   label: string
+  /** Existing records without a kind are treated as URL actions. */
+  kind?: 'url' | 'copy'
+  /** Used by URL actions. Kept required for backwards compatibility with existing event data. */
   url: string
+  /** Text copied to the clipboard when kind === 'copy'. */
+  content?: string
   translations?: Partial<Record<LanguageCode, EventActionLinkTranslation>>
 }
 

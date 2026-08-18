@@ -124,8 +124,78 @@ function ClaimStatusLookup() {
 
 function Results({eventId}:{eventId:string}) { const {language}=useI18n();const ui=UI[language];const [rows,setRows]=useState<EventSubmission[]>([]);useEffect(()=>{void(async()=>{const{data}=await supabase.from('event_public_results').select('*').eq('event_id',eventId).order('updated_at',{ascending:false});setRows((data??[]) as EventSubmission[])})()},[eventId]);const approved=rows.filter(r=>r.status==='approved'),rejected=rows.filter(r=>r.status==='rejected');if(!rows.length)return <p className="text-sm text-[#77746e]">{ui.noReviewed}</p>;return <div className="grid gap-5 md:grid-cols-2"><div className="rounded-xl border border-[#22c55e]/25 bg-[#22c55e]/5 p-5"><h3 className="font-bold text-[#22c55e]">🟢 {ui.approvedClaims}</h3><div className="mt-4 space-y-2 text-sm">{approved.length?approved.map(r=><div key={r.id}>✅ {r.discord_username}</div>):<div className="text-[#77746e]">{ui.noApproved}</div>}</div></div><div className="rounded-xl border border-[#ef4444]/25 bg-[#ef4444]/5 p-5"><h3 className="font-bold text-[#ef4444]">🔴 {ui.rejectedClaims}</h3><div className="mt-4 space-y-3 text-sm">{rejected.length?rejected.map(r=><div key={r.id}><div>❌ {r.discord_username}</div>{r.rejection_reason&&<div className="ml-5 mt-1 text-xs text-[#9f9890]">{r.rejection_reason}</div>}</div>):<div className="text-[#77746e]">{ui.noRejected}</div>}</div></div></div> }
 
+
+function EventActionButtons({ links }: { links: NonNullable<PlayCrowsEvent['action_links']> }) {
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  const copyAction = async (id: string, content: string) => {
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopiedId(id)
+      window.setTimeout(() => setCopiedId(current => current === id ? null : current), 2200)
+    } catch {
+      // Fallback for browsers that block navigator.clipboard.
+      const textarea = document.createElement('textarea')
+      textarea.value = content
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.focus()
+      textarea.select()
+      document.execCommand('copy')
+      textarea.remove()
+      setCopiedId(id)
+      window.setTimeout(() => setCopiedId(current => current === id ? null : current), 2200)
+    }
+  }
+
+  const visible = links.filter(link => {
+    const kind = link.kind ?? 'url'
+    return kind === 'copy'
+      ? Boolean(link.content?.trim())
+      : /^https?:\/\//i.test(link.url ?? '')
+  })
+
+  if (!visible.length) return null
+
+  return (
+    <div className="mt-5 flex flex-wrap gap-2">
+      {visible.map(link => {
+        const kind = link.kind ?? 'url'
+
+        if (kind === 'copy') {
+          const copied = copiedId === link.id
+          return (
+            <button
+              key={link.id}
+              type="button"
+              onClick={() => void copyAction(link.id, link.content ?? '')}
+              className="inline-flex items-center gap-2 rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-4 py-2.5 text-xs font-extrabold text-[#c9aa68] transition hover:border-[#e1c88d] hover:bg-[#c9aa68]/15 hover:text-[#e1c88d]"
+            >
+              {copied ? '✓ Copied!' : link.label}
+              <span aria-hidden="true">{copied ? '' : '⧉'}</span>
+            </button>
+          )
+        }
+
+        return (
+          <a
+            key={link.id}
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-4 py-2.5 text-xs font-extrabold text-[#c9aa68] no-underline transition hover:border-[#e1c88d] hover:bg-[#c9aa68]/15 hover:text-[#e1c88d]"
+          >
+            {link.label} <span aria-hidden="true">↗</span>
+          </a>
+        )
+      })}
+    </div>
+  )
+}
+
 function EventDetail({slug}:{slug:string}) {
-  const {language}=useI18n();const ui=UI[language];const [rawEvent,setRawEvent]=useState<PlayCrowsEvent|null>(null);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [tab,setTab]=useState<'details'|'results'|'status'>('details');useEffect(()=>{void(async()=>{const{data,error:loadError}=await supabase.from('events').select('*').eq('slug',slug).in('status',['active','ended']).not('published_at','is',null).maybeSingle();if(loadError)setError(loadError.message);else setRawEvent(data as PlayCrowsEvent|null);setLoading(false)})()},[slug]);const event=rawEvent?localizeEvent(rawEvent,language):null;const canSubmit=useMemo(()=>{if(!event||event.status!=='active')return false;const now=Date.now();if(event.starts_at&&new Date(event.starts_at).getTime()>now)return false;if(event.ends_at&&new Date(event.ends_at).getTime()<now)return false;return true},[event]);return <div className="min-h-screen bg-[#0a0b0d] text-[#eee9df]"><PublicHeader/><main className="mx-auto max-w-5xl px-4 py-8 sm:py-10"><a href="/events" className="text-xs font-bold text-[#c9aa68] no-underline">← {ui.allEvents}</a>{loading&&<div className="mt-6"><EmptyState message={ui.loading}/></div>}{error&&<div className="mt-6"><EmptyState message={`${ui.unableLoad}: ${error}`}/></div>}{!loading&&!event&&<div className="mt-6"><EmptyState message={ui.noEvents}/></div>}{event&&<><section className="mt-5 rounded-2xl border border-[#c9aa68]/25 bg-[#111318] p-6 sm:p-8"><div className="flex flex-wrap items-start justify-between gap-4"><div><div className="text-xs font-bold uppercase tracking-[0.18em] text-[#c9aa68]">Event #{event.event_number}</div><h1 className="mt-2 text-3xl font-extrabold">{event.title}</h1></div><span className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase ${statusBadge(event.status)}`}>{event.status==='active'?ui.active:ui.ended}</span></div>{event.description&&<p className="mt-5 max-w-3xl whitespace-pre-line text-sm leading-7 text-[#aaa49a]"><RichText text={event.description}/></p>}{(event.action_links??[]).length>0&&<div className="mt-5 flex flex-wrap gap-2">{(event.action_links??[]).filter(link=>/^https?:\/\//i.test(link.url)).map(link=><a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-4 py-2.5 text-xs font-extrabold text-[#c9aa68] no-underline transition hover:border-[#e1c88d] hover:bg-[#c9aa68]/15 hover:text-[#e1c88d]">{link.label} <span aria-hidden="true">↗</span></a>)}</div>}<div className="mt-5 flex flex-wrap gap-4 text-xs text-[#77746e]">{dateLabel(event.starts_at)&&<span>{ui.starts}: {dateLabel(event.starts_at)}</span>}{dateLabel(event.ends_at)&&<span>{ui.ends}: {dateLabel(event.ends_at)}</span>}</div></section><div className="mt-6 flex gap-2 rounded-xl border border-[#292d34] bg-[#0f1115] p-1"><button onClick={()=>setTab('details')} className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold ${tab==='details'?'bg-[#c9aa68]/12 text-[#c9aa68]':'text-[#77746e]'}`}>{ui.mechanicsClaim}</button><button onClick={()=>setTab('results')} className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold ${tab==='results'?'bg-[#c9aa68]/12 text-[#c9aa68]':'text-[#77746e]'}`}>{ui.results}</button><button onClick={()=>setTab('status')} className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold ${tab==='status'?'bg-[#c9aa68]/12 text-[#c9aa68]':'text-[#77746e]'}`}>{ui.checkClaim}</button></div>{tab==='details'?<div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.92fr]"><div className="space-y-6"><section className="rounded-2xl border border-[#292d34] bg-[#111318] p-6"><h2 className="text-lg font-bold">📌 {ui.mechanics}</h2><ol className="mt-4 space-y-3 text-sm leading-6 text-[#aaa49a]">{(event.mechanics??[]).map((item,i)=><li key={i} className="flex gap-3"><span className="font-bold text-[#c9aa68]">{i+1}.</span><span><RichText text={item}/></span></li>)}</ol></section><section className="rounded-2xl border border-[#292d34] bg-[#111318] p-6"><h2 className="text-lg font-bold">🎁 {ui.rewards}</h2><div className="mt-4 space-y-2 text-sm text-[#aaa49a]">{(event.rewards??[]).map((item,i)=><div key={i}>◆ <RichText text={item}/></div>)}</div></section></div><div>{canSubmit?<SubmissionForm event={event}/>:<div className="rounded-2xl border border-[#292d34] bg-[#111318] p-6 text-center"><div className="text-2xl">🔒</div><h3 className="mt-3 font-bold">{ui.submissionsClosed}</h3><p className="mt-2 text-sm text-[#77746e]">{ui.closedDesc}</p></div>}</div></div>:tab==='results'?<div className="mt-6"><Results eventId={event.id}/></div>:<div className="mt-6"><ClaimStatusLookup/></div>}</>}</main></div>
+  const {language}=useI18n();const ui=UI[language];const [rawEvent,setRawEvent]=useState<PlayCrowsEvent|null>(null);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [tab,setTab]=useState<'details'|'results'|'status'>('details');useEffect(()=>{void(async()=>{const{data,error:loadError}=await supabase.from('events').select('*').eq('slug',slug).in('status',['active','ended']).not('published_at','is',null).maybeSingle();if(loadError)setError(loadError.message);else setRawEvent(data as PlayCrowsEvent|null);setLoading(false)})()},[slug]);const event=rawEvent?localizeEvent(rawEvent,language):null;const canSubmit=useMemo(()=>{if(!event||event.status!=='active')return false;const now=Date.now();if(event.starts_at&&new Date(event.starts_at).getTime()>now)return false;if(event.ends_at&&new Date(event.ends_at).getTime()<now)return false;return true},[event]);return <div className="min-h-screen bg-[#0a0b0d] text-[#eee9df]"><PublicHeader/><main className="mx-auto max-w-5xl px-4 py-8 sm:py-10"><a href="/events" className="text-xs font-bold text-[#c9aa68] no-underline">← {ui.allEvents}</a>{loading&&<div className="mt-6"><EmptyState message={ui.loading}/></div>}{error&&<div className="mt-6"><EmptyState message={`${ui.unableLoad}: ${error}`}/></div>}{!loading&&!event&&<div className="mt-6"><EmptyState message={ui.noEvents}/></div>}{event&&<><section className="mt-5 rounded-2xl border border-[#c9aa68]/25 bg-[#111318] p-6 sm:p-8"><div className="flex flex-wrap items-start justify-between gap-4"><div><div className="text-xs font-bold uppercase tracking-[0.18em] text-[#c9aa68]">Event #{event.event_number}</div><h1 className="mt-2 text-3xl font-extrabold">{event.title}</h1></div><span className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase ${statusBadge(event.status)}`}>{event.status==='active'?ui.active:ui.ended}</span></div>{event.description&&<p className="mt-5 max-w-3xl whitespace-pre-line text-sm leading-7 text-[#aaa49a]"><RichText text={event.description}/></p>}{(event.action_links??[]).length>0&&<EventActionButtons links={event.action_links??[]}/>}<div className="mt-5 flex flex-wrap gap-4 text-xs text-[#77746e]">{dateLabel(event.starts_at)&&<span>{ui.starts}: {dateLabel(event.starts_at)}</span>}{dateLabel(event.ends_at)&&<span>{ui.ends}: {dateLabel(event.ends_at)}</span>}</div></section><div className="mt-6 flex gap-2 rounded-xl border border-[#292d34] bg-[#0f1115] p-1"><button onClick={()=>setTab('details')} className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold ${tab==='details'?'bg-[#c9aa68]/12 text-[#c9aa68]':'text-[#77746e]'}`}>{ui.mechanicsClaim}</button><button onClick={()=>setTab('results')} className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold ${tab==='results'?'bg-[#c9aa68]/12 text-[#c9aa68]':'text-[#77746e]'}`}>{ui.results}</button><button onClick={()=>setTab('status')} className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold ${tab==='status'?'bg-[#c9aa68]/12 text-[#c9aa68]':'text-[#77746e]'}`}>{ui.checkClaim}</button></div>{tab==='details'?<div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.92fr]"><div className="space-y-6"><section className="rounded-2xl border border-[#292d34] bg-[#111318] p-6"><h2 className="text-lg font-bold">📌 {ui.mechanics}</h2><ol className="mt-4 space-y-3 text-sm leading-6 text-[#aaa49a]">{(event.mechanics??[]).map((item,i)=><li key={i} className="flex gap-3"><span className="font-bold text-[#c9aa68]">{i+1}.</span><span><RichText text={item}/></span></li>)}</ol></section><section className="rounded-2xl border border-[#292d34] bg-[#111318] p-6"><h2 className="text-lg font-bold">🎁 {ui.rewards}</h2><div className="mt-4 space-y-2 text-sm text-[#aaa49a]">{(event.rewards??[]).map((item,i)=><div key={i}>◆ <RichText text={item}/></div>)}</div></section></div><div>{canSubmit?<SubmissionForm event={event}/>:<div className="rounded-2xl border border-[#292d34] bg-[#111318] p-6 text-center"><div className="text-2xl">🔒</div><h3 className="mt-3 font-bold">{ui.submissionsClosed}</h3><p className="mt-2 text-sm text-[#77746e]">{ui.closedDesc}</p></div>}</div></div>:tab==='results'?<div className="mt-6"><Results eventId={event.id}/></div>:<div className="mt-6"><ClaimStatusLookup/></div>}</>}</main></div>
 }
 
 function EventCenterInner(){const path=window.location.pathname.replace(/\/+$/,'')||'/events';const match=path.match(/^\/events\/([^/]+)$/);return match?<EventDetail slug={decodeURIComponent(match[1])}/>:<EventList/>}
