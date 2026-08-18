@@ -1,0 +1,572 @@
+import { withSupabase } from 'npm:@supabase/server@^1'
+
+const MAX_RECEIPT_SIZE = 5 * 1024 * 1024
+const MAX_PACKAGE_QUANTITY = 999
+const MAX_ADDITIONAL_NOTES_LENGTH = 1000
+
+const ALLOWED_RECEIPT_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/pdf',
+])
+
+const ALLOWED_CURRENCIES = new Set([
+  'USD',
+  'PHP',
+  'GBP',
+])
+
+const ALLOWED_PAYMENT_METHODS = new Set([
+  'paypal',
+  'gcash',
+  'wise',
+  'bybit',
+])
+
+const FILE_EXTENSIONS: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'application/pdf': 'pdf',
+}
+
+
+
+const DEFAULT_ADMIN_DASHBOARD_URL = 'https://playcrowsweb.vercel.app/admin'
+
+function formatDiscordMoney(currency: string, amount: number) {
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 2,
+    }).format(amount)
+  } catch {
+    return `${currency} ${amount}`
+  }
+}
+
+function sanitizeDiscordFilename(name: string, extension: string) {
+  const safe = name
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .replace(/_+/g, '_')
+    .slice(0, 120)
+
+  return safe || `receipt.${extension}`
+}
+
+async function sendDiscordDonationNotification(options: {
+  webhookUrl: string
+  adminDashboardUrl: string
+  donation: {
+    referenceCode: string
+    createdAt: string
+  }
+  playerId: string
+  username: string
+  currency: string
+  finalAmount: number
+  selectedPackageId: string
+  selectedPackageTitle: string
+  selectedPackageAmount: number
+  packageQuantity: number
+  paymentMethod: string
+  additionalNotes: string
+  receipt: File
+  receiptExtension: string
+}) {
+  const {
+    webhookUrl,
+    adminDashboardUrl,
+    donation,
+    playerId,
+    username,
+    currency,
+    finalAmount,
+    selectedPackageId,
+    selectedPackageTitle,
+    selectedPackageAmount,
+    packageQuantity,
+    paymentMethod,
+    additionalNotes,
+    receipt,
+    receiptExtension,
+  } = options
+
+  const category = selectedPackageId.startsWith('currency-')
+    ? 'Currency'
+    : selectedPackageId.startsWith('august-supply-')
+      ? 'August Supply Package'
+      : 'Support Package'
+
+  const receiptFilename = sanitizeDiscordFilename(
+    receipt.name,
+    receiptExtension
+  )
+
+  const isImageReceipt = new Set([
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+  ]).has(receipt.type)
+
+  const embed: Record<string, unknown> = {
+    title: '🔔 New Donation Submission',
+    url: adminDashboardUrl,
+    color: 0x66d4ff,
+    fields: [
+      {
+        name: 'Reference',
+        value: `\`${donation.referenceCode}\``,
+        inline: true,
+      },
+      {
+        name: 'Status',
+        value: '🟡 Pending',
+        inline: true,
+      },
+      {
+        name: 'Player',
+        value: `**${username}**\nID: \`${playerId}\``,
+        inline: false,
+      },
+      {
+        name: 'Package',
+        value:
+          `**${selectedPackageTitle}**\n` +
+          `${category} • $${selectedPackageAmount.toLocaleString()} × ${packageQuantity}`,
+        inline: false,
+      },
+      {
+        name: 'Total Paid',
+        value: `**${formatDiscordMoney(currency, finalAmount)}**`,
+        inline: true,
+      },
+      {
+        name: 'Payment Method',
+        value: paymentMethod.toUpperCase(),
+        inline: true,
+      },
+      {
+        name: 'Additional Notes',
+        value: additionalNotes || 'None',
+        inline: false,
+      },
+    ],
+    footer: {
+      text: 'PlayCrows Donation Center • Click the title to open Admin Dashboard',
+    },
+    timestamp: donation.createdAt,
+  }
+
+  if (isImageReceipt) {
+    embed.image = {
+      url: `attachment://${receiptFilename}`,
+    }
+  }
+
+  const payload = {
+    content: '@here',
+    username: 'PlayCrows Donation Center',
+    embeds: [embed],
+    attachments: [
+      {
+        id: 0,
+        filename: receiptFilename,
+        description: `Payment receipt for ${donation.referenceCode}`,
+      },
+    ],
+    allowed_mentions: {
+      parse: ['everyone'],
+    },
+  }
+
+  const discordBody = new FormData()
+  discordBody.append(
+    'payload_json',
+    JSON.stringify(payload)
+  )
+  discordBody.append(
+    'files[0]',
+    receipt,
+    receiptFilename
+  )
+
+  const response = await fetch(`${webhookUrl}?wait=true`, {
+    method: 'POST',
+    body: discordBody,
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '')
+    throw new Error(
+      `Discord webhook failed (${response.status}): ${errorText}`
+    )
+  }
+
+  const discordMessage = await response.json().catch(() => null)
+
+  if (
+    !discordMessage ||
+    typeof discordMessage !== 'object' ||
+    !('id' in discordMessage) ||
+    typeof discordMessage.id !== 'string'
+  ) {
+    throw new Error('Discord webhook did not return a message ID.')
+  }
+
+  return discordMessage.id
+}
+
+interface GiftPackageDefinition {
+  title: string
+  amount: number
+}
+
+/*
+ * Keep this catalog synchronized with src/giftPackageData.ts.
+ * The server uses it to prevent clients from changing package prices/titles.
+ */
+const GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
+  'currency-5': { title: 'Diamond Package', amount: 5 },
+  'currency-10': { title: 'Diamond Package', amount: 10 },
+  'currency-50': { title: 'Diamond Package', amount: 50 },
+  'currency-100': { title: 'Diamond Package', amount: 100 },
+  'currency-200': { title: 'Diamond Package', amount: 200 },
+  'currency-500': { title: 'Diamond Package', amount: 500 },
+  'currency-1000': { title: 'Diamond Package', amount: 1000 },
+  'support-skill-bundle': { title: 'SKILL BUNDLE', amount: 15 },
+  'support-guild-bundle': { title: 'GUILD BUNDLE', amount: 20 },
+  'support-job-advance': { title: 'JOB ADVANCE PACKAGE', amount: 25 },
+  'support-awakening': { title: 'AWAKENING PACKAGE', amount: 25 },
+  'august-supply-50': { title: 'AUGUST SUPPLY PACKAGE', amount: 50 },
+  'august-supply-100': { title: 'AUGUST SUPPLY PACKAGE', amount: 100 },
+  'august-supply-500': { title: 'AUGUST SUPPLY PACKAGE', amount: 500 },
+  'august-supply-1000': { title: 'AUGUST SUPPLY PACKAGE', amount: 1000 },
+}
+
+const EARLY_PROMO_CODE = 'EARLY10'
+const EARLY_PROMO_DISCOUNT_PERCENT = 10
+const EARLY_PROMO_END_TIMESTAMP = Date.parse(
+  '2026-07-31T07:00:00.000Z'
+)
+
+const ELIGIBLE_PROMO_PACKAGE_AMOUNTS = new Set([
+  10,
+  50,
+  100,
+  200,
+  500,
+  1000,
+])
+
+const CURRENCY_RATES_FROM_USD: Record<string, number> = {
+  USD: 1,
+  PHP: 60,
+  GBP: 0.79,
+}
+
+function roundMoney(amount: number) {
+  return Math.round((amount + Number.EPSILON) * 100) / 100
+}
+
+function getText(formData: FormData, field: string): string {
+  const value = formData.get(field)
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function errorResponse(message: string, status = 400) {
+  return Response.json(
+    { success: false, error: message },
+    { status }
+  )
+}
+
+export default {
+  fetch: withSupabase(
+    { auth: 'publishable' },
+
+    async (request, context) => {
+      if (request.method !== 'POST') {
+        return errorResponse('Method not allowed.', 405)
+      }
+
+      const contentType = request.headers.get('content-type') ?? ''
+
+      if (!contentType.toLowerCase().includes('multipart/form-data')) {
+        return errorResponse('The request must use multipart/form-data.')
+      }
+
+      let formData: FormData
+
+      try {
+        formData = await request.formData()
+      } catch {
+        return errorResponse('Unable to read the submitted form.')
+      }
+
+      const website = getText(formData, 'website')
+      if (website) return errorResponse('Submission rejected.')
+
+      const playerId = getText(formData, 'playerId')
+      const username = getText(formData, 'username')
+      const currency = getText(formData, 'currency').toUpperCase()
+      const amountText = getText(formData, 'amount')
+      const amountMode = getText(formData, 'amountMode').toLowerCase()
+      const promoCode = getText(formData, 'promoCode').toUpperCase()
+      const selectedPackageId = getText(formData, 'selectedPackageId')
+      const submittedPackageTitle = getText(formData, 'selectedPackageTitle')
+      const selectedPackageText = getText(formData, 'selectedPackageAmount')
+      const packageQuantityText = getText(formData, 'packageQuantity')
+      const additionalNotes = getText(formData, 'additionalNotes')
+      const paymentMethod = getText(formData, 'paymentMethod').toLowerCase()
+      const receipt = formData.get('receipt')
+
+      if (!playerId) return errorResponse('Player ID is required.')
+      if (playerId.length > 100) return errorResponse('Player ID is too long.')
+      if (!username) return errorResponse('Username is required.')
+      if (username.length > 100) return errorResponse('Username is too long.')
+
+      if (!ALLOWED_CURRENCIES.has(currency)) {
+        return errorResponse('Invalid currency.')
+      }
+
+      if (amountMode !== 'package') {
+        return errorResponse('Invalid donation amount mode.')
+      }
+
+      const selectedPackage = GIFT_PACKAGES[selectedPackageId]
+      if (!selectedPackage) {
+        return errorResponse('Invalid gift package.')
+      }
+
+      const packageQuantity = Number(packageQuantityText)
+      if (
+        !Number.isInteger(packageQuantity) ||
+        packageQuantity < 1 ||
+        packageQuantity > MAX_PACKAGE_QUANTITY
+      ) {
+        return errorResponse('Invalid package quantity.')
+      }
+
+      if (additionalNotes.length > MAX_ADDITIONAL_NOTES_LENGTH) {
+        return errorResponse(
+          `Additional notes must be ${MAX_ADDITIONAL_NOTES_LENGTH} characters or fewer.`
+        )
+      }
+
+      const submittedAmount = Number(amountText)
+      if (!Number.isFinite(submittedAmount) || submittedAmount <= 0) {
+        return errorResponse('Invalid donation amount.')
+      }
+
+      const submittedPackageAmount = Number(selectedPackageText)
+      if (
+        !Number.isFinite(submittedPackageAmount) ||
+        Math.abs(submittedPackageAmount - selectedPackage.amount) > 0.001
+      ) {
+        return errorResponse('The selected gift package price is invalid.')
+      }
+
+      if (
+        submittedPackageTitle &&
+        submittedPackageTitle !== selectedPackage.title
+      ) {
+        return errorResponse('The selected gift package title is invalid.')
+      }
+
+      const expectedAmountUsd = roundMoney(
+        selectedPackage.amount * packageQuantity
+      )
+
+      if (Math.abs(submittedAmount - expectedAmountUsd) > 0.001) {
+        return errorResponse(
+          'The submitted amount does not match the selected package and quantity.'
+        )
+      }
+
+      const currencyRate = CURRENCY_RATES_FROM_USD[currency]
+      let finalAmount = roundMoney(expectedAmountUsd * currencyRate)
+      let appliedPromoCode: string | null = null
+      let discountPercent = 0
+
+      if (promoCode) {
+        if (promoCode !== EARLY_PROMO_CODE) {
+          return errorResponse('Invalid redeem code.')
+        }
+
+        if (Date.now() >= EARLY_PROMO_END_TIMESTAMP) {
+          return errorResponse('The EARLY10 promotion has expired.')
+        }
+
+        if (!ELIGIBLE_PROMO_PACKAGE_AMOUNTS.has(selectedPackage.amount)) {
+          return errorResponse(
+            'EARLY10 only applies to eligible preset gift packages.'
+          )
+        }
+
+        finalAmount = roundMoney(
+          expectedAmountUsd *
+            currencyRate *
+            (1 - EARLY_PROMO_DISCOUNT_PERCENT / 100)
+        )
+        appliedPromoCode = EARLY_PROMO_CODE
+        discountPercent = EARLY_PROMO_DISCOUNT_PERCENT
+      }
+
+      if (!ALLOWED_PAYMENT_METHODS.has(paymentMethod)) {
+        return errorResponse('Invalid payment method.')
+      }
+
+      if (!(receipt instanceof File)) {
+        return errorResponse('A payment receipt is required.')
+      }
+      if (receipt.size <= 0) {
+        return errorResponse('The uploaded receipt is empty.')
+      }
+      if (receipt.size > MAX_RECEIPT_SIZE) {
+        return errorResponse('The receipt must not exceed 5 MB.')
+      }
+      if (!ALLOWED_RECEIPT_TYPES.has(receipt.type)) {
+        return errorResponse('Only JPG, PNG, WEBP, and PDF receipts are allowed.')
+      }
+
+      const extension = FILE_EXTENSIONS[receipt.type]
+      const today = new Date().toISOString().slice(0, 10)
+      const receiptPath = `${today}/${crypto.randomUUID()}.${extension}`
+
+      const { error: uploadError } = await context.supabaseAdmin
+        .storage
+        .from('payment-receipts')
+        .upload(receiptPath, receipt, {
+          contentType: receipt.type,
+          cacheControl: '3600',
+          upsert: false,
+        })
+
+      if (uploadError) {
+        console.error('Receipt upload error:', uploadError)
+        return errorResponse('Unable to upload the receipt.', 500)
+      }
+
+      const { data: donation, error: insertError } = await context.supabaseAdmin
+        .from('donations')
+        .insert({
+          player_id: playerId,
+          username,
+          currency,
+          amount: finalAmount,
+          selected_package_amount: selectedPackage.amount,
+          selected_package_id: selectedPackageId,
+          selected_package_title: selectedPackage.title,
+          package_quantity: packageQuantity,
+          additional_notes: additionalNotes || null,
+          payment_method: paymentMethod,
+          receipt_path: receiptPath,
+          receipt_original_name:
+            receipt.name.replace(/[^\w.\- ]/g, '').slice(0, 255) ||
+            `receipt.${extension}`,
+          receipt_mime_type: receipt.type,
+          receipt_size_bytes: receipt.size,
+          promo_code: appliedPromoCode,
+          discount_percent: discountPercent,
+          status: 'pending',
+        })
+        .select(`
+          id,
+          reference_code,
+          created_at,
+          status
+        `)
+        .single()
+
+      if (insertError) {
+        console.error('Donation insert error:', insertError)
+
+        await context.supabaseAdmin
+          .storage
+          .from('payment-receipts')
+          .remove([receiptPath])
+
+        return errorResponse('Unable to save the donation submission.', 500)
+      }
+
+
+      const discordWebhookUrl = Deno.env.get(
+        'DISCORD_DONATION_WEBHOOK_URL'
+      )
+
+      const adminDashboardUrl =
+        Deno.env.get('ADMIN_DASHBOARD_URL') ||
+        DEFAULT_ADMIN_DASHBOARD_URL
+
+      if (discordWebhookUrl) {
+        try {
+          const discordMessageId = await sendDiscordDonationNotification({
+            webhookUrl: discordWebhookUrl,
+            adminDashboardUrl,
+            donation: {
+              referenceCode: donation.reference_code,
+              createdAt: donation.created_at,
+            },
+            playerId,
+            username,
+            currency,
+            finalAmount,
+            selectedPackageId,
+            selectedPackageTitle: selectedPackage.title,
+            selectedPackageAmount: selectedPackage.amount,
+            packageQuantity,
+            paymentMethod,
+            additionalNotes,
+            receipt,
+            receiptExtension: extension,
+          })
+
+          const { error: discordMessageIdError } = await context.supabaseAdmin
+            .from('donations')
+            .update({
+              discord_message_id: discordMessageId,
+            })
+            .eq('id', donation.id)
+
+          if (discordMessageIdError) {
+            console.error(
+              'Unable to save Discord message ID:',
+              discordMessageIdError
+            )
+          }
+        } catch (discordError) {
+          /*
+           * Discord notifications are intentionally non-blocking.
+           * The donation has already been safely stored, so a Discord
+           * outage must never make the player's submission fail.
+           */
+          console.error(
+            'Discord donation notification error:',
+            discordError
+          )
+        }
+      } else {
+        console.warn(
+          'DISCORD_DONATION_WEBHOOK_URL is not configured; skipping Discord notification.'
+        )
+      }
+
+      return Response.json(
+        {
+          success: true,
+          message: 'Donation submitted successfully.',
+          donation: {
+            id: donation.id,
+            referenceCode: donation.reference_code,
+            createdAt: donation.created_at,
+            status: donation.status,
+          },
+        },
+        { status: 201 }
+      )
+    }
+  ),
+}

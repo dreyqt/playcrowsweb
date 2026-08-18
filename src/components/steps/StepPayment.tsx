@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormData, PaymentMethod } from '../../types'
 import {
   PAYMENT_METHODS,
@@ -26,6 +26,31 @@ import {
 import gcashQr from '../../assets/gcash-qr.jpg'
 import bybitQr from '../../assets/bybit-qr.png'
 import wiseQr from '../../assets/wise-qr.png'
+
+function PayPalHostedButton() {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    let attempts = 0
+
+    const renderButton = () => {
+      if (cancelled || !containerRef.current) return
+      const paypal = (window as any).paypal
+      if (paypal?.HostedButtons) {
+        containerRef.current.innerHTML = ''
+        paypal.HostedButtons({ hostedButtonId: 'SFGMYA4XDPEKY' }).render(containerRef.current)
+        return
+      }
+      if (attempts++ < 50) window.setTimeout(renderButton, 100)
+    }
+
+    renderButton()
+    return () => { cancelled = true }
+  }, [])
+
+  return <div ref={containerRef} className="w-full min-h-[48px]" aria-label="PayPal checkout" />
+}
 
 function MethodIcon({
   id,
@@ -474,51 +499,25 @@ export function StepPayment({
             <>
               <div className="rounded-xl border border-[#d3ad62]/40 bg-[#d3ad62]/5 p-4">
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 text-lg text-[#d3ad62]">
-                    ⚠️
-                  </div>
-
-                  <div className="flex flex-col gap-2">
+                  <PayPalIcon size={40} />
+                  <div className="flex flex-col gap-1">
                     <div className="text-sm font-bold text-[#d3ad62]">
-                      {t('paypalInstructions')}
+                      PayPal Secure Checkout
                     </div>
-
                     <p className="text-xs leading-relaxed text-[#d1d5db]">
-                      {t('paypalFriendsFamily')}
-                    </p>
-
-                    <p className="text-xs leading-relaxed text-[#77746e]">
-                      {t('paypalCorrectType')}
+                      Enter the support amount shown above and your PlayCrows Username & Character Name in the required PayPal field.
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 rounded-xl bg-[#111318] p-4">
-                <PayPalIcon size={40} />
-
-                <div>
-                  <div className="text-xs text-[#77746e]">
-                    {t('paypalEmail')}
-                  </div>
-
-                  <div className="text-sm font-medium text-[#eee9df]">
-                    {PAYMENT_INFO.paypal.email}
-                  </div>
-                </div>
+              <div className="rounded-xl bg-white p-3">
+                <PayPalHostedButton />
               </div>
 
-              <a
-                href={PAYMENT_INFO.paypal.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full"
-              >
-                <Btn className="w-full">
-                  <PayPalIcon size={18} />
-                  {t('openPaypal')}
-                </Btn>
-              </a>
+              <p className="text-center text-xs leading-relaxed text-[#77746e]">
+                After completing payment, save your PayPal receipt and continue to the receipt step for verification.
+              </p>
             </>
           )}
 
