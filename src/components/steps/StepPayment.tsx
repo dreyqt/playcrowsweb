@@ -688,7 +688,7 @@ export function StepPayment({
                 `GCash ${t('paymentDetails')}`}
 
               {data.paymentMethod === 'paypal' &&
-                `PayPal ${t('paypalCheckout')}`}
+                `PayPal ${t('paymentDetails')}`}
 
               {data.paymentMethod === 'wise' &&
                 `Wise ${t('paymentDetails')}`}
@@ -739,10 +739,10 @@ export function StepPayment({
                   <PayPalIcon size={40} />
                   <div className="flex flex-col gap-1">
                     <div className="text-sm font-bold text-[#d3ad62]">
-                      PayPal Secure Checkout
+                      Pay securely with PayPal, debit or credit card
                     </div>
                     <p className="text-xs leading-relaxed text-[#d1d5db]">
-                      Your PlayCrows Username, Character Name, package, and exact USD amount are passed automatically from the Donation Center. No need to enter them again.
+                      Your account details, selected package, and payment amount are automatically linked to this transaction.
                     </p>
                   </div>
                 </div>
