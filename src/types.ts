@@ -11,4 +11,7 @@ export interface FormData {
   receiptFile: File | null
   receiptPreview: string | null
   additionalNotes: string
+  paypalOrderId: string | null
+  paypalCaptureId: string | null
+  paypalPaymentStatus: 'COMPLETED' | null
 }

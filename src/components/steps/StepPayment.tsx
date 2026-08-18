@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormData, PaymentMethod } from '../../types'
 import {
   PAYMENT_METHODS,
@@ -27,83 +27,243 @@ import gcashQr from '../../assets/gcash-qr.jpg'
 import bybitQr from '../../assets/bybit-qr.png'
 import wiseQr from '../../assets/wise-qr.png'
 
-const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID as string | undefined
-const PAYPAL_HOSTED_BUTTON_ID = 'SFGMYA4XDPEKY'
+function getRequiredEnvironmentVariable(name: string, value?: string) {
+  if (!value) {
+    throw new Error(`${name} is missing. Add it to your Vercel environment variables and redeploy.`)
+  }
 
-function PayPalHostedButton() {
+  return value.replace(/\/$/, '')
+}
+
+let paypalSdkPromise: Promise<any> | null = null
+
+function loadPayPalSdk() {
+  const existingPayPal = (window as any).paypal
+  if (existingPayPal?.Buttons) return Promise.resolve(existingPayPal)
+  if (paypalSdkPromise) return paypalSdkPromise
+
+  paypalSdkPromise = new Promise((resolve, reject) => {
+    const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID
+
+    if (!clientId) {
+      reject(new Error('VITE_PAYPAL_CLIENT_ID is not configured.'))
+      return
+    }
+
+    const existingScript = document.getElementById('paypal-standard-checkout-sdk') as HTMLScriptElement | null
+
+    const finish = () => {
+      const paypal = (window as any).paypal
+      if (paypal?.Buttons) resolve(paypal)
+      else reject(new Error('PayPal SDK loaded without the Buttons component.'))
+    }
+
+    if (existingScript) {
+      existingScript.addEventListener('load', finish, { once: true })
+      existingScript.addEventListener('error', () => reject(new Error('Unable to load PayPal checkout.')), { once: true })
+      return
+    }
+
+    const script = document.createElement('script')
+    script.id = 'paypal-standard-checkout-sdk'
+    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD&intent=capture&components=buttons`
+    script.async = true
+    script.onload = finish
+    script.onerror = () => reject(new Error('Unable to load PayPal checkout.'))
+    document.head.appendChild(script)
+  })
+
+  return paypalSdkPromise
+}
+
+async function callPayPalCheckout(body: Record<string, unknown>) {
+  const supabaseUrl = getRequiredEnvironmentVariable(
+    'VITE_SUPABASE_URL',
+    import.meta.env.VITE_SUPABASE_URL
+  )
+  const publishableKey = getRequiredEnvironmentVariable(
+    'VITE_SUPABASE_PUBLISHABLE_KEY',
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+  )
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/paypal-checkout`, {
+    method: 'POST',
+    headers: {
+      apikey: publishableKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+
+  const payload = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    const message =
+      payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string'
+        ? payload.error
+        : `PayPal request failed with status ${response.status}.`
+    throw new Error(message)
+  }
+
+  return payload as any
+}
+
+function PayPalCheckout({
+  data,
+  selectedPackageId,
+  promoCode,
+  onCompleted,
+}: {
+  data: FormData
+  selectedPackageId: string | null
+  promoCode: string | null
+  onCompleted: (result: {
+    orderId: string
+    captureId: string
+    status: 'COMPLETED'
+  }) => void
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [status, setStatus] = useState<'loading' | 'ready' | 'processing' | 'completed' | 'error'>('loading')
+  const [message, setMessage] = useState('Loading secure PayPal checkout…')
 
   useEffect(() => {
     let cancelled = false
+    let buttons: any = null
 
-    const waitForSdk = () => new Promise<void>((resolve, reject) => {
-      const startedAt = Date.now()
-      const poll = () => {
-        if (cancelled) return
-        const paypal = (window as any).paypal
-        if (paypal?.HostedButtons) {
-          resolve()
-          return
-        }
-        if (Date.now() - startedAt > 10000) {
-          reject(new Error('PayPal SDK load timeout'))
-          return
-        }
-        window.setTimeout(poll, 100)
-      }
-      poll()
-    })
+    if (data.paypalPaymentStatus === 'COMPLETED' && data.paypalCaptureId) {
+      setStatus('completed')
+      setMessage(`Payment completed · ${data.paypalCaptureId}`)
+      return () => { cancelled = true }
+    }
 
-    const renderButton = async () => {
-      if (!PAYPAL_CLIENT_ID) {
-        console.error('Missing VITE_PAYPAL_CLIENT_ID')
+    const render = async () => {
+      if (!selectedPackageId) {
         setStatus('error')
+        setMessage('Please select a support package before using PayPal.')
         return
       }
 
       try {
-        let script = document.querySelector<HTMLScriptElement>('script[data-playcrows-paypal-sdk="true"]')
-
-        if (!script) {
-          script = document.createElement('script')
-          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(PAYPAL_CLIENT_ID)}&components=hosted-buttons&disable-funding=venmo&currency=USD`
-          script.async = true
-          script.crossOrigin = 'anonymous'
-          script.dataset.playcrowsPaypalSdk = 'true'
-          document.head.appendChild(script)
-        }
-
-        await waitForSdk()
+        const paypal = await loadPayPalSdk()
         if (cancelled || !containerRef.current) return
 
-        const paypal = (window as any).paypal
         containerRef.current.innerHTML = ''
-        await paypal.HostedButtons({ hostedButtonId: PAYPAL_HOSTED_BUTTON_ID }).render(containerRef.current)
-        if (!cancelled) setStatus('ready')
+
+        buttons = paypal.Buttons({
+          fundingSource: paypal.FUNDING?.PAYPAL,
+          style: {
+            layout: 'vertical',
+            color: 'gold',
+            shape: 'rect',
+            label: 'paypal',
+            height: 48,
+          },
+          createOrder: async () => {
+            setStatus('processing')
+            setMessage('Creating your secure PayPal order…')
+
+            const result = await callPayPalCheckout({
+              action: 'create',
+              selectedPackageId,
+              packageQuantity: Number(data.packageQuantity),
+              promoCode,
+              playerId: data.playerId,
+              username: data.username,
+            })
+
+            setStatus('ready')
+            setMessage('Complete your payment securely with PayPal.')
+            return result.orderId
+          },
+          onApprove: async (approval: { orderID: string }) => {
+            setStatus('processing')
+            setMessage('Confirming your PayPal payment…')
+
+            const result = await callPayPalCheckout({
+              action: 'capture',
+              orderId: approval.orderID,
+            })
+
+            if (result.status !== 'COMPLETED' || !result.captureId) {
+              throw new Error('PayPal did not return a completed payment.')
+            }
+
+            if (cancelled) return
+
+            setStatus('completed')
+            setMessage(`Payment completed · ${result.captureId}`)
+            onCompleted({
+              orderId: approval.orderID,
+              captureId: result.captureId,
+              status: 'COMPLETED',
+            })
+          },
+          onCancel: () => {
+            if (cancelled) return
+            setStatus('ready')
+            setMessage('PayPal checkout was cancelled. You can try again when ready.')
+          },
+          onError: (error: unknown) => {
+            console.error('PayPal checkout error:', error)
+            if (cancelled) return
+            setStatus('error')
+            setMessage(error instanceof Error ? error.message : 'PayPal checkout could not be completed. Please try again.')
+          },
+        })
+
+        if (buttons?.isEligible && !buttons.isEligible()) {
+          setStatus('error')
+          setMessage('PayPal is not available for this browser or location.')
+          return
+        }
+
+        await buttons.render(containerRef.current)
+        if (!cancelled) {
+          setStatus('ready')
+          setMessage('Complete your payment securely with PayPal.')
+        }
       } catch (error) {
-        console.error('PayPal hosted button failed to render:', error)
-        if (!cancelled) setStatus('error')
+        console.error('PayPal initialization error:', error)
+        if (!cancelled) {
+          setStatus('error')
+          setMessage(error instanceof Error ? error.message : 'Unable to load PayPal checkout.')
+        }
       }
     }
 
-    renderButton()
-    return () => { cancelled = true }
-  }, [])
+    void render()
+
+    return () => {
+      cancelled = true
+      try { buttons?.close?.() } catch { /* PayPal cleanup is best-effort. */ }
+      if (containerRef.current) containerRef.current.innerHTML = ''
+    }
+  }, [
+    data.packageQuantity,
+    data.paypalCaptureId,
+    data.paypalPaymentStatus,
+    data.playerId,
+    data.username,
+    promoCode,
+    selectedPackageId,
+    onCompleted,
+  ])
 
   return (
-    <div className="w-full">
-      {status === 'loading' && (
-        <div className="rounded-lg border border-[#3b414b] bg-[#0d0f13] px-4 py-3 text-center text-xs text-[#aaa49a]">
-          Loading PayPal checkout…
-        </div>
-      )}
-      {status === 'error' && (
-        <div className="rounded-lg border border-[#ef4444]/35 bg-[#ef4444]/5 px-4 py-3 text-center text-xs text-[#ef4444]">
-          PayPal checkout could not be loaded. Please refresh the page and try again.
-        </div>
-      )}
-      <div ref={containerRef} className={status === 'ready' ? 'w-full' : 'hidden'} aria-label="PayPal checkout" />
+    <div className="flex flex-col gap-3">
+      {status !== 'completed' && <div ref={containerRef} className="min-h-[48px] w-full" aria-label="PayPal checkout" />}
+      <div
+        className={`rounded-lg border px-3 py-2 text-center text-xs leading-5 ${
+          status === 'completed'
+            ? 'border-[#22c55e]/35 bg-[#22c55e]/5 text-[#22c55e]'
+            : status === 'error'
+              ? 'border-[#ef4444]/35 bg-[#ef4444]/5 text-[#ef4444]'
+              : 'border-[#292d34] bg-[#0d0f13] text-[#aaa49a]'
+        }`}
+      >
+        {message}
+      </div>
     </div>
   )
 }
@@ -187,6 +347,7 @@ function PaymentDetailRow({
 export function StepPayment({
   data,
   selectedPackageAmount,
+  selectedPackageId,
   appliedPromoCode,
   onApplyPromoCode,
   onRemovePromoCode,
@@ -196,6 +357,7 @@ export function StepPayment({
 }: {
   data: FormData
   selectedPackageAmount: number | null
+  selectedPackageId: string | null
   appliedPromoCode: string | null
   onApplyPromoCode: (code: string) => PromoApplyResult
   onRemovePromoCode: () => void
@@ -267,6 +429,17 @@ export function StepPayment({
     setPromoMessage(t('redeemRemoved'))
     setPromoMessageType('')
   }
+
+  const completePayPalPayment = useCallback((result: { orderId: string; captureId: string; status: 'COMPLETED' }) => {
+    onUpdate({
+      paymentMethod: 'paypal',
+      currency: 'USD',
+      paypalOrderId: result.orderId,
+      paypalCaptureId: result.captureId,
+      paypalPaymentStatus: result.status,
+    })
+    onNext()
+  }, [onNext, onUpdate])
 
   return (
     <div className="flex flex-col gap-6">
@@ -453,6 +626,14 @@ export function StepPayment({
               onClick={() =>
                 onUpdate({
                   paymentMethod: method.id,
+                  ...(method.id === 'paypal' ? { currency: 'USD' as const } : {}),
+                  ...(method.id !== 'paypal'
+                    ? {
+                        paypalOrderId: null,
+                        paypalCaptureId: null,
+                        paypalPaymentStatus: null,
+                      }
+                    : {}),
                 })
               }
               className={`flex w-full cursor-pointer items-center gap-4 rounded-xl border p-4 text-left transition-all duration-200 ${
@@ -561,18 +742,21 @@ export function StepPayment({
                       PayPal Secure Checkout
                     </div>
                     <p className="text-xs leading-relaxed text-[#d1d5db]">
-                      Enter the support amount shown above and your PlayCrows Username & Character Name in the required PayPal field.
+                      Your PlayCrows Username, Character Name, package, and exact USD amount are passed automatically from the Donation Center. No need to enter them again.
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-xl bg-white p-3">
-                <PayPalHostedButton />
-              </div>
+              <PayPalCheckout
+                data={data}
+                selectedPackageId={selectedPackageId}
+                promoCode={appliedPromoCode}
+                onCompleted={completePayPalPayment}
+              />
 
               <p className="text-center text-xs leading-relaxed text-[#77746e]">
-                After completing payment, save your PayPal receipt and continue to the receipt step for verification.
+                After PayPal confirms the payment, you will automatically continue to the receipt step. Please save your PayPal receipt for verification.
               </p>
             </>
           )}
@@ -725,7 +909,7 @@ export function StepPayment({
 
         <Btn
           onClick={onNext}
-          disabled={!data.paymentMethod}
+          disabled={!data.paymentMethod || (data.paymentMethod === 'paypal' && data.paypalPaymentStatus !== 'COMPLETED')}
         >
           {t('continueReceipt')}
         </Btn>

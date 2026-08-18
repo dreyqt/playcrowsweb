@@ -271,6 +271,99 @@ function roundMoney(amount: number) {
   return Math.round((amount + Number.EPSILON) * 100) / 100
 }
 
+function buildPayPalCustomId(playerId: string, username: string) {
+  return `PC|${playerId.trim()}|${username.trim()}`.slice(0, 127)
+}
+
+function getPayPalBaseUrl() {
+  return Deno.env.get('PAYPAL_ENV')?.toLowerCase() === 'sandbox'
+    ? 'https://api-m.sandbox.paypal.com'
+    : 'https://api-m.paypal.com'
+}
+
+async function getPayPalAccessToken() {
+  const clientId = Deno.env.get('PAYPAL_CLIENT_ID')
+  const clientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET')
+
+  if (!clientId || !clientSecret) {
+    throw new Error('PayPal server credentials are not configured.')
+  }
+
+  const response = await fetch(`${getPayPalBaseUrl()}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'grant_type=client_credentials',
+  })
+
+  const payload = await response.json().catch(() => null)
+  if (!response.ok || !payload?.access_token) {
+    console.error('PayPal OAuth verification error:', payload)
+    throw new Error('Unable to verify the PayPal payment.')
+  }
+
+  return String(payload.access_token)
+}
+
+async function verifyPayPalOrder(options: {
+  orderId: string
+  captureId: string
+  playerId: string
+  username: string
+  expectedAmountUsd: number
+}) {
+  const { orderId, captureId, playerId, username, expectedAmountUsd } = options
+  const accessToken = await getPayPalAccessToken()
+
+  const response = await fetch(
+    `${getPayPalBaseUrl()}/v2/checkout/orders/${encodeURIComponent(orderId)}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  )
+
+  const order = await response.json().catch(() => null)
+  if (!response.ok || !order) {
+    console.error('PayPal order verification error:', order)
+    throw new Error('Unable to verify the PayPal order.')
+  }
+
+  if (order.status !== 'COMPLETED') {
+    throw new Error('The PayPal payment is not completed.')
+  }
+
+  const purchaseUnit = order.purchase_units?.[0]
+  const capture = purchaseUnit?.payments?.captures?.find(
+    (item: any) => item?.id === captureId
+  )
+
+  if (!capture || capture.status !== 'COMPLETED') {
+    throw new Error('The PayPal capture could not be verified.')
+  }
+
+  if (purchaseUnit?.custom_id !== buildPayPalCustomId(playerId, username)) {
+    throw new Error('The PayPal payment does not match this PlayCrows account.')
+  }
+
+  const paidCurrency = String(capture.amount?.currency_code ?? '')
+  const paidAmount = Number(capture.amount?.value)
+
+  if (paidCurrency !== 'USD' || !Number.isFinite(paidAmount)) {
+    throw new Error('The PayPal payment currency is invalid.')
+  }
+
+  if (Math.abs(paidAmount - expectedAmountUsd) > 0.001) {
+    throw new Error('The PayPal payment amount does not match the selected package.')
+  }
+
+  return {
+    payerEmail:
+      typeof order.payer?.email_address === 'string'
+        ? order.payer.email_address
+        : null,
+  }
+}
+
 function getText(formData: FormData, field: string): string {
   const value = formData.get(field)
   return typeof value === 'string' ? value.trim() : ''
@@ -321,6 +414,9 @@ export default {
       const packageQuantityText = getText(formData, 'packageQuantity')
       const additionalNotes = getText(formData, 'additionalNotes')
       const paymentMethod = getText(formData, 'paymentMethod').toLowerCase()
+      const paypalOrderId = getText(formData, 'paypalOrderId')
+      const paypalCaptureId = getText(formData, 'paypalCaptureId')
+      const paypalPaymentStatus = getText(formData, 'paypalPaymentStatus').toUpperCase()
       const receipt = formData.get('receipt')
 
       if (!playerId) return errorResponse('Player ID is required.')
@@ -388,6 +484,7 @@ export default {
 
       const currencyRate = CURRENCY_RATES_FROM_USD[currency]
       let finalAmount = roundMoney(expectedAmountUsd * currencyRate)
+      let expectedPayPalAmountUsd = expectedAmountUsd
       let appliedPromoCode: string | null = null
       let discountPercent = 0
 
@@ -411,12 +508,56 @@ export default {
             currencyRate *
             (1 - EARLY_PROMO_DISCOUNT_PERCENT / 100)
         )
+        expectedPayPalAmountUsd = roundMoney(
+          expectedAmountUsd *
+            (1 - EARLY_PROMO_DISCOUNT_PERCENT / 100)
+        )
         appliedPromoCode = EARLY_PROMO_CODE
         discountPercent = EARLY_PROMO_DISCOUNT_PERCENT
       }
 
       if (!ALLOWED_PAYMENT_METHODS.has(paymentMethod)) {
         return errorResponse('Invalid payment method.')
+      }
+
+      let paypalPayerEmail: string | null = null
+
+      if (paymentMethod === 'paypal') {
+        if (!paypalOrderId || !paypalCaptureId || paypalPaymentStatus !== 'COMPLETED') {
+          return errorResponse('Complete the PayPal payment before submitting.')
+        }
+
+        const { data: existingPayPalPayment, error: existingPayPalError } =
+          await context.supabaseAdmin
+            .from('donations')
+            .select('id')
+            .eq('paypal_capture_id', paypalCaptureId)
+            .maybeSingle()
+
+        if (existingPayPalError) {
+          console.error('PayPal duplicate check error:', existingPayPalError)
+          return errorResponse('Unable to validate the PayPal payment.', 500)
+        }
+
+        if (existingPayPalPayment) {
+          return errorResponse('This PayPal payment has already been used for a submission.')
+        }
+
+        try {
+          const verification = await verifyPayPalOrder({
+            orderId: paypalOrderId,
+            captureId: paypalCaptureId,
+            playerId,
+            username,
+            expectedAmountUsd: expectedPayPalAmountUsd,
+          })
+          paypalPayerEmail = verification.payerEmail
+        } catch (error) {
+          console.error('PayPal payment verification failed:', error)
+          return errorResponse(
+            error instanceof Error ? error.message : 'Unable to verify the PayPal payment.'
+          )
+        }
       }
 
       if (!(receipt instanceof File)) {
@@ -450,19 +591,28 @@ export default {
         return errorResponse('Unable to upload the receipt.', 500)
       }
 
+      const recordedCurrency = paymentMethod === 'paypal' ? 'USD' : currency
+      const recordedAmount = paymentMethod === 'paypal' ? expectedPayPalAmountUsd : finalAmount
+
       const { data: donation, error: insertError } = await context.supabaseAdmin
         .from('donations')
         .insert({
           player_id: playerId,
           username,
-          currency,
-          amount: finalAmount,
+          currency: recordedCurrency,
+          amount: recordedAmount,
           selected_package_amount: selectedPackage.amount,
           selected_package_id: selectedPackageId,
           selected_package_title: selectedPackage.title,
           package_quantity: packageQuantity,
           additional_notes: additionalNotes || null,
           payment_method: paymentMethod,
+          paypal_order_id: paymentMethod === 'paypal' ? paypalOrderId : null,
+          paypal_capture_id: paymentMethod === 'paypal' ? paypalCaptureId : null,
+          paypal_payment_status: paymentMethod === 'paypal' ? 'COMPLETED' : null,
+          paypal_payer_email: paymentMethod === 'paypal' ? paypalPayerEmail : null,
+          paypal_transaction_id: paymentMethod === 'paypal' ? paypalCaptureId : null,
+          payment_verified_at: paymentMethod === 'paypal' ? new Date().toISOString() : null,
           receipt_path: receiptPath,
           receipt_original_name:
             receipt.name.replace(/[^\w.\- ]/g, '').slice(0, 255) ||
@@ -512,8 +662,8 @@ export default {
             },
             playerId,
             username,
-            currency,
-            finalAmount,
+            currency: recordedCurrency,
+            finalAmount: recordedAmount,
             selectedPackageId,
             selectedPackageTitle: selectedPackage.title,
             selectedPackageAmount: selectedPackage.amount,

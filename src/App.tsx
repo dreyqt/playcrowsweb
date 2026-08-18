@@ -35,6 +35,9 @@ const INITIAL: FormData = {
   receiptFile: null,
   receiptPreview: null,
   additionalNotes: '',
+  paypalOrderId: null,
+  paypalCaptureId: null,
+  paypalPaymentStatus: null,
 }
 
 function PublicApp() {
@@ -442,6 +445,7 @@ function PublicApp() {
               <StepPayment
                 data={form}
                 selectedPackageAmount={selectedPackage?.amount ?? null}
+                selectedPackageId={selectedPackageId}
                 appliedPromoCode={appliedPromoCode}
                 onApplyPromoCode={applyPromoCode}
                 onRemovePromoCode={removePromoCode}
