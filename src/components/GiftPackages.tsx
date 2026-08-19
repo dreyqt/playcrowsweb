@@ -117,6 +117,18 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
   const [activeCategory, setActiveCategory] = useState<GiftPackageCategory>(
     selectedCategory ?? 'currency'
   )
+  const [expandedPackageIds, setExpandedPackageIds] = useState<Set<string>>(
+    () => new Set()
+  )
+
+  const togglePackageRewards = (packageId: string) => {
+    setExpandedPackageIds(current => {
+      const next = new Set(current)
+      if (next.has(packageId)) next.delete(packageId)
+      else next.add(packageId)
+      return next
+    })
+  }
 
   useEffect(() => {
     if (selectedCategory) {
@@ -166,6 +178,16 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                 .filter(({ originalIndex }) => originalIndex % 2 === columnIndex)
                 .map(({ giftPackage, originalIndex }) => {
                   const isSelected = selectedPackageId === giftPackage.id
+                  const isExpanded = expandedPackageIds.has(giftPackage.id)
+                  const collapsedRewardCount = 3
+                  const hasMoreRewards = giftPackage.rewards.length > collapsedRewardCount
+                  const visibleRewards = isExpanded
+                    ? giftPackage.rewards
+                    : giftPackage.rewards.slice(0, collapsedRewardCount)
+                  const hiddenRewardCount = Math.max(
+                    0,
+                    giftPackage.rewards.length - collapsedRewardCount
+                  )
 
                   return (
                     <article
@@ -201,7 +223,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                 </header>
 
                 <ul className="gift-package-card__reward-list">
-                  {giftPackage.rewards.map(reward => (
+                  {visibleRewards.map(reward => (
                     <li
                       key={reward.name}
                       className="gift-package-card__reward-row"
@@ -222,6 +244,29 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                     </li>
                   ))}
                 </ul>
+
+                {hasMoreRewards && (
+                  <button
+                    type="button"
+                    className="gift-package-card__more-button"
+                    onClick={() => togglePackageRewards(giftPackage.id)}
+                    aria-expanded={isExpanded}
+                  >
+                    <span>
+                      {isExpanded
+                        ? 'Show less'
+                        : `+ ${hiddenRewardCount} more reward${hiddenRewardCount === 1 ? '' : 's'}`}
+                    </span>
+                    <span
+                      className={`gift-package-card__more-chevron ${
+                        isExpanded ? 'gift-package-card__more-chevron--open' : ''
+                      }`}
+                      aria-hidden="true"
+                    >
+                      ⌄
+                    </span>
+                  </button>
+                )}
 
                 {onSelectPackage && (
                   <button

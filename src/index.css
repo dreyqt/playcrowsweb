@@ -426,6 +426,66 @@ input:not([type='file']):focus, textarea:focus, select:focus {
 }
 
 
+
+/* Compact package reward disclosure */
+.gift-package-card__more-button {
+  display: flex;
+  width: calc(100% - 28px);
+  min-height: 38px;
+  margin: 10px 14px 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  color: #d7b66e;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  background: rgba(211,173,98,.045);
+  border: 1px solid rgba(211,173,98,.24);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.gift-package-card__more-button:hover {
+  color: #f0d28b;
+  background: rgba(211,173,98,.08);
+  border-color: rgba(211,173,98,.45);
+}
+
+.gift-package-card__more-button:focus-visible {
+  outline: 2px solid #d3ad62;
+  outline-offset: 2px;
+}
+
+.gift-package-card__more-chevron {
+  display: inline-block;
+  font-size: 15px;
+  line-height: 1;
+  transition: transform 160ms ease;
+}
+
+.gift-package-card__more-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Keep compact cards tidy before expansion. */
+.gift-package-card__reward-list {
+  flex: 0 0 auto;
+}
+
+.gift-package-card__button {
+  margin-top: 12px;
+}
+
+@media (max-width: 480px) {
+  .gift-package-card__more-button {
+    width: calc(100% - 20px);
+    margin-inline: 10px;
+  }
+}
+
 /* Independent package columns: prevents tall cards from creating empty grid-row gaps. */
 .gift-packages__grid {
   display: grid;
