@@ -117,12 +117,22 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
   const [activeCategory, setActiveCategory] = useState<GiftPackageCategory>(
     selectedCategory ?? 'currency'
   )
+  const [expandedPackages, setExpandedPackages] = useState<Set<string>>(() => new Set())
 
   useEffect(() => {
     if (selectedCategory) {
       setActiveCategory(selectedCategory)
     }
   }, [selectedCategory])
+
+  const togglePackageRewards = (packageId: string) => {
+    setExpandedPackages(current => {
+      const next = new Set(current)
+      if (next.has(packageId)) next.delete(packageId)
+      else next.add(packageId)
+      return next
+    })
+  }
 
   const section = sections[activeCategory]
   const visiblePackages = giftPackages.filter(
@@ -166,6 +176,13 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                 .filter(({ originalIndex }) => originalIndex % 2 === columnIndex)
                 .map(({ giftPackage, originalIndex }) => {
                   const isSelected = selectedPackageId === giftPackage.id
+                  const isExpanded = expandedPackages.has(giftPackage.id)
+                  const collapsedRewardCount = 3
+                  const hasMoreRewards = giftPackage.rewards.length > collapsedRewardCount
+                  const displayedRewards = isExpanded
+                    ? giftPackage.rewards
+                    : giftPackage.rewards.slice(0, collapsedRewardCount)
+                  const hiddenRewardCount = giftPackage.rewards.length - collapsedRewardCount
 
                   return (
                     <article
@@ -201,7 +218,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                 </header>
 
                 <ul className="gift-package-card__reward-list">
-                  {giftPackage.rewards.map(reward => (
+                  {displayedRewards.map(reward => (
                     <li
                       key={reward.name}
                       className="gift-package-card__reward-row"
@@ -222,6 +239,18 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                     </li>
                   ))}
                 </ul>
+
+                {hasMoreRewards && (
+                  <button
+                    type="button"
+                    className="gift-package-card__expand"
+                    onClick={() => togglePackageRewards(giftPackage.id)}
+                    aria-expanded={isExpanded}
+                  >
+                    <span>{isExpanded ? 'Show less' : `+ ${hiddenRewardCount} more rewards`}</span>
+                    <span className={`gift-package-card__expand-icon ${isExpanded ? 'gift-package-card__expand-icon--open' : ''}`} aria-hidden="true">⌄</span>
+                  </button>
+                )}
 
                 {onSelectPackage && (
                   <button
