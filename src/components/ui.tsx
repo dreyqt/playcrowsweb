@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { CheckIcon } from './icons'
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`pc-card rounded-2xl ${className}`}>{children}</div>
+  return <div className={`bg-[#171a20] border border-[#292d34] rounded-2xl ${className}`}>{children}</div>
 }
 
 export function Input({
@@ -26,7 +26,7 @@ export function Input({
         placeholder={placeholder}
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="pc-input rounded-xl px-4 py-3 text-[#eee9df] placeholder-[#6e6860] text-sm outline-none transition-all duration-200"
+        className="bg-[#111318] border border-[#292d34] rounded-xl px-4 py-3 text-[#eee9df] placeholder-[#77746e] text-sm outline-none focus:border-[#d3ad62] transition-colors duration-200"
       />
     </div>
   )
@@ -47,9 +47,9 @@ export function Btn({
 }) {
   const base = 'inline-flex items-center justify-center gap-2 rounded-xl font-semibold text-sm px-5 py-3 transition-all duration-200 cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed'
   const variants = {
-    primary: 'pc-btn-primary text-[#17110a] active:scale-[.98]',
-    secondary: 'pc-btn-secondary text-[#eee9df] active:scale-[.98]',
-    ghost: 'pc-btn-ghost text-[#eee9df] active:scale-[.98]',
+    primary: 'bg-[#d3ad62] text-[#0a0b0d] hover:bg-[#bd9142] active:scale-95',
+    secondary: 'bg-[#292d34] text-[#eee9df] hover:bg-[#3b414b] active:scale-95',
+    ghost: 'bg-transparent border border-[#292d34] text-[#eee9df] hover:border-[#3b414b] hover:bg-[#171a20] active:scale-95',
   }
 
   return (

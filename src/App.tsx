@@ -18,6 +18,7 @@ import {
   normalizePromoCode,
   type PromoApplyResult,
 } from './promo'
+import CrowLogo from './assets/playcrows-icon.jpg'
 import { findGiftPackage } from './giftPackageData'
 import { I18nProvider, useI18n } from './i18n'
 import { LanguageSelector } from './components/LanguageSelector'
@@ -244,27 +245,32 @@ function PublicApp() {
   }
 
   return (
-    <div className="pc-site min-h-screen text-[#f1eadf]">
-      <header className="pc-topbar sticky top-0 z-50">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
-          <a href="/" className="flex min-w-0 items-center gap-3 no-underline">
+    <div className="min-h-screen bg-[#0a0b0d] text-[#eee9df]">
+      <header className="sticky top-0 z-50 border-b border-[#171a20] bg-[#0a0b0d]">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-4">
+          <div className="flex min-w-0 items-center gap-3">
             <img
-              src="/images/playcrows-favicon.png"
-              alt="PlayCrows"
-              className="pc-brand-mark h-11 w-11 rounded-full object-contain"
+              src={CrowLogo}
+              alt="PlayCrows logo"
+              className="h-10 w-10 rounded-full object-cover"
             />
+
             <div className="min-w-0">
-              <div className="text-[15px] font-black leading-tight tracking-[0.16em] text-[#f7f0e4]">
+              <div className="text-base font-bold leading-tight tracking-tight text-[#eee9df]">
                 PLAYCROWS
               </div>
-              <div className="truncate text-[9px] font-semibold uppercase tracking-[0.2em] text-[#817a70]">
+
+              <div className="truncate text-[10px] uppercase tracking-widest text-[#77746e]">
                 {t('developmentTeam')}
               </div>
             </div>
-          </a>
+          </div>
 
           <div className="flex items-center gap-2">
-            <a href="/events" className="pc-nav-button hidden sm:inline-flex">
+            <a
+              href="/events"
+              className="rounded-lg border border-[#c9aa68]/35 bg-[#c9aa68]/5 px-3 py-2 text-xs font-bold text-[#c9aa68] no-underline transition-colors hover:bg-[#c9aa68]/10"
+            >
               Events
             </a>
             <LanguageSelector />
@@ -272,34 +278,9 @@ function PublicApp() {
         </div>
       </header>
 
-      <section className="pc-hero">
-        <div className="pc-hero-overlay" />
-        <div className="relative z-10 mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.08fr_.92fr] lg:items-center lg:py-20">
-          <div>
-            <div className="pc-kicker">PLAYCROWS SUPPORT CENTER</div>
-            <h1 className="pc-display mt-3 max-w-3xl text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-              Empower your journey.
-              <span>Keep PlayCrows growing.</span>
-            </h1>
-            <p className="mt-5 max-w-2xl text-sm leading-7 text-[#a49b8e] sm:text-base">
-              Choose your package, complete a secure payment, and receive your rewards after verification.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-2">
-              <span className="pc-trust-pill">Secure Checkout</span>
-              <span className="pc-trust-pill">Verified Transactions</span>
-              <span className="pc-trust-pill">Player Support</span>
-            </div>
-          </div>
-
-          <div className="pc-hero-card hidden lg:block">
-            <img src="/images/playcrows-hero.png" alt="" className="h-full w-full object-cover" />
-          </div>
-        </div>
-      </section>
-
-      <main className="relative z-10 mx-auto max-w-5xl px-4 py-9 sm:px-6 sm:py-12">
+      <main className="mx-auto max-w-2xl px-4 py-10">
         {submitted ? (
-          <section className="pc-success-card mx-auto flex max-w-xl flex-col items-center rounded-3xl px-6 py-10 text-center">
+          <section className="mx-auto flex max-w-xl flex-col items-center rounded-2xl border border-[#c9aa68]/35 bg-[#111318] px-6 py-10 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#c9aa68]/40 bg-[#c9aa68]/10 text-3xl text-[#c9aa68]">
               ✓
             </div>
@@ -336,7 +317,7 @@ function PublicApp() {
             {step === 1 && (
               <>
                 <nav
-                  className="pc-main-tabs mb-8 mt-8 grid grid-cols-1 gap-1 rounded-2xl p-1.5 sm:grid-cols-3"
+                  className="mb-8 mt-8 grid grid-cols-1 gap-1 rounded-xl border border-[#292d34] bg-[#0f1115] p-1 sm:grid-cols-3"
                   aria-label="Support information"
                 >
                   <button
@@ -411,7 +392,7 @@ function PublicApp() {
                 {activeTab === 'support' &&
                   hasSelectedPackage && (
                     <section>
-                      <div className="pc-selected-summary mb-6 flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="mb-6 flex flex-col gap-4 rounded-xl border border-[#c9aa68]/30 bg-[#c9aa68]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#8f8b84]">
                             {t('initialPackage')}
@@ -499,8 +480,8 @@ function PublicApp() {
         )}
       </main>
 
-      <footer className="pc-footer mt-16">
-        <div className="mx-auto max-w-6xl px-4 py-8 text-center text-[11px] leading-5 text-[#6f695f] sm:px-6">
+      <footer className="mt-16 border-t border-[#171a20]">
+        <div className="mx-auto max-w-2xl px-4 py-6 text-center text-xs text-[#77746e]">
           {t('voluntaryFooter')}
         </div>
       </footer>
