@@ -155,13 +155,20 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
               >
                 <header className="gift-package-card__header">
                   <div>
-                    <span className="gift-package-card__label">
-                      {giftPackage.category === 'currency'
-                        ? t('currency')
-                        : giftPackage.category === 'august-supply'
-                          ? t('augustSupplyPackage')
-                          : t('supportPackage')}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="gift-package-card__label">
+                        {giftPackage.category === 'currency'
+                          ? t('currency')
+                          : giftPackage.category === 'august-supply'
+                            ? t('augustSupplyPackage')
+                            : t('supportPackage')}
+                      </span>
+                      {giftPackage.isNew && (
+                        <span className="inline-flex items-center rounded-full border border-[#e7c36a]/60 bg-[#e7c36a]/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#f1d487] shadow-[0_0_16px_rgba(231,195,106,0.14)]">
+                          NEW
+                        </span>
+                      )}
+                    </div>
                     <h3>{giftPackage.title}</h3>
                     <div className="mt-1 text-xl font-bold text-[#c9aa68]">
                       ${giftPackage.amount.toLocaleString()}

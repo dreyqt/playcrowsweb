@@ -10,6 +10,8 @@ export interface GiftPackage {
   category: GiftPackageCategory
   title: string
   amount: number
+  /** Shows a prominent NEW badge on the package card. */
+  isNew?: boolean
   rewards: GiftReward[]
 }
 
@@ -135,6 +137,59 @@ export const giftPackages: GiftPackage[] = [
       { name: 'Aura of Intense Expression (Attribution)', quantity: 1 },
       { name: 'Aura of Serene Manifestation (Attribution)', quantity: 2 },
       { name: 'Cyclical Manifestation Energy (Attribution)', quantity: 2 },
+    ],
+  },
+  {
+    id: 'support-alchemy-pack', isNew: true, category: 'support', title: 'ALCHEMY PACK', amount: 20,
+    rewards: [
+      { name: 'Mileage', quantity: 20_000 },
+      { name: 'Contribution Coin', quantity: 20_000 },
+      { name: 'elemental Extraction of Fusion 11 times (attributed)', quantity: 20 },
+      { name: 'Chaos Fragment (Bound)', quantity: 500 },
+      { name: 'Primal Essence (Bound)', quantity: 1_000 },
+      { name: 'Gold Chest (Bound)', quantity: 500 },
+      { name: 'NightCrows Stimulant of Growth (Bound)', quantity: 100 },
+      { name: 'Time Recharger - Land of Prosperty (Bound)', quantity: 5 },
+      { name: 'Time Recharger - Forest of Training (Bound)', quantity: 5 },
+      { name: 'Time Recharger - Irletta Temple (Bound)', quantity: 5 },
+      { name: 'Time Recharger - Sancona Ruins (Bound)', quantity: 5 },
+    ],
+  },
+  {
+    id: 'support-nc-gears-starter', isNew: true, category: 'support', title: 'NC GEARS STARTER', amount: 100,
+    rewards: [
+      { name: 'Mileage', quantity: 80_000 },
+      { name: 'Contibution Coin', quantity: 50_000 },
+      { name: '+10 Night Crows Claw Talisman (Bound)', quantity: 1 },
+      { name: '+10 Night Crows Feather Brooch (Bound)', quantity: 1 },
+      { name: '+10 Night Crows Beak Circlet (Bound)', quantity: 1 },
+      { name: '+10 nighthawk Taileather Whistle (attributed)', quantity: 1 },
+      { name: '+10 nighthawk Mask (Attributed)', quantity: 1 },
+      { name: '+10 Night Crows Flight Feather Jewel (Bound)', quantity: 1 },
+      { name: 'Brilliant Accessory Refinement Stone (Bound)', quantity: 1_000 },
+      { name: 'Moonlight Protection Talisman (Bound)', quantity: 100 },
+      { name: 'Sun Battle Talisman (Bound)', quantity: 100 },
+      { name: 'Gold Chest (Bound)', quantity: 2_000 },
+      { name: 'Time Recharger - Land of Prosperty (Bound)', quantity: 20 },
+      { name: 'Time Recharger - Forest of Training (Bound)', quantity: 20 },
+      { name: 'Time Recharger - Irletta Temple (Bound)', quantity: 20 },
+      { name: 'Time Recharger - Sancona Ruins (Bound)', quantity: 20 },
+    ],
+  },
+  {
+    id: 'support-4th-job-advance', isNew: true, category: 'support', title: '4TH JOB ADVANCE PACK', amount: 200,
+    rewards: [
+      { name: 'Mileage', quantity: 100_000 },
+      { name: 'Contribution Coin', quantity: 100_000 },
+      { name: 'superlative predicate (attribution)', quantity: 1 },
+      { name: 'Torn Invoices (Attribution)', quantity: 1_000 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 1_000 },
+      { name: "Star's Memory (Bound)", quantity: 1_350 },
+      { name: 'Gold Chest (Bound)', quantity: 10_000 },
+      { name: 'Time Recharger - Land of Prosperty (Bound)', quantity: 50 },
+      { name: 'Time Recharger - Forest of Training (Bound)', quantity: 50 },
+      { name: 'Time Recharger - Irletta Temple (Bound)', quantity: 50 },
+      { name: 'Time Recharger - Sancona Ruins (Bound)', quantity: 50 },
     ],
   },
   {
