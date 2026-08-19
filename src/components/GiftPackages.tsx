@@ -34,12 +34,18 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   'Shining Accessory Enhancement Scroll Chest (Bound)': 'shining_accessory_enhancement.png',
   'Wind Orb Chest (Attributed)': 'wind_orb_box.png',
   "Forgotten One's Remnant Selection Chest (Bound)": 'forgotten_ones_remnant_selection_chest.png',
+  'Elemental Extraction of   Fusion 11 times (attribution)': 'elemental_extraction_of_fusion.png',
+  'Contibution Coin': 'contribution_coin.png',
+  'Time Recharger - Land of Prosperty (Bound)': 'time_recharger_land_of_prosperity.png',
+  'NightCrows Stimulant of Growth (Bound)': 'nightcrows_stimulant_of_growth.png',
 }
 
 function rewardNameToFilename(name: string) {
   const withoutQualifier = name
+    .replace(/^\s*\+\d+\s+/i, '')
     .replace(/\s*\((?:bound|attributed|attribution)\)\s*/gi, ' ')
     .replace(/\bx11\b/gi, '')
+    .replace(/\s+/g, ' ')
     .trim()
 
   return `${withoutQualifier
@@ -66,7 +72,7 @@ function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: s
   if (failed) {
     return (
       <div
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#3b414b] bg-[#181b21] text-sm font-bold text-[#8f8b84]"
+        className="gift-reward-icon gift-reward-icon--fallback"
         title={`${tMissing}: ${iconPath}`}
         aria-label={`${name} ${unavailable}`}
       >
@@ -76,11 +82,11 @@ function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: s
   }
 
   return (
-    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#3b414b] bg-[#181b21] p-1">
+    <div className="gift-reward-icon">
       <img
         src={iconPath}
         alt=""
-        className="h-full w-full object-contain"
+        className="gift-reward-icon__image"
         loading="lazy"
         onError={() => setFailed(true)}
       />
@@ -180,22 +186,22 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                   )}
                 </header>
 
-                <ul className="mt-4 space-y-2">
+                <ul className="gift-package-card__reward-list">
                   {giftPackage.rewards.map(reward => (
                     <li
                       key={reward.name}
-                      className="flex min-h-[62px] items-center gap-3 rounded-xl border border-[#292d34] bg-[#0d0f13] px-3 py-2.5 transition-colors hover:border-[#3b414b]"
+                      className="gift-package-card__reward-row"
                     >
                       <RewardIcon name={reward.name} tMissing={t('missingIcon')} unavailable={t('iconUnavailable')} />
 
-                      <div className="min-w-0 flex-1">
-                        <div className="break-words text-sm font-semibold leading-5 text-[#dfe5ef]">
+                      <div className="gift-package-card__reward-copy">
+                        <div className="gift-package-card__reward-name">
                           {reward.name}
                         </div>
                       </div>
 
                       {reward.quantity !== undefined && (
-                        <strong className="shrink-0 pl-2 text-sm font-bold tabular-nums text-[#c9aa68]">
+                        <strong className="gift-package-card__reward-quantity">
                           ×{reward.quantity.toLocaleString()}
                         </strong>
                       )}
