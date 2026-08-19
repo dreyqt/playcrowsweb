@@ -144,7 +144,7 @@ export const giftPackages: GiftPackage[] = [
     rewards: [
       { name: 'Mileage', quantity: 20_000 },
       { name: 'Contribution Coin', quantity: 20_000 },
-      { name: 'elemental Extraction of Fusion 11 times (attributed)', quantity: 20 },
+      { name: 'Elemental Extraction of   Fusion 11 times (attribution)', quantity: 20 },
       { name: 'Chaos Fragment (Bound)', quantity: 500 },
       { name: 'Primal Essence (Bound)', quantity: 1_000 },
       { name: 'Gold Chest (Bound)', quantity: 500 },
