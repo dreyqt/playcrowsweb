@@ -117,18 +117,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
   const [activeCategory, setActiveCategory] = useState<GiftPackageCategory>(
     selectedCategory ?? 'currency'
   )
-  const [expandedPackageIds, setExpandedPackageIds] = useState<Set<string>>(
-    () => new Set()
-  )
-
-  const togglePackageRewards = (packageId: string) => {
-    setExpandedPackageIds(current => {
-      const next = new Set(current)
-      if (next.has(packageId)) next.delete(packageId)
-      else next.add(packageId)
-      return next
-    })
-  }
+  const [rewardModalPackageId, setRewardModalPackageId] = useState<string | null>(null)
 
   useEffect(() => {
     if (selectedCategory) {
@@ -136,10 +125,35 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
     }
   }, [selectedCategory])
 
-  const section = sections[activeCategory]
-  const visiblePackages = giftPackages.filter(
-    item => item.category === activeCategory
+  const rewardModalPackage = useMemo(
+    () => giftPackages.find(item => item.id === rewardModalPackageId) ?? null,
+    [rewardModalPackageId]
   )
+
+  useEffect(() => {
+    if (!rewardModalPackageId) return
+
+    const previousOverflow = document.body.style.overflow
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setRewardModalPackageId(null)
+    }
+
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [rewardModalPackageId])
+
+  const section = sections[activeCategory]
+  const visiblePackages = giftPackages
+    .filter(item => item.category === activeCategory)
+    .sort((a, b) => {
+      if (activeCategory !== 'support') return 0
+      return Number(Boolean(b.isNew)) - Number(Boolean(a.isNew))
+    })
 
   return (
     <section className="gift-packages">
@@ -171,30 +185,14 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
         </div>
 
         <div className="gift-packages__grid">
-          {[0, 1].map(columnIndex => (
-            <div className="gift-packages__column" key={columnIndex}>
-              {visiblePackages
-                .map((giftPackage, originalIndex) => ({ giftPackage, originalIndex }))
-                .filter(({ originalIndex }) => originalIndex % 2 === columnIndex)
-                .map(({ giftPackage, originalIndex }) => {
-                  const isSelected = selectedPackageId === giftPackage.id
-                  const isExpanded = expandedPackageIds.has(giftPackage.id)
-                  const collapsedRewardCount = 3
-                  const hasMoreRewards = giftPackage.rewards.length > collapsedRewardCount
-                  const visibleRewards = isExpanded
-                    ? giftPackage.rewards
-                    : giftPackage.rewards.slice(0, collapsedRewardCount)
-                  const hiddenRewardCount = Math.max(
-                    0,
-                    giftPackage.rewards.length - collapsedRewardCount
-                  )
+          {visiblePackages.map(giftPackage => {
+            const isSelected = selectedPackageId === giftPackage.id
 
-                  return (
-                    <article
-                      className={`gift-package-card ${isSelected ? 'gift-package-card--selected' : ''}`}
-                      key={giftPackage.id}
-                      style={{ order: originalIndex }}
-                    >
+            return (
+              <article
+                className={`gift-package-card ${isSelected ? 'gift-package-card--selected' : ''}`}
+                key={giftPackage.id}
+              >
                 <header className="gift-package-card__header">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -222,72 +220,98 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                   )}
                 </header>
 
-                <ul className="gift-package-card__reward-list">
-                  {visibleRewards.map(reward => (
-                    <li
-                      key={reward.name}
-                      className="gift-package-card__reward-row"
-                    >
-                      <RewardIcon name={reward.name} tMissing={t('missingIcon')} unavailable={t('iconUnavailable')} />
-
-                      <div className="gift-package-card__reward-copy">
-                        <div className="gift-package-card__reward-name">
-                          {reward.name}
-                        </div>
-                      </div>
-
-                      {reward.quantity !== undefined && (
-                        <strong className="gift-package-card__reward-quantity">
-                          ×{reward.quantity.toLocaleString()}
-                        </strong>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-
-                {hasMoreRewards && (
+                <div className="gift-package-card__actions">
                   <button
                     type="button"
-                    className="gift-package-card__more-button"
-                    onClick={() => togglePackageRewards(giftPackage.id)}
-                    aria-expanded={isExpanded}
+                    className="gift-package-card__rewards-button"
+                    onClick={() => setRewardModalPackageId(giftPackage.id)}
                   >
-                    <span>
-                      {isExpanded
-                        ? 'Show less'
-                        : `+ ${hiddenRewardCount} more reward${hiddenRewardCount === 1 ? '' : 's'}`}
-                    </span>
-                    <span
-                      className={`gift-package-card__more-chevron ${
-                        isExpanded ? 'gift-package-card__more-chevron--open' : ''
-                      }`}
-                      aria-hidden="true"
-                    >
-                      ⌄
-                    </span>
+                    {t('viewRewards')}
                   </button>
-                )}
 
-                {onSelectPackage && (
-                  <button
-                    type="button"
-                    className="gift-package-card__button"
-                    onClick={() => onSelectPackage(giftPackage.id)}
-                  >
-                    {t('select')} {giftPackage.title}
-                  </button>
-                )}
-                    </article>
-                  )
-                })}
-            </div>
-          ))}
+                  {onSelectPackage && (
+                    <button
+                      type="button"
+                      className="gift-package-card__button"
+                      onClick={() => onSelectPackage(giftPackage.id)}
+                    >
+                      {t('select')} {giftPackage.title}
+                    </button>
+                  )}
+                </div>
+              </article>
+            )
+          })}
         </div>
       </div>
 
-      <div className="gift-packages__notice">
-        {t('packageContinueNotice')}
-      </div>
+      <div className="gift-packages__notice">{t('packageContinueNotice')}</div>
+
+      {rewardModalPackage && (
+        <div
+          className="gift-rewards-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="gift-rewards-modal-title"
+          onMouseDown={event => {
+            if (event.currentTarget === event.target) setRewardModalPackageId(null)
+          }}
+        >
+          <div className="gift-rewards-modal__panel">
+            <div className="gift-rewards-modal__header">
+              <div>
+                <span className="gift-package-card__label">{t('rewards')}</span>
+                <h3 id="gift-rewards-modal-title">{rewardModalPackage.title}</h3>
+                <div className="gift-rewards-modal__price">
+                  ${rewardModalPackage.amount.toLocaleString()}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="gift-rewards-modal__close"
+                onClick={() => setRewardModalPackageId(null)}
+                aria-label={t('close')}
+                title={t('close')}
+              >
+                ×
+              </button>
+            </div>
+
+            <ul className="gift-rewards-modal__list">
+              {rewardModalPackage.rewards.map(reward => (
+                <li key={reward.name} className="gift-package-card__reward-row">
+                  <RewardIcon
+                    name={reward.name}
+                    tMissing={t('missingIcon')}
+                    unavailable={t('iconUnavailable')}
+                  />
+                  <div className="gift-package-card__reward-copy">
+                    <div className="gift-package-card__reward-name">{reward.name}</div>
+                  </div>
+                  {reward.quantity !== undefined && (
+                    <strong className="gift-package-card__reward-quantity">
+                      ×{reward.quantity.toLocaleString()}
+                    </strong>
+                  )}
+                </li>
+              ))}
+            </ul>
+
+            {onSelectPackage && (
+              <button
+                type="button"
+                className="gift-package-card__button gift-rewards-modal__select"
+                onClick={() => {
+                  onSelectPackage(rewardModalPackage.id)
+                  setRewardModalPackageId(null)
+                }}
+              >
+                {t('select')} {rewardModalPackage.title}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   )
 }

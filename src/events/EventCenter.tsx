@@ -103,13 +103,86 @@ function LinkGroup({ field, value, onChange, inputClass, ui }: { field: EventFor
   return <div className="mt-2 space-y-2">{links.map((link, i) => <div key={i} className="flex gap-2"><input type="url" value={link} onChange={e => update(i, e.target.value)} placeholder={defaultFieldPlaceholder(field, ui)} className={`${inputClass} mt-0 flex-1`} /><button type="button" disabled={links.length <= min} onClick={() => onChange(links.filter((_, idx) => idx !== i))} className="rounded-lg border border-[#ef4444]/30 px-3 text-xs text-[#ef4444] disabled:opacity-30">{ui.remove}</button></div>)}{links.length < max && <button type="button" onClick={() => onChange([...links, ''])} className="rounded-lg border border-[#c9aa68]/40 px-3 py-2 text-xs font-bold text-[#c9aa68]">{ui.addLink}</button>}</div>
 }
 
-const normalizeProofUrl=(value:string)=>{try{const u=new URL(value.trim());u.hash='';u.protocol='https:';u.hostname=u.hostname.toLowerCase().replace(/^www\./,'');if(u.hostname==='m.facebook.com'||u.hostname==='web.facebook.com')u.hostname='facebook.com';u.pathname=u.pathname.replace(/\/+$/,'');return `${u.hostname}${u.pathname}${u.search}`}catch{return value.trim().toLowerCase()}}
+const INVISIBLE_UNICODE_RE = /[\u00A0\u00AD\u034F\u061C\u115F\u1160\u1680\u17B4\u17B5\u180E\u2000-\u200F\u2028\u2029\u202A-\u202E\u202F\u205F\u2060-\u206F\u2800\u3000\u3164\uFE00-\uFE0F\uFEFF\uFFA0\u{E0000}-\u{E007F}\u{E0100}-\u{E01EF}]/gu
+const stripInvisibleUnicode=(value:string)=>value.replace(INVISIBLE_UNICODE_RE,'')
+const normalizeProofUrl=(value:string)=>{const clean=stripInvisibleUnicode(value).trim();try{const u=new URL(clean);u.hash='';u.protocol='https:';u.hostname=u.hostname.toLowerCase().replace(/^www\./,'');if(u.hostname==='m.facebook.com'||u.hostname==='web.facebook.com')u.hostname='facebook.com';u.pathname=u.pathname.replace(/\/+$/,'');return `${u.hostname}${u.pathname}${u.search}`}catch{return clean.toLowerCase()}}
 
 function SubmissionForm({ event }: { event: PlayCrowsEvent }) {
   const { language } = useI18n(); const ui = UI[language]; const fields = (event.form_fields ?? []).map(f => localizeField(f, language))
   const [discord,setDiscord]=useState(''); const [character,setCharacter]=useState(''); const [playerId,setPlayerId]=useState(''); const [answers,setAnswers]=useState<Record<string,EventAnswerValue>>({}); const [submitting,setSubmitting]=useState(false); const [error,setError]=useState(''); const [reference,setReference]=useState('')
   const updateAnswer = (field: EventFormField, value: EventAnswerValue) => setAnswers(current => ({ ...current, [field.id]: value }))
-  const submit = async (e: FormEvent) => { e.preventDefault(); if (submitting) return; setError(''); if (!discord.trim()) return setError(`${ui.discord} ${ui.required}`); if (event.require_character_name && !character.trim()) return setError(`${ui.character} ${ui.required}`); if (event.require_player_id && !playerId.trim()) return setError(`${ui.playerId} ${ui.required}`); for (const field of fields) { const raw = answers[field.id]; if (field.type === 'links') { const values = Array.isArray(raw) ? raw.map(v => v.trim()).filter(Boolean) : []; const min = field.minItems ?? (field.required ? 1 : 0); if (values.length < min) return setError(`${field.label}: minimum ${min} link${min === 1 ? '' : 's'}.`) } else if (field.required && !String(raw ?? '').trim()) return setError(`${field.label} ${ui.required}`) } const proofLinks=fields.flatMap(field=>{const raw=answers[field.id];if(field.type==='links')return Array.isArray(raw)?raw.map(v=>v.trim()).filter(Boolean):[];if(field.type==='url'){const value=String(raw??'').trim();return value?[value]:[]}return []});const normalized=proofLinks.map(normalizeProofUrl);if(new Set(normalized).size!==normalized.length)return setError('Duplicate links detected. Please submit each proof link only once.');setSubmitting(true); const cleanAnswers = Object.fromEntries(Object.entries(answers).map(([k,v]) => [k, Array.isArray(v) ? v.map((x: string) => x.trim()).filter(Boolean) : String(v).trim()])); const { data,error:submitError } = await supabase.rpc('submit_event_claim_localized',{ p_event_id:event.id,p_language:language,p_discord_username:discord.trim(),p_character_name:character.trim()||null,p_player_id:playerId.trim()||null,p_answers:cleanAnswers }); setSubmitting(false); if (submitError) return setError(submitError.message); const result=Array.isArray(data)?data[0]:data; setReference(result?.reference_code ?? '') }
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (submitting) return
+    setError('')
+
+    const cleanDiscord = stripInvisibleUnicode(discord).trim()
+    const cleanCharacter = stripInvisibleUnicode(character).trim()
+    const cleanPlayerId = stripInvisibleUnicode(playerId).trim()
+
+    if (!cleanDiscord) return setError(`${ui.discord} ${ui.required}`)
+    if (event.require_character_name && !cleanCharacter) return setError(`${ui.character} ${ui.required}`)
+    if (event.require_player_id && !cleanPlayerId) return setError(`${ui.playerId} ${ui.required}`)
+
+    for (const field of fields) {
+      const raw = answers[field.id]
+      if (field.type === 'links') {
+        const values = Array.isArray(raw)
+          ? raw.map(v => stripInvisibleUnicode(v).trim()).filter(Boolean)
+          : []
+        const min = field.minItems ?? (field.required ? 1 : 0)
+        if (values.length < min) {
+          return setError(`${field.label}: minimum ${min} link${min === 1 ? '' : 's'}.`)
+        }
+      } else if (field.required && !String(raw ?? '').trim()) {
+        return setError(`${field.label} ${ui.required}`)
+      }
+    }
+
+    const proofLinks = fields.flatMap(field => {
+      const raw = answers[field.id]
+      if (field.type === 'links') {
+        return Array.isArray(raw)
+          ? raw.map(v => stripInvisibleUnicode(v).trim()).filter(Boolean)
+          : []
+      }
+      if (field.type === 'url') {
+        const value = stripInvisibleUnicode(String(raw ?? '')).trim()
+        return value ? [value] : []
+      }
+      return []
+    })
+    const normalized = proofLinks.map(normalizeProofUrl)
+    if (new Set(normalized).size !== normalized.length) {
+      return setError('Duplicate links detected. Please submit each proof link only once.')
+    }
+
+    const fieldTypes = new Map(fields.map(field => [field.id, field.type]))
+    const cleanAnswers = Object.fromEntries(
+      Object.entries(answers).map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return [key, value.map(item => stripInvisibleUnicode(item).trim()).filter(Boolean)]
+        }
+        const textValue = String(value).trim()
+        return [key, fieldTypes.get(key) === 'url' ? stripInvisibleUnicode(textValue) : textValue]
+      })
+    )
+
+    setSubmitting(true)
+    const { data, error: submitError } = await supabase.rpc('submit_event_claim_localized', {
+      p_event_id: event.id,
+      p_language: language,
+      p_discord_username: cleanDiscord,
+      p_character_name: cleanCharacter || null,
+      p_player_id: cleanPlayerId || null,
+      p_answers: cleanAnswers,
+    })
+    setSubmitting(false)
+
+    if (submitError) return setError(submitError.message)
+    const result = Array.isArray(data) ? data[0] : data
+    setReference(result?.reference_code ?? '')
+  }
   if (reference) return <div className="rounded-2xl border border-[#22c55e]/30 bg-[#22c55e]/5 p-6 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-[#22c55e]/40 text-2xl text-[#22c55e]">✓</div><h3 className="mt-4 text-xl font-bold">{ui.claimSubmitted}</h3><p className="mt-2 text-sm text-[#8f8b84]">{ui.pendingSave}</p><div className="mt-4 rounded-xl border border-[#c9aa68]/25 bg-black/20 p-4 font-mono text-lg font-bold text-[#c9aa68]">{reference}</div></div>
   const inputClass='mt-2 w-full rounded-lg border border-[#292d34] bg-[#0d0f12] px-3 py-3 text-sm font-normal text-[#eee9df] outline-none focus:border-[#c9aa68]'
   return <form onSubmit={submit} className="rounded-2xl border border-[#292d34] bg-[#111318] p-5 sm:p-6"><div className="mb-5"><div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c9aa68]">{ui.submitClaim}</div><h3 className="mt-2 text-xl font-bold">Event #{event.event_number}</h3><p className="mt-2 text-[11px] leading-5 text-[#77746e]">{event.claim_frequency === 'weekly' ? ui.weeklyRule : ui.onceRule} {ui.duplicateHint}</p><p className="mt-2 rounded-lg border border-[#c9aa68]/20 bg-[#c9aa68]/5 px-3 py-2 text-[11px] leading-5 text-[#c9aa68]">⏱ {ui.cooldownHint}</p></div><div className="grid gap-4 sm:grid-cols-2"><label className="text-xs font-bold text-[#aaa49a]">{ui.discord} *<input value={discord} onChange={e=>setDiscord(e.target.value)} className={inputClass} placeholder="yourname" autoComplete="off" /></label><label className="text-xs font-bold text-[#aaa49a]">{ui.character}{event.require_character_name?' *':''}<input value={character} onChange={e=>setCharacter(e.target.value)} className={inputClass} /></label><label className="text-xs font-bold text-[#aaa49a] sm:col-span-2">{ui.playerId}{event.require_player_id?' *':''}<input value={playerId} onChange={e=>setPlayerId(e.target.value)} className={inputClass} /></label></div><div className="mt-4 grid gap-4">{fields.map(field => <label key={field.id} className="text-xs font-bold text-[#aaa49a]">{field.label}{field.required?' *':''}{field.type === 'links' ? <LinkGroup field={field} value={Array.isArray(answers[field.id]) ? answers[field.id] as string[] : []} onChange={v=>updateAnswer(field,v)} inputClass={inputClass} ui={ui} /> : field.type === 'textarea' ? <textarea rows={4} value={String(answers[field.id] ?? '')} onChange={e=>updateAnswer(field,e.target.value)} placeholder={defaultFieldPlaceholder(field, ui, language)} className={`${inputClass} resize-y`} /> : <input type={field.type === 'url' ? 'url' : 'text'} value={String(answers[field.id] ?? '')} onChange={e=>updateAnswer(field,e.target.value)} placeholder={defaultFieldPlaceholder(field, ui, language)} className={inputClass} />}{field.helpText && <span className="mt-1 block font-normal leading-5 text-[#77746e]">{field.helpText}</span>}</label>)}</div>{error && <div className="mt-4 rounded-lg border border-[#ef4444]/30 bg-[#ef4444]/8 px-3 py-2 text-xs text-[#ef4444]">{error}</div>}<button disabled={submitting} className="mt-5 w-full rounded-lg border border-[#c9aa68] bg-[#c9aa68] px-4 py-3 text-sm font-extrabold text-[#17120a] hover:bg-[#e1c88d] disabled:opacity-60">{submitting?ui.submitting:ui.submitEventClaim}</button></form>
