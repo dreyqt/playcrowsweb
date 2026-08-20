@@ -136,15 +136,6 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
     }
   }, [selectedCategory])
 
-  const togglePackageRewards = (packageId: string) => {
-    setExpandedPackages(current => {
-      const next = new Set(current)
-      if (next.has(packageId)) next.delete(packageId)
-      else next.add(packageId)
-      return next
-    })
-  }
-
   const section = sections[activeCategory]
   const visiblePackages = giftPackages.filter(
     item => item.category === activeCategory

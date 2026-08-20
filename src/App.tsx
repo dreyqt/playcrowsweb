@@ -278,7 +278,13 @@ function PublicApp() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-4 py-10">
+      <main
+        className={`mx-auto px-4 py-10 transition-[max-width] duration-200 ${
+          step === 1 && activeTab === 'packages' && !hasSelectedPackage
+            ? 'max-w-5xl'
+            : 'max-w-2xl'
+        }`}
+      >
         {submitted ? (
           <section className="mx-auto flex max-w-xl flex-col items-center rounded-2xl border border-[#c9aa68]/35 bg-[#111318] px-6 py-10 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#c9aa68]/40 bg-[#c9aa68]/10 text-3xl text-[#c9aa68]">
