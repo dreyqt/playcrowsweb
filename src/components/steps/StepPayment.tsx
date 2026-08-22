@@ -3,6 +3,7 @@ import type { FormData, PaymentMethod } from '../../types'
 import {
   PAYMENT_METHODS,
   PAYMENT_INFO,
+  PAYPAL_PAYMENTS_ENABLED,
 } from '../../constants'
 import { displayAmount } from '../../utils'
 import { useI18n } from '../../i18n'
@@ -648,14 +649,18 @@ export function StepPayment({
       {/* Payment Methods */}
       <div className="flex flex-col gap-3">
         {PAYMENT_METHODS.map(method => {
-          const selected =
-            data.paymentMethod === method.id
+          const paypalUnavailable = method.id === 'paypal' && !PAYPAL_PAYMENTS_ENABLED
+          const selected = data.paymentMethod === method.id && !paypalUnavailable
 
           return (
             <button
               type="button"
               key={method.id}
-              onClick={() =>
+              disabled={paypalUnavailable}
+              aria-disabled={paypalUnavailable}
+              onClick={() => {
+                if (paypalUnavailable) return
+
                 onUpdate({
                   paymentMethod: method.id,
                   ...(method.id === 'paypal' ? { currency: 'USD' as const } : {}),
@@ -667,11 +672,13 @@ export function StepPayment({
                       }
                     : {}),
                 })
-              }
-              className={`flex w-full cursor-pointer items-center gap-4 rounded-xl border p-4 text-left transition-all duration-200 ${
-                selected
-                  ? 'border-[#c9aa68] bg-[#c9aa68]/5'
-                  : 'border-[#292d34] bg-[#111318] hover:border-[#3b414b]'
+              }}
+              className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all duration-200 ${
+                paypalUnavailable
+                  ? 'cursor-not-allowed border-[#292d34] bg-[#0d0f13] opacity-55'
+                  : selected
+                    ? 'cursor-pointer border-[#c9aa68] bg-[#c9aa68]/5'
+                    : 'cursor-pointer border-[#292d34] bg-[#111318] hover:border-[#3b414b]'
               }`}
             >
               <MethodIcon
@@ -680,12 +687,28 @@ export function StepPayment({
               />
 
               <div className="flex-1">
-                <div className="text-sm font-semibold text-[#eee9df]">
-                  {method.label}
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="text-sm font-semibold text-[#eee9df]">
+                    {method.label}
+                  </div>
+
+                  {paypalUnavailable && (
+                    <span className="rounded-full border border-[#ef4444]/30 bg-[#ef4444]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#ef4444]">
+                      {t('paypalUnavailable')}
+                    </span>
+                  )}
                 </div>
 
-                <div className="mt-0.5 text-xs text-[#77746e]">
-                  {method.id === 'paypal' ? t('paypalDesc') : method.id === 'gcash' ? t('gcashDesc') : method.id === 'wise' ? t('wiseDesc') : t('bybitDesc')}
+                <div className={`mt-0.5 text-xs ${paypalUnavailable ? 'text-[#9b7777]' : 'text-[#77746e]'}`}>
+                  {paypalUnavailable
+                    ? t('paypalUnavailableDesc')
+                    : method.id === 'paypal'
+                      ? t('paypalDesc')
+                      : method.id === 'gcash'
+                        ? t('gcashDesc')
+                        : method.id === 'wise'
+                          ? t('wiseDesc')
+                          : t('bybitDesc')}
                 </div>
               </div>
 
@@ -706,7 +729,7 @@ export function StepPayment({
       </div>
 
       {/* Payment Details */}
-      {data.paymentMethod && (
+      {data.paymentMethod && !(data.paymentMethod === 'paypal' && !PAYPAL_PAYMENTS_ENABLED) && (
         <Card className="flex flex-col gap-5 p-6">
           {/* Payment Method Header */}
           <div className="flex items-center gap-3">
@@ -941,7 +964,7 @@ export function StepPayment({
 
         <Btn
           onClick={onNext}
-          disabled={!data.paymentMethod || (data.paymentMethod === 'paypal' && data.paypalPaymentStatus !== 'COMPLETED')}
+          disabled={!data.paymentMethod || (data.paymentMethod === 'paypal' && (!PAYPAL_PAYMENTS_ENABLED || data.paypalPaymentStatus !== 'COMPLETED'))}
         >
           {t('continueReceipt')}
         </Btn>

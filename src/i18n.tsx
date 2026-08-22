@@ -106,6 +106,8 @@ const en = {
   redeemRemoved: 'Redeem code removed.',
   earlyPromotionEnded: 'The early donation promotion has ended.',
   paypalDesc: 'Pay securely using PayPal',
+  paypalUnavailable: 'Temporarily unavailable',
+  paypalUnavailableDesc: 'PayPal payments are temporarily unavailable. Please use another payment method.',
   gcashDesc: 'Pay using GCash',
   wiseDesc: 'Pay using Wise QR or Wisetag',
   bybitDesc: 'Internal transfer or USDT transfer through TRC20',

@@ -8,6 +8,10 @@ export const CURRENCY_META: Record<Currency, { symbol: string; label: string; ra
   GBP: { symbol: '£', label: 'GBP', rateFromUSD: 0.79 },
 }
 
+// Temporary switch while PayPal account review is in progress.
+// Set to true to restore PayPal selection after the review is completed.
+export const PAYPAL_PAYMENTS_ENABLED = false
+
 export const PAYMENT_INFO = {
   gcash: { name: 'PLAYCROWS', number: '+63 9XX XXX 9607' },
   paypal: { email: 'laira0116@gmail.com', link: 'https://paypal.me/acex112', },
