@@ -1,16 +1,17 @@
+import paddleLogo from '../assets/paddle-logo.png'
 import gcashLogo from '../assets/gcash-logo.jpg'
 import wiseLogo from '../assets/wise-logo.jpg'
 import bybitLogo from '../assets/bybit-logo.jpg'
 
 export function PaddleIcon({ size = 32 }: { size?: number }) {
   return (
-    <div
-      aria-label="Paddle"
-      style={{ width: size, height: size }}
-      className="flex items-center justify-center rounded-lg bg-[#6c5ce7] text-sm font-black text-white shadow-sm"
-    >
-      P
-    </div>
+    <img
+      src={paddleLogo}
+      alt="Paddle logo"
+      width={size}
+      height={size}
+      className="rounded-lg object-contain"
+    />
   )
 }
 
