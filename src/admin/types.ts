@@ -13,7 +13,7 @@ export interface DonationRecord {
   selected_package_title: string | null
   package_quantity: number | null
   additional_notes: string | null
-  payment_method: 'paypal' | 'gcash' | 'wise' | 'bybit'
+  payment_method: 'paypal' | 'paddle' | 'gcash' | 'wise' | 'bybit'
   receipt_path: string
   receipt_original_name: string | null
   receipt_mime_type: string | null
@@ -21,6 +21,7 @@ export interface DonationRecord {
   status: DonationStatus
   admin_notes: string | null
   paypal_transaction_id: string | null
+  paddle_transaction_id: string | null
   payment_verified_at: string | null
   fulfillment_status: 'not_delivered' | 'delivered'
   fulfilled_at: string | null

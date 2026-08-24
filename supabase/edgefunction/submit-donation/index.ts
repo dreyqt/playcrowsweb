@@ -19,6 +19,7 @@ const ALLOWED_CURRENCIES = new Set([
 
 const ALLOWED_PAYMENT_METHODS = new Set([
   'paypal',
+  'paddle',
   'gcash',
   'wise',
   'bybit',
@@ -420,6 +421,9 @@ export default {
       const paypalOrderId = getText(formData, 'paypalOrderId')
       const paypalCaptureId = getText(formData, 'paypalCaptureId')
       const paypalPaymentStatus = getText(formData, 'paypalPaymentStatus').toUpperCase()
+      const paddleCheckoutId = getText(formData, 'paddleCheckoutId')
+      const paddleTransactionId = getText(formData, 'paddleTransactionId')
+      const paddlePaymentStatus = getText(formData, 'paddlePaymentStatus').toUpperCase()
       const receipt = formData.get('receipt')
 
       if (!playerId) return errorResponse('Player ID is required.')
@@ -525,6 +529,28 @@ export default {
 
       let paypalPayerEmail: string | null = null
 
+      if (paymentMethod === 'paddle') {
+        if (!paddleCheckoutId || !paddleTransactionId || paddlePaymentStatus !== 'COMPLETED') {
+          return errorResponse('Complete the Paddle payment before submitting.')
+        }
+
+        const { data: existingPaddlePayment, error: existingPaddleError } =
+          await context.supabaseAdmin
+            .from('donations')
+            .select('id')
+            .eq('paddle_transaction_id', paddleTransactionId)
+            .maybeSingle()
+
+        if (existingPaddleError) {
+          console.error('Paddle duplicate check error:', existingPaddleError)
+          return errorResponse('Unable to validate the Paddle payment reference.', 500)
+        }
+
+        if (existingPaddlePayment) {
+          return errorResponse('This Paddle payment has already been used for a submission.')
+        }
+      }
+
       if (paymentMethod === 'paypal') {
         if (!paypalOrderId || !paypalCaptureId || paypalPaymentStatus !== 'COMPLETED') {
           return errorResponse('Complete the PayPal payment before submitting.')
@@ -610,6 +636,9 @@ export default {
           package_quantity: packageQuantity,
           additional_notes: additionalNotes || null,
           payment_method: paymentMethod,
+          paddle_checkout_id: paymentMethod === 'paddle' ? paddleCheckoutId : null,
+          paddle_transaction_id: paymentMethod === 'paddle' ? paddleTransactionId : null,
+          paddle_payment_status: paymentMethod === 'paddle' ? 'COMPLETED' : null,
           paypal_order_id: paymentMethod === 'paypal' ? paypalOrderId : null,
           paypal_capture_id: paymentMethod === 'paypal' ? paypalCaptureId : null,
           paypal_payment_status: paymentMethod === 'paypal' ? 'COMPLETED' : null,

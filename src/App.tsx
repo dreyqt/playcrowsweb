@@ -35,9 +35,9 @@ const INITIAL: FormData = {
   receiptFile: null,
   receiptPreview: null,
   additionalNotes: '',
-  paypalOrderId: null,
-  paypalCaptureId: null,
-  paypalPaymentStatus: null,
+  paddleCheckoutId: null,
+  paddleTransactionId: null,
+  paddlePaymentStatus: null,
 }
 
 function PublicApp() {

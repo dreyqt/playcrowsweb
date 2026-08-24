@@ -65,10 +65,10 @@ export async function submitDonation({
   if (selectedPackageTitle) body.append('selectedPackageTitle', selectedPackageTitle)
   if (data.additionalNotes.trim()) body.append('additionalNotes', data.additionalNotes.trim())
   if (promoCode) body.append('promoCode', promoCode)
-  if (data.paymentMethod === 'paypal') {
-    if (data.paypalOrderId) body.append('paypalOrderId', data.paypalOrderId)
-    if (data.paypalCaptureId) body.append('paypalCaptureId', data.paypalCaptureId)
-    if (data.paypalPaymentStatus) body.append('paypalPaymentStatus', data.paypalPaymentStatus)
+  if (data.paymentMethod === 'paddle') {
+    if (data.paddleCheckoutId) body.append('paddleCheckoutId', data.paddleCheckoutId)
+    if (data.paddleTransactionId) body.append('paddleTransactionId', data.paddleTransactionId)
+    if (data.paddlePaymentStatus) body.append('paddlePaymentStatus', data.paddlePaymentStatus)
   }
 
   const response = await fetch(`${supabaseUrl}/functions/v1/submit-donation`, {

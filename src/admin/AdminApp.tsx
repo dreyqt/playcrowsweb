@@ -18,6 +18,7 @@ const STATUS_CLASSES: Record<DonationStatus, string> = {
 
 const PAYMENT_LABELS = {
   paypal: 'PayPal',
+  paddle: 'Paddle',
   gcash: 'GCash',
   wise: 'Wise',
   bybit: 'Bybit',
@@ -489,7 +490,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
+        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -689,6 +690,7 @@ const openReceipt = async () => {
         ['Payment Method', PAYMENT_LABELS[selected.payment_method]],
         ['Amount', formatMoney(selected.currency, selected.amount)],
         ['PayPal Transaction ID', selected.paypal_transaction_id ?? 'Not recorded'],
+        ['Paddle Transaction ID', selected.paddle_transaction_id ?? 'Not recorded'],
         ['Payment Verified', selected.payment_verified_at ? formatDate(selected.payment_verified_at) : 'No'],
         ['Package', getPackageDisplayName(selected)],
         ['Quantity', String(selected.package_quantity ?? 1)],
@@ -765,7 +767,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
+        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
       )
       .single()
 
@@ -1080,6 +1082,7 @@ const openReceipt = async () => {
                   <DetailRow label="Package ID" value={selected.selected_package_id ?? 'Legacy record'} />
                   <DetailRow label="Additional Notes" value={selected.additional_notes ?? 'None'} />
                   <DetailRow label="Payment Method" value={PAYMENT_LABELS[selected.payment_method]} />
+                  {selected.payment_method === 'paddle' && <DetailRow label="Paddle Transaction ID" value={selected.paddle_transaction_id ?? 'Not recorded'} />}
                   <DetailRow
                     label="Receipt File"
                     value={`${selected.receipt_original_name ?? 'Receipt'} · ${formatBytes(selected.receipt_size_bytes)}`}

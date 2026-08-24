@@ -12,7 +12,7 @@ import {
 import { Btn, Card } from '../ui'
 
 const PAYMENT_LABELS = {
-  paypal: 'PayPal',
+  paddle: 'Paddle',
   gcash: 'GCash',
   wise: 'Wise',
   bybit: 'Bybit',
