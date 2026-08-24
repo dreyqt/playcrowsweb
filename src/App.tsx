@@ -461,7 +461,7 @@ function PublicApp() {
               />
             )}
 
-            {step === 4 && (
+            {step === 4 && form.paymentMethod !== 'paddle' && (
               <StepReceipt
                 data={form}
                 onUpdate={update}
@@ -470,7 +470,7 @@ function PublicApp() {
               />
             )}
 
-            {step === 5 && (
+            {((step === 4 && form.paymentMethod === 'paddle') || step === 5) && (
               <StepComplete
                 data={form}
                 selectedPackageAmount={selectedPackage?.amount ?? null}

@@ -74,7 +74,11 @@ export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle
         )}
 
         <SummaryRow label={t('paymentMethod')} value={paymentLabel} />
-        <SummaryRow label={t('paymentReceipt')} value={data.receiptFile?.name ?? t('notUploaded')} />
+        {data.paymentMethod === 'paddle' ? (
+          <SummaryRow label="Payment Verification" value={data.paddleTransactionId ? `Verified by Paddle · ${data.paddleTransactionId}` : 'Awaiting Paddle verification'} />
+        ) : (
+          <SummaryRow label={t('paymentReceipt')} value={data.receiptFile?.name ?? t('notUploaded')} />
+        )}
         <SummaryRow label={t('additionalNotes')} value={data.additionalNotes.trim() || t('none')} />
       </Card>
 
@@ -90,7 +94,7 @@ export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle
 
       <div className="flex items-center justify-between gap-4">
         <Btn variant="ghost" onClick={onBack} disabled={isSubmitting}>{t('back')}</Btn>
-        <Btn onClick={() => void onSubmit()} disabled={isSubmitting || !data.receiptFile || !data.paymentMethod}>{isSubmitting ? t('submitting') : t('submitDonation')}</Btn>
+        <Btn onClick={() => void onSubmit()} disabled={isSubmitting || !data.paymentMethod || (data.paymentMethod !== 'paddle' && !data.receiptFile) || (data.paymentMethod === 'paddle' && (!data.paddleTransactionId || data.paddlePaymentStatus !== 'COMPLETED'))}>{isSubmitting ? t('submitting') : t('submitDonation')}</Btn>
       </div>
     </div>
   )

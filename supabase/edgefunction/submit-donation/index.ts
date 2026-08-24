@@ -74,8 +74,8 @@ async function sendDiscordDonationNotification(options: {
   packageQuantity: number
   paymentMethod: string
   additionalNotes: string
-  receipt: File
-  receiptExtension: string
+  receipt: File | null
+  receiptExtension: string | null
 }) {
   const {
     webhookUrl,
@@ -101,16 +101,15 @@ async function sendDiscordDonationNotification(options: {
       ? 'August Supply Package'
       : 'Support Package'
 
-  const receiptFilename = sanitizeDiscordFilename(
-    receipt.name,
-    receiptExtension
-  )
+  const receiptFilename = receipt && receiptExtension
+    ? sanitizeDiscordFilename(receipt.name, receiptExtension)
+    : null
 
-  const isImageReceipt = new Set([
+  const isImageReceipt = Boolean(receipt && new Set([
     'image/jpeg',
     'image/png',
     'image/webp',
-  ]).has(receipt.type)
+  ]).has(receipt.type))
 
   const embed: Record<string, unknown> = {
     title: '🔔 New Donation Submission',
@@ -124,7 +123,7 @@ async function sendDiscordDonationNotification(options: {
       },
       {
         name: 'Status',
-        value: '🟡 Pending',
+        value: paymentMethod === 'paddle' ? '✅ Paid · 🟡 Pending Fulfillment' : '🟡 Pending',
         inline: true,
       },
       {
@@ -161,43 +160,45 @@ async function sendDiscordDonationNotification(options: {
     timestamp: donation.createdAt,
   }
 
-  if (isImageReceipt) {
+  if (isImageReceipt && receiptFilename) {
     embed.image = {
       url: `attachment://${receiptFilename}`,
     }
   }
 
-  const payload = {
+  if (paymentMethod === 'paddle') {
+    ;(embed.fields as Array<Record<string, unknown>>).push({
+      name: 'Verification',
+      value: '✅ Server-verified by Paddle webhook',
+      inline: false,
+    })
+  }
+
+  const payload: Record<string, unknown> = {
     content: '@here',
     username: 'PlayCrows Donation Center',
     embeds: [embed],
-    attachments: [
-      {
-        id: 0,
-        filename: receiptFilename,
-        description: `Payment receipt for ${donation.referenceCode}`,
-      },
-    ],
-    allowed_mentions: {
-      parse: ['everyone'],
-    },
+    allowed_mentions: { parse: ['everyone'] },
   }
 
-  const discordBody = new FormData()
-  discordBody.append(
-    'payload_json',
-    JSON.stringify(payload)
-  )
-  discordBody.append(
-    'files[0]',
-    receipt,
-    receiptFilename
-  )
-
-  const response = await fetch(`${webhookUrl}?wait=true`, {
-    method: 'POST',
-    body: discordBody,
-  })
+  let response: Response
+  if (receipt && receiptFilename) {
+    payload.attachments = [{
+      id: 0,
+      filename: receiptFilename,
+      description: `Payment receipt for ${donation.referenceCode}`,
+    }]
+    const discordBody = new FormData()
+    discordBody.append('payload_json', JSON.stringify(payload))
+    discordBody.append('files[0]', receipt, receiptFilename)
+    response = await fetch(`${webhookUrl}?wait=true`, { method: 'POST', body: discordBody })
+  } else {
+    response = await fetch(`${webhookUrl}?wait=true`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+  }
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '')
@@ -528,10 +529,47 @@ export default {
       }
 
       let paypalPayerEmail: string | null = null
+      let paddleVerifiedAt: string | null = null
 
       if (paymentMethod === 'paddle') {
-        if (!paddleCheckoutId || !paddleTransactionId || paddlePaymentStatus !== 'COMPLETED') {
+        if (!paddleCheckoutId || !paddleTransactionId) {
           return errorResponse('Complete the Paddle payment before submitting.')
+        }
+
+        const { data: verifiedPaddlePayment, error: verifiedPaddleError } =
+          await context.supabaseAdmin
+            .from('paddle_transactions')
+            .select('transaction_id, paddle_status, custom_data, occurred_at')
+            .eq('transaction_id', paddleTransactionId)
+            .maybeSingle()
+
+        if (verifiedPaddleError) {
+          console.error('Paddle server verification error:', verifiedPaddleError)
+          return errorResponse('Unable to verify the Paddle payment.', 500)
+        }
+
+        if (!verifiedPaddlePayment || verifiedPaddlePayment.paddle_status !== 'completed') {
+          return errorResponse('Paddle is still verifying this payment. Please wait a few seconds and submit again.')
+        }
+
+        const paddleCustomData =
+          verifiedPaddlePayment.custom_data &&
+          typeof verifiedPaddlePayment.custom_data === 'object'
+            ? verifiedPaddlePayment.custom_data as Record<string, unknown>
+            : {}
+
+        if (
+          paddleCustomData.game !== 'playcrows' ||
+          paddleCustomData.package_id !== selectedPackageId ||
+          paddleCustomData.player_id !== playerId ||
+          paddleCustomData.username !== username
+        ) {
+          console.error('Paddle custom data mismatch:', {
+            transactionId: paddleTransactionId,
+            paddleCustomData,
+            submitted: { playerId, username, selectedPackageId },
+          })
+          return errorResponse('The Paddle payment details do not match this submission.')
         }
 
         const { data: existingPaddlePayment, error: existingPaddleError } =
@@ -549,6 +587,8 @@ export default {
         if (existingPaddlePayment) {
           return errorResponse('This Paddle payment has already been used for a submission.')
         }
+
+        paddleVerifiedAt = verifiedPaddlePayment.occurred_at || new Date().toISOString()
       }
 
       if (paymentMethod === 'paypal') {
@@ -589,35 +629,33 @@ export default {
         }
       }
 
-      if (!(receipt instanceof File)) {
+      const receiptFile = receipt instanceof File ? receipt : null
+      if (paymentMethod !== 'paddle' && !receiptFile) {
         return errorResponse('A payment receipt is required.')
       }
-      if (receipt.size <= 0) {
-        return errorResponse('The uploaded receipt is empty.')
-      }
-      if (receipt.size > MAX_RECEIPT_SIZE) {
-        return errorResponse('The receipt must not exceed 5 MB.')
-      }
-      if (!ALLOWED_RECEIPT_TYPES.has(receipt.type)) {
-        return errorResponse('Only JPG, PNG, WEBP, and PDF receipts are allowed.')
-      }
 
-      const extension = FILE_EXTENSIONS[receipt.type]
-      const today = new Date().toISOString().slice(0, 10)
-      const receiptPath = `${today}/${crypto.randomUUID()}.${extension}`
+      let extension: string | null = null
+      let receiptPath: string | null = null
 
-      const { error: uploadError } = await context.supabaseAdmin
-        .storage
-        .from('payment-receipts')
-        .upload(receiptPath, receipt, {
-          contentType: receipt.type,
-          cacheControl: '3600',
-          upsert: false,
-        })
+      if (receiptFile) {
+        if (receiptFile.size <= 0) return errorResponse('The uploaded receipt is empty.')
+        if (receiptFile.size > MAX_RECEIPT_SIZE) return errorResponse('The receipt must not exceed 5 MB.')
+        if (!ALLOWED_RECEIPT_TYPES.has(receiptFile.type)) {
+          return errorResponse('Only JPG, PNG, WEBP, and PDF receipts are allowed.')
+        }
 
-      if (uploadError) {
-        console.error('Receipt upload error:', uploadError)
-        return errorResponse('Unable to upload the receipt.', 500)
+        extension = FILE_EXTENSIONS[receiptFile.type]
+        const today = new Date().toISOString().slice(0, 10)
+        receiptPath = `${today}/${crypto.randomUUID()}.${extension}`
+
+        const { error: uploadError } = await context.supabaseAdmin.storage
+          .from('payment-receipts')
+          .upload(receiptPath, receiptFile, { contentType: receiptFile.type, cacheControl: '3600', upsert: false })
+
+        if (uploadError) {
+          console.error('Receipt upload error:', uploadError)
+          return errorResponse('Unable to upload the receipt.', 500)
+        }
       }
 
       const recordedCurrency = paymentMethod === 'paypal' ? 'USD' : currency
@@ -644,13 +682,13 @@ export default {
           paypal_payment_status: paymentMethod === 'paypal' ? 'COMPLETED' : null,
           paypal_payer_email: paymentMethod === 'paypal' ? paypalPayerEmail : null,
           paypal_transaction_id: paymentMethod === 'paypal' ? paypalCaptureId : null,
-          payment_verified_at: paymentMethod === 'paypal' ? new Date().toISOString() : null,
+          payment_verified_at: paymentMethod === 'paypal' ? new Date().toISOString() : paymentMethod === 'paddle' ? paddleVerifiedAt : null,
           receipt_path: receiptPath,
-          receipt_original_name:
-            receipt.name.replace(/[^\w.\- ]/g, '').slice(0, 255) ||
-            `receipt.${extension}`,
-          receipt_mime_type: receipt.type,
-          receipt_size_bytes: receipt.size,
+          receipt_original_name: receiptFile
+            ? receiptFile.name.replace(/[^\w.\- ]/g, '').slice(0, 255) || `receipt.${extension}`
+            : null,
+          receipt_mime_type: receiptFile?.type ?? null,
+          receipt_size_bytes: receiptFile?.size ?? null,
           promo_code: appliedPromoCode,
           discount_percent: discountPercent,
           status: 'pending',
@@ -666,10 +704,9 @@ export default {
       if (insertError) {
         console.error('Donation insert error:', insertError)
 
-        await context.supabaseAdmin
-          .storage
-          .from('payment-receipts')
-          .remove([receiptPath])
+        if (receiptPath) {
+          await context.supabaseAdmin.storage.from('payment-receipts').remove([receiptPath])
+        }
 
         return errorResponse('Unable to save the donation submission.', 500)
       }
@@ -702,7 +739,7 @@ export default {
             packageQuantity,
             paymentMethod,
             additionalNotes,
-            receipt,
+            receipt: receiptFile,
             receiptExtension: extension,
           })
 

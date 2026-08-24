@@ -14,7 +14,7 @@ export interface DonationRecord {
   package_quantity: number | null
   additional_notes: string | null
   payment_method: 'paypal' | 'paddle' | 'gcash' | 'wise' | 'bybit'
-  receipt_path: string
+  receipt_path: string | null
   receipt_original_name: string | null
   receipt_mime_type: string | null
   receipt_size_bytes: number | null

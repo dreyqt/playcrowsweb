@@ -33,7 +33,6 @@ export async function submitDonation({
   selectedPackageTitle,
   promoCode,
 }: SubmitDonationOptions): Promise<DonationResponse> {
-  if (!data.receiptFile) throw new Error('Please upload your payment receipt before submitting.')
   if (!data.paymentMethod) throw new Error('Please select a payment method before submitting.')
 
   const amount = data.amount.trim()
@@ -57,7 +56,7 @@ export async function submitDonation({
   body.append('amountMode', 'package')
   body.append('packageQuantity', String(packageQuantity))
   body.append('paymentMethod', data.paymentMethod)
-  body.append('receipt', data.receiptFile)
+  if (data.receiptFile) body.append('receipt', data.receiptFile)
   body.append('website', '')
 
   if (selectedPackageAmount !== null) body.append('selectedPackageAmount', String(selectedPackageAmount))
@@ -65,6 +64,10 @@ export async function submitDonation({
   if (selectedPackageTitle) body.append('selectedPackageTitle', selectedPackageTitle)
   if (data.additionalNotes.trim()) body.append('additionalNotes', data.additionalNotes.trim())
   if (promoCode) body.append('promoCode', promoCode)
+  if (data.paymentMethod !== 'paddle' && !data.receiptFile) {
+    throw new Error('Please upload your payment receipt before submitting.')
+  }
+
   if (data.paymentMethod === 'paddle') {
     if (data.paddleCheckoutId) body.append('paddleCheckoutId', data.paddleCheckoutId)
     if (data.paddleTransactionId) body.append('paddleTransactionId', data.paddleTransactionId)

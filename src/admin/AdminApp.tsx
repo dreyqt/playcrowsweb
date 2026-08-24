@@ -1085,17 +1085,19 @@ const openReceipt = async () => {
                   {selected.payment_method === 'paddle' && <DetailRow label="Paddle Transaction ID" value={selected.paddle_transaction_id ?? 'Not recorded'} />}
                   <DetailRow
                     label="Receipt File"
-                    value={`${selected.receipt_original_name ?? 'Receipt'} · ${formatBytes(selected.receipt_size_bytes)}`}
+                    value={selected.receipt_path ? `${selected.receipt_original_name ?? 'Receipt'} · ${formatBytes(selected.receipt_size_bytes)}` : selected.payment_method === 'paddle' ? 'Not required — Paddle verified' : 'Not recorded'}
                   />
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => void openReceipt()}
-                  className="mt-4 min-h-11 w-full rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-4 text-sm font-bold text-[#c9aa68] hover:bg-[#c9aa68]/20"
-                >
-                  Open Private Receipt
-                </button>
+                {selected.receipt_path && (
+                  <button
+                    type="button"
+                    onClick={() => void openReceipt()}
+                    className="mt-4 min-h-11 w-full rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-4 text-sm font-bold text-[#c9aa68] hover:bg-[#c9aa68]/20"
+                  >
+                    Open Private Receipt
+                  </button>
+                )}
               </div>
 
               <div>
