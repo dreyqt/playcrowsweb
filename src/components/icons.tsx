@@ -1,16 +1,17 @@
 import gcashLogo from '../assets/gcash-logo.jpg'
 import wiseLogo from '../assets/wise-logo.jpg'
 import bybitLogo from '../assets/bybit-logo.jpg'
+import paypalLogo from '../assets/paypal-logo.png'
 
 export function PayPalIcon({ size = 32 }: { size?: number }) {
   return (
-    <div
-      aria-label="PayPal"
-      style={{ width: size, height: size }}
-      className="flex items-center justify-center rounded-lg bg-[#0070e0] text-sm font-black italic text-white shadow-sm"
-    >
-      P
-    </div>
+    <img
+      src={paypalLogo}
+      alt="PayPal logo"
+      width={size}
+      height={size}
+      className="rounded-lg object-contain"
+    />
   )
 }
 
