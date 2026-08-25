@@ -17,7 +17,7 @@ export const PAYMENT_INFO = {
 export const STEPS = ['Amount', 'Player Info', 'Payment', 'Receipt', 'Complete'] as const
 
 export const PAYMENT_METHODS: { id: PaymentMethod; label: string; desc: string }[] = [
-  { id: 'paddle', label: 'Card & Local Payments', desc: 'Secure checkout by Paddle with cards and supported local payment methods' },
+  { id: 'paypal', label: 'PayPal', desc: 'Secure checkout using PayPal or supported cards' },
   { id: 'gcash', label: 'GCash', desc: 'Pay using GCash' },
   { id: 'wise', label: 'Wise', desc: 'Pay using Wise QR or Wisetag' },
   { id: 'bybit', label: 'ByBit', desc: 'Internal transfer or USDT transfer through TRC20' },

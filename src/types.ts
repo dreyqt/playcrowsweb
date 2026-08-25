@@ -1,4 +1,4 @@
-export type PaymentMethod = 'paddle' | 'gcash' | 'wise' | 'bybit'
+export type PaymentMethod = 'paypal' | 'gcash' | 'wise' | 'bybit'
 export type Currency = 'USD' | 'PHP' | 'GBP'
 
 export interface FormData {
@@ -11,7 +11,7 @@ export interface FormData {
   receiptFile: File | null
   receiptPreview: string | null
   additionalNotes: string
-  paddleCheckoutId: string | null
-  paddleTransactionId: string | null
-  paddlePaymentStatus: 'COMPLETED' | null
+  paypalOrderId: string | null
+  paypalCaptureId: string | null
+  paypalPaymentStatus: 'COMPLETED' | null
 }

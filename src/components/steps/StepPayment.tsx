@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormData, PaymentMethod } from '../../types'
 import {
   PAYMENT_METHODS,
@@ -18,7 +18,7 @@ import {
 import { Btn, Card } from '../ui'
 import {
   CheckIcon,
-  PaddleIcon,
+  PayPalIcon,
   GCashIcon,
   WiseIcon,
   BybitIcon,
@@ -26,103 +26,158 @@ import {
 import gcashQr from '../../assets/gcash-qr.jpg'
 import bybitQr from '../../assets/bybit-qr.png'
 import wiseQr from '../../assets/wise-qr.png'
-import { getPaddlePriceId } from '../../paddleCatalog'
-import { openPaddleCheckout } from '../../lib/paddleCheckout'
+import { createPayPalOrder, capturePayPalOrder } from '../../lib/paypalCheckout'
 
-function PaddleCheckout({
+declare global {
+  interface Window {
+    paypal?: {
+      Buttons: (options: Record<string, unknown>) => {
+        render: (selector: string | HTMLElement) => Promise<void>
+        close?: () => Promise<void>
+      }
+    }
+  }
+}
+
+let paypalSdkPromise: Promise<void> | null = null
+
+function loadPayPalSdk() {
+  if (window.paypal?.Buttons) return Promise.resolve()
+  if (paypalSdkPromise) return paypalSdkPromise
+
+  const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID
+  if (!clientId) {
+    return Promise.reject(new Error('VITE_PAYPAL_CLIENT_ID is missing. Add the new PayPal Business client ID in Vercel and redeploy.'))
+  }
+
+  paypalSdkPromise = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>('script[data-playcrows-paypal-sdk="true"]')
+    if (existing) {
+      existing.addEventListener('load', () => resolve(), { once: true })
+      existing.addEventListener('error', () => reject(new Error('Unable to load PayPal checkout.')), { once: true })
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD&intent=capture&components=buttons`
+    script.async = true
+    script.dataset.playcrowsPaypalSdk = 'true'
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('Unable to load PayPal checkout.'))
+    document.head.appendChild(script)
+  })
+
+  return paypalSdkPromise
+}
+
+function PayPalCheckout({
   data,
   selectedPackageId,
+  promoCode,
   onCompleted,
 }: {
   data: FormData
   selectedPackageId: string | null
-  onCompleted: (result: {
-    checkoutId: string
-    transactionId: string
-    paymentMethod: string
-  }) => void
+  promoCode: string | null
+  onCompleted: (result: { orderId: string; captureId: string }) => void
 }) {
-  const [status, setStatus] = useState<'idle' | 'opening' | 'completed' | 'error'>('idle')
-  const [message, setMessage] = useState('Paddle securely handles card and supported local payment methods.')
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'completed' | 'error'>('loading')
+  const [message, setMessage] = useState('Loading secure PayPal checkout…')
 
-  const priceId = getPaddlePriceId(selectedPackageId)
+  useEffect(() => {
+    if (!selectedPackageId || !containerRef.current) return
+    let cancelled = false
+    let buttons: ReturnType<NonNullable<Window['paypal']>['Buttons']> | null = null
 
-  const openCheckout = async () => {
-    if (!selectedPackageId || !priceId) {
-      setStatus('error')
-      setMessage('This package is not mapped to a Paddle price yet.')
-      return
+    const render = async () => {
+      try {
+        setStatus('loading')
+        await loadPayPalSdk()
+        if (cancelled || !containerRef.current || !window.paypal?.Buttons) return
+
+        containerRef.current.innerHTML = ''
+        buttons = window.paypal.Buttons({
+          style: { layout: 'vertical', shape: 'rect', label: 'paypal', height: 45 },
+          createOrder: async () => {
+            const quantity = Number(data.packageQuantity)
+            if (!Number.isInteger(quantity) || quantity < 1) throw new Error('Invalid package quantity.')
+            setMessage('Creating your secure PayPal order…')
+            return createPayPalOrder({
+              selectedPackageId,
+              packageQuantity: quantity,
+              promoCode,
+              playerId: data.playerId,
+              username: data.username,
+            })
+          },
+          onApprove: async (approvalData: { orderID?: string }) => {
+            if (!approvalData.orderID) throw new Error('PayPal did not return an order ID.')
+            setMessage('Confirming your PayPal payment…')
+            const result = await capturePayPalOrder(approvalData.orderID)
+            if (cancelled) return
+            setStatus('completed')
+            setMessage(`Payment completed · ${result.captureId}`)
+            onCompleted({ orderId: result.orderId, captureId: result.captureId })
+          },
+          onCancel: () => {
+            if (!cancelled) setMessage('PayPal checkout was canceled. You can try again when ready.')
+          },
+          onError: (error: unknown) => {
+            console.error('PayPal checkout error:', error)
+            if (!cancelled) {
+              setStatus('error')
+              setMessage(error instanceof Error ? error.message : 'PayPal checkout could not be completed.')
+            }
+          },
+        })
+
+        await buttons.render(containerRef.current)
+        if (!cancelled) {
+          setStatus('ready')
+          setMessage('Complete your payment securely through PayPal.')
+        }
+      } catch (error) {
+        console.error('PayPal initialization error:', error)
+        if (!cancelled) {
+          setStatus('error')
+          setMessage(error instanceof Error ? error.message : 'Unable to initialize PayPal checkout.')
+        }
+      }
     }
 
-    const quantity = Number(data.packageQuantity)
-    if (!Number.isInteger(quantity) || quantity < 1) {
-      setStatus('error')
-      setMessage('Please select a valid package quantity.')
-      return
+    void render()
+    return () => {
+      cancelled = true
+      void buttons?.close?.()
     }
+  }, [data.packageQuantity, data.playerId, data.username, onCompleted, promoCode, selectedPackageId])
 
-    try {
-      setStatus('opening')
-      setMessage('Opening secure Paddle checkout…')
-
-      await openPaddleCheckout({
-        priceId,
-        quantity,
-        playerId: data.playerId,
-        username: data.username,
-        packageId: selectedPackageId,
-        onCompleted: result => {
-          setStatus('completed')
-          setMessage(`Payment completed · ${result.transactionId}`)
-          onCompleted(result)
-        },
-      })
-
-      setStatus('idle')
-      setMessage('Complete your payment in the secure Paddle checkout window.')
-    } catch (error) {
-      console.error('Paddle checkout error:', error)
-      setStatus('error')
-      setMessage(error instanceof Error ? error.message : 'Unable to open Paddle checkout.')
-    }
-  }
-
-  if (data.paddlePaymentStatus === 'COMPLETED' && data.paddleTransactionId) {
+  if (data.paypalPaymentStatus === 'COMPLETED' && data.paypalCaptureId) {
     return (
       <div className="rounded-xl border border-[#22c55e]/35 bg-[#22c55e]/5 p-4">
-        <div className="text-sm font-bold text-[#22c55e]">Paddle payment completed</div>
-        <div className="mt-1 break-all font-mono text-xs text-[#b8c3d4]">{data.paddleTransactionId}</div>
+        <div className="text-sm font-bold text-[#22c55e]">PayPal payment completed</div>
+        <div className="mt-1 break-all font-mono text-xs text-[#b8c3d4]">{data.paypalCaptureId}</div>
       </div>
     )
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-xl border border-[#6c5ce7]/40 bg-[#6c5ce7]/5 p-4">
+      <div className="rounded-xl border border-[#0070e0]/40 bg-[#0070e0]/5 p-4">
         <div className="flex gap-3">
-          <PaddleIcon size={40} />
+          <PayPalIcon size={40} />
           <div className="flex flex-col gap-1">
-            <div className="text-sm font-bold text-[#a99cff]">Paddle Secure Checkout</div>
+            <div className="text-sm font-bold text-[#66aaff]">PayPal Secure Checkout</div>
             <p className="text-xs leading-relaxed text-[#d1d5db]">
-              Pay by credit/debit card or other payment methods Paddle makes available in your country. Your PlayCrows account and selected package are attached to the checkout for manual fulfillment.
+              Pay securely through PayPal. Your PlayCrows account, package, quantity, and amount are verified on our server before fulfillment.
             </p>
           </div>
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => void openCheckout()}
-        disabled={status === 'opening' || !priceId}
-        className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-[#6c5ce7] bg-[#6c5ce7] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#7d6df0] disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        <PaddleIcon size={22} />
-        {status === 'opening' ? 'Opening checkout…' : 'Pay securely with Paddle'}
-      </button>
-
-      <p className={`text-center text-xs leading-5 ${status === 'error' ? 'text-[#ef4444]' : 'text-[#77746e]'}`}>
-        {message}
-      </p>
+      <div ref={containerRef} className="min-h-[48px]" />
+      <p className={`text-center text-xs leading-5 ${status === 'error' ? 'text-[#ef4444]' : 'text-[#77746e]'}`}>{message}</p>
     </div>
   )
 }
@@ -134,8 +189,8 @@ function MethodIcon({
   id: PaymentMethod
   size?: number
 }) {
-  if (id === 'paddle') {
-    return <PaddleIcon size={size} />
+  if (id === 'paypal') {
+    return <PayPalIcon size={size} />
   }
 
   if (id === 'gcash') {
@@ -289,13 +344,13 @@ export function StepPayment({
     setPromoMessageType('')
   }
 
-  const completePaddlePayment = useCallback((result: { checkoutId: string; transactionId: string; paymentMethod: string }) => {
+  const completePayPalPayment = useCallback((result: { orderId: string; captureId: string }) => {
     onUpdate({
-      paymentMethod: 'paddle',
+      paymentMethod: 'paypal',
       currency: 'USD',
-      paddleCheckoutId: result.checkoutId,
-      paddleTransactionId: result.transactionId,
-      paddlePaymentStatus: 'COMPLETED',
+      paypalOrderId: result.orderId,
+      paypalCaptureId: result.captureId,
+      paypalPaymentStatus: 'COMPLETED',
     })
     onNext()
   }, [onNext, onUpdate])
@@ -484,12 +539,12 @@ export function StepPayment({
               onClick={() => {
                 onUpdate({
                   paymentMethod: method.id,
-                  ...(method.id === 'paddle' ? { currency: 'USD' as const } : {}),
-                  ...(method.id !== 'paddle'
+                  ...(method.id === 'paypal' ? { currency: 'USD' as const } : {}),
+                  ...(method.id !== 'paypal'
                     ? {
-                        paddleCheckoutId: null,
-                        paddleTransactionId: null,
-                        paddlePaymentStatus: null,
+                        paypalOrderId: null,
+                        paypalCaptureId: null,
+                        paypalPaymentStatus: null,
                       }
                     : {}),
                 })
@@ -513,8 +568,8 @@ export function StepPayment({
                 </div>
 
                 <div className="mt-0.5 text-xs text-[#77746e]">
-                  {method.id === 'paddle'
-                    ? method.desc
+                  {method.id === 'paypal'
+                    ? t('paypalDesc')
                     : method.id === 'gcash'
                         ? t('gcashDesc')
                         : method.id === 'wise'
@@ -553,8 +608,8 @@ export function StepPayment({
               {data.paymentMethod === 'gcash' &&
                 `GCash ${t('paymentDetails')}`}
 
-              {data.paymentMethod === 'paddle' &&
-                'Paddle Secure Checkout'}
+              {data.paymentMethod === 'paypal' &&
+                'PayPal Secure Checkout'}
 
               {data.paymentMethod === 'wise' &&
                 `Wise ${t('paymentDetails')}`}
@@ -597,19 +652,14 @@ export function StepPayment({
             </>
           )}
 
-          {/* Paddle */}
-          {data.paymentMethod === 'paddle' && (
-            <>
-              <PaddleCheckout
-                data={data}
-                selectedPackageId={selectedPackageId}
-                onCompleted={completePaddlePayment}
-              />
-
-              <p className="text-center text-xs leading-relaxed text-[#77746e]">
-                After Paddle confirms payment, continue by uploading your Paddle receipt or transaction screenshot for manual fulfillment review.
-              </p>
-            </>
+          {/* PayPal */}
+          {data.paymentMethod === 'paypal' && (
+            <PayPalCheckout
+              data={data}
+              selectedPackageId={selectedPackageId}
+              promoCode={promoApplied ? EARLY_PROMO_CODE : null}
+              onCompleted={completePayPalPayment}
+            />
           )}
 
 {/* Wise */}
@@ -760,7 +810,7 @@ export function StepPayment({
 
         <Btn
           onClick={onNext}
-          disabled={!data.paymentMethod || (data.paymentMethod === 'paddle' && data.paddlePaymentStatus !== 'COMPLETED')}
+          disabled={!data.paymentMethod || (data.paymentMethod === 'paypal' && data.paypalPaymentStatus !== 'COMPLETED')}
         >
           {t('continueReceipt')}
         </Btn>

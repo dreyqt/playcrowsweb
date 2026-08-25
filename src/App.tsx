@@ -35,9 +35,9 @@ const INITIAL: FormData = {
   receiptFile: null,
   receiptPreview: null,
   additionalNotes: '',
-  paddleCheckoutId: null,
-  paddleTransactionId: null,
-  paddlePaymentStatus: null,
+  paypalOrderId: null,
+  paypalCaptureId: null,
+  paypalPaymentStatus: null,
 }
 
 function PublicApp() {
@@ -461,7 +461,7 @@ function PublicApp() {
               />
             )}
 
-            {step === 4 && form.paymentMethod !== 'paddle' && (
+            {step === 4 && form.paymentMethod !== 'paypal' && (
               <StepReceipt
                 data={form}
                 onUpdate={update}
@@ -470,7 +470,7 @@ function PublicApp() {
               />
             )}
 
-            {((step === 4 && form.paymentMethod === 'paddle') || step === 5) && (
+            {((step === 4 && form.paymentMethod === 'paypal') || step === 5) && (
               <StepComplete
                 data={form}
                 selectedPackageAmount={selectedPackage?.amount ?? null}

@@ -1085,7 +1085,7 @@ const openReceipt = async () => {
                   {selected.payment_method === 'paddle' && <DetailRow label="Paddle Transaction ID" value={selected.paddle_transaction_id ?? 'Not recorded'} />}
                   <DetailRow
                     label="Receipt File"
-                    value={selected.receipt_path ? `${selected.receipt_original_name ?? 'Receipt'} · ${formatBytes(selected.receipt_size_bytes)}` : selected.payment_method === 'paddle' ? 'Not required — Paddle verified' : 'Not recorded'}
+                    value={selected.receipt_path ? `${selected.receipt_original_name ?? 'Receipt'} · ${formatBytes(selected.receipt_size_bytes)}` : selected.payment_method === 'paddle' ? 'Not required — Paddle verified' : selected.payment_method === 'paypal' ? 'Not required — PayPal verified' : 'Not recorded'}
                   />
                 </div>
 

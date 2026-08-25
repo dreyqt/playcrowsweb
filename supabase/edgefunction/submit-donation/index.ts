@@ -123,7 +123,7 @@ async function sendDiscordDonationNotification(options: {
       },
       {
         name: 'Status',
-        value: paymentMethod === 'paddle' ? '✅ Paid · 🟡 Pending Fulfillment' : '🟡 Pending',
+        value: paymentMethod === 'paddle' || paymentMethod === 'paypal' ? '✅ Paid · 🟡 Pending Fulfillment' : '🟡 Pending',
         inline: true,
       },
       {
@@ -170,6 +170,12 @@ async function sendDiscordDonationNotification(options: {
     ;(embed.fields as Array<Record<string, unknown>>).push({
       name: 'Verification',
       value: '✅ Server-verified by Paddle webhook',
+      inline: false,
+    })
+  } else if (paymentMethod === 'paypal') {
+    ;(embed.fields as Array<Record<string, unknown>>).push({
+      name: 'Verification',
+      value: '✅ Server-verified directly with PayPal',
       inline: false,
     })
   }
@@ -630,7 +636,7 @@ export default {
       }
 
       const receiptFile = receipt instanceof File ? receipt : null
-      if (paymentMethod !== 'paddle' && !receiptFile) {
+      if (paymentMethod !== 'paddle' && paymentMethod !== 'paypal' && !receiptFile) {
         return errorResponse('A payment receipt is required.')
       }
 

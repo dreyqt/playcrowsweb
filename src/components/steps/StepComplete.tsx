@@ -12,7 +12,7 @@ import {
 import { Btn, Card } from '../ui'
 
 const PAYMENT_LABELS = {
-  paddle: 'Paddle',
+  paypal: 'PayPal',
   gcash: 'GCash',
   wise: 'Wise',
   bybit: 'Bybit',
@@ -74,8 +74,8 @@ export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle
         )}
 
         <SummaryRow label={t('paymentMethod')} value={paymentLabel} />
-        {data.paymentMethod === 'paddle' ? (
-          <SummaryRow label="Payment Verification" value={data.paddleTransactionId ? `Verified by Paddle · ${data.paddleTransactionId}` : 'Awaiting Paddle verification'} />
+        {data.paymentMethod === 'paypal' ? (
+          <SummaryRow label="Payment Verification" value={data.paypalCaptureId ? `Verified by PayPal · ${data.paypalCaptureId}` : 'Awaiting PayPal verification'} />
         ) : (
           <SummaryRow label={t('paymentReceipt')} value={data.receiptFile?.name ?? t('notUploaded')} />
         )}
@@ -94,7 +94,7 @@ export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle
 
       <div className="flex items-center justify-between gap-4">
         <Btn variant="ghost" onClick={onBack} disabled={isSubmitting}>{t('back')}</Btn>
-        <Btn onClick={() => void onSubmit()} disabled={isSubmitting || !data.paymentMethod || (data.paymentMethod !== 'paddle' && !data.receiptFile) || (data.paymentMethod === 'paddle' && (!data.paddleTransactionId || data.paddlePaymentStatus !== 'COMPLETED'))}>{isSubmitting ? t('submitting') : t('submitDonation')}</Btn>
+        <Btn onClick={() => void onSubmit()} disabled={isSubmitting || !data.paymentMethod || (data.paymentMethod !== 'paypal' && !data.receiptFile) || (data.paymentMethod === 'paypal' && (!data.paypalCaptureId || data.paypalPaymentStatus !== 'COMPLETED'))}>{isSubmitting ? t('submitting') : t('submitDonation')}</Btn>
       </div>
     </div>
   )

@@ -1,17 +1,16 @@
-import paddleLogo from '../assets/paddle-logo.png'
 import gcashLogo from '../assets/gcash-logo.jpg'
 import wiseLogo from '../assets/wise-logo.jpg'
 import bybitLogo from '../assets/bybit-logo.jpg'
 
-export function PaddleIcon({ size = 32 }: { size?: number }) {
+export function PayPalIcon({ size = 32 }: { size?: number }) {
   return (
-    <img
-      src={paddleLogo}
-      alt="Paddle logo"
-      width={size}
-      height={size}
-      className="rounded-lg object-contain"
-    />
+    <div
+      aria-label="PayPal"
+      style={{ width: size, height: size }}
+      className="flex items-center justify-center rounded-lg bg-[#0070e0] text-sm font-black italic text-white shadow-sm"
+    >
+      P
+    </div>
   )
 }
 
