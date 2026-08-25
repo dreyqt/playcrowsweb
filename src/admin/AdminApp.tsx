@@ -286,6 +286,13 @@ function getPackageDisplayName(donation: DonationRecord) {
   return donation.selected_package_title ?? 'Legacy Donation'
 }
 
+function getDefaultItemsDelivered(donation: DonationRecord) {
+  const title = donation.selected_package_title?.trim() || getPackageDisplayName(donation)
+  const quantity = Math.max(1, donation.package_quantity ?? 1)
+
+  return `${title} ×${quantity}`
+}
+
 function buildFulfillmentNotes(donation: DonationRecord, deliveredTo: string, itemsDelivered: string) {
   const packageAmount = Number(donation.selected_package_amount)
   const quantity = donation.package_quantity ?? 1
@@ -561,7 +568,7 @@ export function AdminApp() {
     setPaypalTransactionId(donation.paypal_transaction_id ?? '')
     setPaymentVerified(Boolean(donation.payment_verified_at))
     const defaultDeliveredTo = donation.delivered_to ?? donation.username ?? ''
-    const defaultItemsDelivered = donation.items_delivered ?? ''
+    const defaultItemsDelivered = donation.items_delivered ?? getDefaultItemsDelivered(donation)
     setDeliveredTo(defaultDeliveredTo)
     setItemsDelivered(defaultItemsDelivered)
     setFulfillmentNotes(
@@ -1121,7 +1128,7 @@ const openReceipt = async () => {
                   {selected.payment_method === 'paypal' && <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">PayPal Transaction ID</span><input value={paypalTransactionId} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setPaypalTransactionId(e.target.value)} placeholder="Enter the transaction ID from PayPal" className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#11141a] px-3 text-sm outline-none disabled:opacity-60" /></label>}
                   <label className="mt-4 flex items-center gap-2 text-xs text-[#aaa49a]"><input type="checkbox" checked={paymentVerified} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setPaymentVerified(e.target.checked)} /> Payment independently verified in the payment provider</label>
                   <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">Delivered To (Player / Account)</span><input value={deliveredTo} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setDeliveredTo(e.target.value)} placeholder="e.g. rkdchfl89" className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#11141a] px-3 text-sm outline-none disabled:opacity-60" /></label>
-                  <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">Items Delivered</span><input value={itemsDelivered} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setItemsDelivered(e.target.value)} placeholder="Enter exactly what you delivered (e.g. 210,000 Diamonds, JOB ADVANCE PACKAGE contents, etc.)" className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#11141a] px-3 text-sm outline-none disabled:opacity-60" /></label>
+                  <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">Items Delivered</span><input value={itemsDelivered} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setItemsDelivered(e.target.value)} placeholder="Auto-filled from the selected package and quantity" className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#11141a] px-3 text-sm outline-none disabled:opacity-60" /><span className="mt-1 block text-[11px] leading-4 text-[#77746e]">Auto-filled from the order. You can still edit this before marking the package delivered if the actual fulfillment differs.</span></label>
                   <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">Fulfillment Notes</span><textarea value={fulfillmentNotes} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setFulfillmentNotes(e.target.value)} rows={3} placeholder="Automatically generated from Items Delivered and backend ledger context…" className="mt-2 w-full rounded-lg border border-[#3b414b] bg-[#11141a] p-3 text-sm disabled:opacity-60" /></label>
                   {selected.fulfillment_status !== 'delivered' ? <><div className="mt-4"><span className="text-xs text-[#aaa49a]">Backend Ledger Screenshot (required)</span><div className="mt-1 text-[11px] leading-4 text-[#77746e]">Upload the original screenshot exactly as shown in the backend. Its visible timestamp is treated as the backend source timestamp; no manual timestamp entry is required.</div><label className="mt-2 flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-dashed border-[#c9aa68]/60 bg-[#c9aa68]/5 px-4 text-sm font-semibold text-[#c9aa68] hover:bg-[#c9aa68]/10"><input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={e => setFulfillmentEvidence(e.target.files?.[0] ?? null)} className="sr-only" />{fulfillmentEvidence ? `Selected: ${fulfillmentEvidence.name}` : 'Upload Backend Ledger Screenshot'}</label>{fulfillmentEvidence && <div className="mt-2 text-[11px] text-[#aaa49a]">Evidence ready to upload when you mark the package as delivered.</div>}</div><button type="button" disabled={saving} onClick={() => void markDelivered()} className="mt-4 min-h-11 w-full rounded-lg border border-[#22c55e]/50 bg-[#22c55e]/10 px-4 text-sm font-bold text-[#22c55e] hover:bg-[#22c55e]/20 disabled:opacity-60">Mark Package as Delivered & Lock Evidence</button></> : <div className="mt-4 space-y-2 text-xs text-[#aaa49a]"><div>Delivered: {selected.fulfilled_at ? formatDate(selected.fulfilled_at) : 'Recorded'}</div><div>Processed by: {selected.fulfilled_by ?? 'Admin'}</div><button type="button" onClick={() => void openFulfillmentEvidence()} className="min-h-10 w-full rounded-lg border border-[#3b414b] px-3 font-semibold text-[#eee9df]">Open Backend Delivery Evidence</button><button type="button" disabled={generatingEvidencePdf} onClick={() => void downloadEvidencePdf()} className="min-h-10 w-full rounded-lg border border-[#c9aa68]/50 px-3 font-bold text-[#c9aa68] disabled:opacity-60">{generatingEvidencePdf ? 'Building Evidence PDF…' : 'Download Evidence PDF'}</button></div>}
                 </div>
