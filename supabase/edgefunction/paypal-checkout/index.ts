@@ -35,10 +35,6 @@ const GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'august-supply-1000': { title: 'AUGUST SUPPLY PACKAGE', amount: 1000 },
 }
 
-const EARLY_PROMO_CODE = 'EARLY10'
-const EARLY_PROMO_DISCOUNT_PERCENT = 10
-const EARLY_PROMO_END_TIMESTAMP = Date.parse('2026-07-31T07:00:00.000Z')
-const ELIGIBLE_PROMO_PACKAGE_AMOUNTS = new Set([10, 50, 100, 200, 500, 1000])
 
 function jsonResponse(body: unknown, status = 200) {
   return Response.json(body, { status, headers: CORS_HEADERS })
@@ -92,18 +88,11 @@ async function getPayPalAccessToken() {
 }
 
 function calculateAmount(packageDefinition: GiftPackageDefinition, quantity: number, promoCode: string) {
-  let amount = roundMoney(packageDefinition.amount * quantity)
-
   if (promoCode) {
-    if (promoCode !== EARLY_PROMO_CODE) throw new Error('Invalid redeem code.')
-    if (Date.now() >= EARLY_PROMO_END_TIMESTAMP) throw new Error('The EARLY10 promotion has expired.')
-    if (!ELIGIBLE_PROMO_PACKAGE_AMOUNTS.has(packageDefinition.amount)) {
-      throw new Error('EARLY10 does not apply to this package.')
-    }
-    amount = roundMoney(amount * (1 - EARLY_PROMO_DISCOUNT_PERCENT / 100))
+    throw new Error('Coupon codes are not applicable to PayPal payments.')
   }
 
-  return amount
+  return roundMoney(packageDefinition.amount * quantity)
 }
 
 export default {

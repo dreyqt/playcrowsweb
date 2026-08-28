@@ -288,7 +288,8 @@ export function StepPayment({
   const amtDisplay = displayAmount(data)
   const promoApplied =
     appliedPromoCode === EARLY_PROMO_CODE &&
-    isEarlyPromoActive()
+    isEarlyPromoActive() &&
+    data.paymentMethod !== 'paypal'
 
   const originalPackageAmount =
     selectedPackageAmount === null
@@ -537,6 +538,13 @@ export function StepPayment({
               type="button"
               key={method.id}
               onClick={() => {
+                if (method.id === 'paypal' && appliedPromoCode) {
+                  onRemovePromoCode()
+                  setRedeemCode('')
+                  setPromoMessage('Coupon codes are not applicable to PayPal payments.')
+                  setPromoMessageType('error')
+                }
+
                 onUpdate({
                   paymentMethod: method.id,
                   ...(method.id === 'paypal' ? { currency: 'USD' as const } : {}),

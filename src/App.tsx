@@ -156,6 +156,15 @@ function PublicApp() {
       }
     }
 
+    if (form.paymentMethod === 'paypal') {
+      setAppliedPromoCode(null)
+
+      return {
+        success: false,
+        message: 'Coupon codes are not applicable to PayPal payments.',
+      }
+    }
+
     if (
       !isPackageEligibleForPromo(
         form,
@@ -186,6 +195,12 @@ function PublicApp() {
 
   const submitForm = async () => {
     if (isSubmitting) return
+
+    if (appliedPromoCode && form.paymentMethod === 'paypal') {
+      setAppliedPromoCode(null)
+      setSubmitError('Coupon codes are not applicable to PayPal payments.')
+      return
+    }
 
     if (
       appliedPromoCode &&
