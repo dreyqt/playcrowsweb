@@ -36,19 +36,22 @@ export function isPackageEligibleForPromo(
 
 export function getPackageAmountInCurrency(
   packageAmountUsd: number,
-  currency: Currency
+  currency: Currency,
+  quantity = 1
 ) {
   const rate = CURRENCY_META[currency]?.rateFromUSD ?? 1
-  return roundMoney(packageAmountUsd * rate)
+  return roundMoney(packageAmountUsd * quantity * rate)
 }
 
 export function getDiscountedPackageAmount(
   packageAmountUsd: number,
-  currency: Currency
+  currency: Currency,
+  quantity = 1
 ) {
   const originalAmount = getPackageAmountInCurrency(
     packageAmountUsd,
-    currency
+    currency,
+    quantity
   )
 
   return roundMoney(

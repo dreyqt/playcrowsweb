@@ -40,8 +40,9 @@ export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle
   const { t } = useI18n()
   const paymentLabel = data.paymentMethod ? PAYMENT_LABELS[data.paymentMethod] : t('notSelected')
   const promoApplied = promoCode === EARLY_PROMO_CODE && isEarlyPromoActive() && data.paymentMethod !== 'paypal' && selectedPackageAmount !== null
-  const originalPackageAmount = selectedPackageAmount === null ? null : getPackageAmountInCurrency(selectedPackageAmount, data.currency)
-  const discountedPackageAmount = selectedPackageAmount === null ? null : getDiscountedPackageAmount(selectedPackageAmount, data.currency)
+  const packageQuantity = Math.max(1, Math.floor(Number(data.packageQuantity) || 1))
+  const originalPackageAmount = selectedPackageAmount === null ? null : getPackageAmountInCurrency(selectedPackageAmount, data.currency, packageQuantity)
+  const discountedPackageAmount = selectedPackageAmount === null ? null : getDiscountedPackageAmount(selectedPackageAmount, data.currency, packageQuantity)
 
   return (
     <div className="flex flex-col gap-6">
@@ -57,7 +58,7 @@ export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle
 
         {promoApplied && selectedPackageAmount !== null && originalPackageAmount !== null && discountedPackageAmount !== null ? (
           <>
-            <SummaryRow label={t('giftPackageCredit')} value={`$${selectedPackageAmount.toLocaleString()}`} />
+            <SummaryRow label={t('giftPackageCredit')} value={`$${(selectedPackageAmount * packageQuantity).toLocaleString()} ($${selectedPackageAmount.toLocaleString()} × ${packageQuantity})`} />
             <SummaryRow label={t('originalPayment')} value={formatCurrencyAmount(data.currency, originalPackageAmount)} />
             <SummaryRow label={t('redeemCode')} value={EARLY_PROMO_CODE} />
             <SummaryRow label={t('discount')} value={`${EARLY_PROMO_DISCOUNT_PERCENT}%`} />

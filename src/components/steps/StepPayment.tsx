@@ -291,12 +291,15 @@ export function StepPayment({
     isEarlyPromoActive() &&
     data.paymentMethod !== 'paypal'
 
+  const packageQuantity = Math.max(1, Math.floor(Number(data.packageQuantity) || 1))
+
   const originalPackageAmount =
     selectedPackageAmount === null
       ? null
       : getPackageAmountInCurrency(
           selectedPackageAmount,
-          data.currency
+          data.currency,
+          packageQuantity
         )
 
   const discountedPackageAmount =
@@ -304,7 +307,8 @@ export function StepPayment({
       ? null
       : getDiscountedPackageAmount(
           selectedPackageAmount,
-          data.currency
+          data.currency,
+          packageQuantity
         )
 
   const usdEquivalent = (() => {
@@ -314,6 +318,7 @@ export function StepPayment({
     ) {
       return (
         selectedPackageAmount *
+        packageQuantity *
         (1 - EARLY_PROMO_DISCOUNT_PERCENT / 100)
       )
     }
@@ -500,7 +505,7 @@ export function StepPayment({
                 <strong className="text-[#eee9df]">
                   {formatCurrencyAmount(data.currency, discountedPackageAmount)}
                 </strong>{' '}
-                <strong className="text-[#eee9df]">${selectedPackageAmount.toLocaleString()}</strong>{' '}
+                <strong className="text-[#eee9df]">${(selectedPackageAmount * packageQuantity).toLocaleString()}</strong>{' '}
                 {t('receiveFullPackage')}
               </p>
             </div>
