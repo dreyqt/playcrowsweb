@@ -497,7 +497,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
+        'id, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -774,7 +774,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
+        'id, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
       )
       .single()
 
@@ -1009,7 +1009,12 @@ const openReceipt = async () => {
                       {donation.package_quantity ?? 1}
                     </td>
                     <td className="px-3 py-4 font-semibold">
-                      {formatMoney(donation.currency, donation.amount)}
+                      <div>{formatMoney(donation.currency, donation.amount)}</div>
+                      {donation.promo_code && Number(donation.discount_percent) > 0 && (
+                        <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-[#c9aa68]/40 bg-[#c9aa68]/10 px-2 py-0.5 text-[9px] font-bold text-[#c9aa68]">
+                          <span aria-hidden="true">🏷</span> {donation.promo_code} · {Number(donation.discount_percent)}% OFF
+                        </div>
+                      )}
                     </td>
                     <td className="px-3 py-4 text-xs">{PAYMENT_LABELS[donation.payment_method]}</td>
                     <td className="px-3 py-4">
@@ -1085,6 +1090,41 @@ const openReceipt = async () => {
                     }
                   />
                   <DetailRow label="Quantity" value={String(selected.package_quantity ?? 1)} />
+                  {selected.promo_code && Number(selected.discount_percent) > 0 ? (
+                    <>
+                      <DetailRow
+                        label="Original Total"
+                        value={formatMoney(
+                          selected.currency,
+                          selected.selected_package_amount == null
+                            ? Number(selected.amount) / (1 - Number(selected.discount_percent) / 100)
+                            : Number(selected.selected_package_amount) * (selected.package_quantity ?? 1)
+                        )}
+                      />
+                      <div className="border-b border-[#292d34] py-3">
+                        <div className="text-[10px] font-bold uppercase tracking-widest text-[#77746e]">Coupon Code</div>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <span className="rounded-md border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-2 py-1 font-mono text-sm font-bold text-[#c9aa68]">
+                            {selected.promo_code}
+                          </span>
+                          <span className="rounded-full border border-[#22c55e]/40 bg-[#22c55e]/10 px-2 py-1 text-[10px] font-bold text-[#22c55e]">
+                            {Number(selected.discount_percent)}% OFF
+                          </span>
+                        </div>
+                      </div>
+                      <DetailRow
+                        label="Discount"
+                        value={`-${formatMoney(
+                          selected.currency,
+                          (selected.selected_package_amount == null
+                            ? Number(selected.amount) / (1 - Number(selected.discount_percent) / 100)
+                            : Number(selected.selected_package_amount) * (selected.package_quantity ?? 1)) - Number(selected.amount)
+                        )}`}
+                      />
+                    </>
+                  ) : (
+                    <DetailRow label="Coupon Code" value="None" />
+                  )}
                   <DetailRow label="Total Paid" value={formatMoney(selected.currency, selected.amount)} />
                   <DetailRow label="Package ID" value={selected.selected_package_id ?? 'Legacy record'} />
                   <DetailRow label="Additional Notes" value={selected.additional_notes ?? 'None'} />

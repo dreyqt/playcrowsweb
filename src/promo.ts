@@ -1,14 +1,14 @@
 import type { Currency, FormData } from './types'
 import { CURRENCY_META } from './constants'
 
-export const EARLY_PROMO_CODE = 'EARLY10'
+export const EARLY_PROMO_CODE = 'WEEKEND10'
 export const EARLY_PROMO_DISCOUNT_PERCENT = 10
 
 /*
- * July 31, 2026 at 3:00 PM Singapore Time (UTC+8).
- * The matching UTC time is 7:00 AM.
+ * August 30, 2026 at 11:59 PM GMT+8.
+ * The matching UTC time is 3:59 PM.
  */
-export const EARLY_PROMO_END_ISO = '2026-07-31T07:00:00.000Z'
+export const EARLY_PROMO_END_ISO = '2026-08-30T15:59:00.000Z'
 
 export interface PromoApplyResult {
   success: boolean

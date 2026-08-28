@@ -257,20 +257,12 @@ const GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'august-supply-1000': { title: 'AUGUST SUPPLY PACKAGE', amount: 1000 },
 }
 
-const EARLY_PROMO_CODE = 'EARLY10'
+const EARLY_PROMO_CODE = 'WEEKEND10'
 const EARLY_PROMO_DISCOUNT_PERCENT = 10
 const EARLY_PROMO_END_TIMESTAMP = Date.parse(
-  '2026-07-31T07:00:00.000Z'
+  '2026-08-30T15:59:00.000Z'
 )
 
-const ELIGIBLE_PROMO_PACKAGE_AMOUNTS = new Set([
-  10,
-  50,
-  100,
-  200,
-  500,
-  1000,
-])
 
 const CURRENCY_RATES_FROM_USD: Record<string, number> = {
   USD: 1,
@@ -503,18 +495,16 @@ export default {
       let discountPercent = 0
 
       if (promoCode) {
+        if (paymentMethod === 'paypal') {
+          return errorResponse('Coupon codes are not applicable to PayPal payments.')
+        }
+
         if (promoCode !== EARLY_PROMO_CODE) {
           return errorResponse('Invalid redeem code.')
         }
 
         if (Date.now() >= EARLY_PROMO_END_TIMESTAMP) {
-          return errorResponse('The EARLY10 promotion has expired.')
-        }
-
-        if (!ELIGIBLE_PROMO_PACKAGE_AMOUNTS.has(selectedPackage.amount)) {
-          return errorResponse(
-            'EARLY10 only applies to eligible preset gift packages.'
-          )
+          return errorResponse('The WEEKEND10 promotion has expired.')
         }
 
         finalAmount = roundMoney(

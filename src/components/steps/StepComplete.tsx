@@ -39,7 +39,7 @@ export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle
 }) {
   const { t } = useI18n()
   const paymentLabel = data.paymentMethod ? PAYMENT_LABELS[data.paymentMethod] : t('notSelected')
-  const promoApplied = promoCode === EARLY_PROMO_CODE && isEarlyPromoActive() && selectedPackageAmount !== null
+  const promoApplied = promoCode === EARLY_PROMO_CODE && isEarlyPromoActive() && data.paymentMethod !== 'paypal' && selectedPackageAmount !== null
   const originalPackageAmount = selectedPackageAmount === null ? null : getPackageAmountInCurrency(selectedPackageAmount, data.currency)
   const discountedPackageAmount = selectedPackageAmount === null ? null : getDiscountedPackageAmount(selectedPackageAmount, data.currency)
 

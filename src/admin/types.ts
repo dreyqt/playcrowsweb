@@ -8,6 +8,8 @@ export interface DonationRecord {
   username: string
   currency: 'USD' | 'PHP' | 'GBP'
   amount: number | string
+  promo_code: string | null
+  discount_percent: number | string | null
   selected_package_amount: number | string | null
   selected_package_id: string | null
   selected_package_title: string | null
