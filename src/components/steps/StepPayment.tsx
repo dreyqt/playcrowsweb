@@ -505,7 +505,6 @@ export function StepPayment({
                 <strong className="text-[#eee9df]">
                   {formatCurrencyAmount(data.currency, discountedPackageAmount)}
                 </strong>{' '}
-                <strong className="text-[#eee9df]">${(selectedPackageAmount * packageQuantity).toLocaleString()}</strong>{' '}
                 {t('receiveFullPackage')}
               </p>
             </div>
