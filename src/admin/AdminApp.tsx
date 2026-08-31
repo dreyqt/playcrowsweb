@@ -271,6 +271,7 @@ function getPackageCategory(packageId: string | null | undefined) {
   if (packageId?.startsWith('currency-')) return 'Currency'
   if (packageId?.startsWith('support-')) return 'Support Package'
   if (packageId?.startsWith('august-supply-')) return 'August Supply Package'
+  if (packageId?.startsWith('september-supply-')) return 'September Supply Package'
   return 'Legacy'
 }
 

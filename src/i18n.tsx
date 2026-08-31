@@ -41,6 +41,9 @@ const en = {
   augustSupplyPackages: 'August Supply Packages',
   augustSupplyPackage: 'August Supply Package',
   augustSupplyPackagesDesc: 'Limited August supply bundles with bonus resources and enhancement materials.',
+  septemberSupplyPackages: 'September Supply Packages',
+  septemberSupplyPackage: 'September Supply Package',
+  septemberSupplyPackagesDesc: 'Limited September supply bundles with bonus resources and enhancement materials.',
   currencyDesc: 'Diamond packages currently available in the web shop.',
   supportPackagesDesc: 'Item bundles available for direct support purchases.',
   webShopIntro: 'Select a category below for an easy lookup of available packages.',
@@ -190,7 +193,7 @@ type TranslationTable = Record<TranslationKey, string>
 const ko: TranslationTable = {
   ...en,
   developmentTeam: 'PlayCrows 개발팀', donationSubmitted: '후원 신청이 제출되었습니다', donationSubmittedDesc: '신청이 검토 대기 중입니다. PlayCrows 지원팀에 문의할 경우를 대비해 아래 참조 코드를 보관해 주세요.', referenceCode: '참조 코드', submitAnother: '다른 신청 제출', webShop: 'WEB 상점', supportAmount: '후원 금액', cumulativeRewards: '누적 보상', changePackageHint: '다른 패키지를 선택하려면 패키지 변경을 이용하세요', choosePackageHint: '패키지를 선택하세요', chooseSupportHint: '통화와 패키지 수량을 선택하세요', selectPackageFirst: '먼저 패키지를 선택하세요', initialPackage: '선택한 패키지', packageSelectionDesc: '아래에서 결제 통화와 수량을 선택하세요.', changePackage: '패키지 변경', voluntaryFooter: '2026 PlayCrows 개발팀 - 모든 후원은 자발적인 지원입니다.',
-  currency: '재화', supportPackages: '지원 패키지', augustSupplyPackages: '8월 보급 패키지', augustSupplyPackage: '8월 보급 패키지', augustSupplyPackagesDesc: '8월 한정 보급 번들로 보너스 재화와 강화 재료가 포함됩니다.', currencyDesc: 'WEB 상점에서 이용 가능한 다이아 패키지입니다.', supportPackagesDesc: '직접 후원을 위한 아이템 번들입니다.', webShopIntro: '아래 카테고리를 선택해 원하는 패키지를 빠르게 확인하세요.', supportPackage: '지원 패키지', selected: '선택됨', select: '선택', packageContinueNotice: '계속하려면 패키지를 선택하세요. 귀속 아이템은 거래하거나 이전할 수 없습니다.',
+  currency: '재화', supportPackages: '지원 패키지', augustSupplyPackages: '8월 보급 패키지', augustSupplyPackage: '8월 보급 패키지', augustSupplyPackagesDesc: '8월 한정 보급 번들로 보너스 재화와 강화 재료가 포함됩니다.', septemberSupplyPackages: '9월 보급 패키지', septemberSupplyPackage: '9월 보급 패키지', septemberSupplyPackagesDesc: '9월 한정 보급 번들로 보너스 재화와 강화 재료가 포함됩니다.', currencyDesc: 'WEB 상점에서 이용 가능한 다이아 패키지입니다.', supportPackagesDesc: '직접 후원을 위한 아이템 번들입니다.', webShopIntro: '아래 카테고리를 선택해 원하는 패키지를 빠르게 확인하세요.', supportPackage: '지원 패키지', selected: '선택됨', select: '선택', packageContinueNotice: '계속하려면 패키지를 선택하세요. 귀속 아이템은 거래하거나 이전할 수 없습니다.',
   cumulativeIntro: '누적 후원 단계별 보상을 확인하세요. 단계를 선택하면 전체 보상 목록을 볼 수 있습니다.', claimCumulative: '누적 보상 수령', milestones: '단계', startingTier: '시작 단계', highestTier: '최고 단계', cumulativeMilestone: '누적 후원 단계', reward: '보상', rewards: '보상', cumulativeNotice: '누적 보상은 단계별로 표시됩니다. 자격 또는 지급 여부 확인이 필요하면 PlayCrows 지원팀에 문의하세요.',
   stepAmount: '금액', stepPlayerInfo: '플레이어 정보', stepPayment: '결제', stepReceipt: '영수증', stepComplete: '완료',
   supportAmountTitle: '후원 금액', supportAmountDesc: '결제 통화와 선택한 패키지 구매 수량을 설정하세요.', selectedPackage: '선택한 패키지', each: '개당', quantity: '수량', decreaseQuantity: '수량 감소', increaseQuantity: '수량 증가', quantityExample: '예: 수량 10은 선택한 패키지를 10개 구매합니다.', totalPayment: '총 결제 금액', usdEquivalent: 'USD 환산', continue: '계속',

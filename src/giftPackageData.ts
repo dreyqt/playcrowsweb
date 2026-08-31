@@ -3,7 +3,7 @@ export interface GiftReward {
   quantity?: number
 }
 
-export type GiftPackageCategory = 'currency' | 'support' | 'august-supply'
+export type GiftPackageCategory = 'currency' | 'support' | 'august-supply' | 'september-supply'
 
 export interface GiftPackage {
   id: string
@@ -255,6 +255,70 @@ export const giftPackages: GiftPackage[] = [
       { name: 'Superior Draught of Fury (Bound)', quantity: 50 },
       { name: 'Superior Draught of Overcoming (Bound)', quantity: 50 },
       { name: 'Superior Draught of Antagonism (Bound)', quantity: 50 },
+    ],
+  },
+
+  {
+    id: 'september-supply-50', category: 'september-supply', title: 'SEPTEMBER SUPPLY PACKAGE', amount: 50,
+    rewards: [
+      { name: 'Diamonds', quantity: 150_000 },
+      { name: 'Mileage', quantity: 25_000 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 2 },
+      { name: 'Total War Supply Crates (Attributed)', quantity: 50 },
+      { name: '[C] Crafting Material*40 Selection Chest (Bound)', quantity: 100 },
+      { name: '[R] Arcane Scroll Selection Chest (Bound)', quantity: 100 },
+      { name: "Mercenaries' Lost Gear Chest (Bound)", quantity: 100 },
+    ],
+  },
+  {
+    id: 'september-supply-100', category: 'september-supply', title: 'SEPTEMBER SUPPLY PACKAGE', amount: 100,
+    rewards: [
+      { name: 'Diamonds', quantity: 330_000 },
+      { name: 'Mileage', quantity: 50_000 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 5 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 1_500 },
+      { name: 'Total War Supply Crates (Attributed)', quantity: 150 },
+      { name: '[UC] Crafting Material Selection Chest (Bound)', quantity: 300 },
+      { name: '[C] Crafting Material*40 Selection Chest (Bound)', quantity: 300 },
+      { name: '[R] Arcane Scroll Selection Chest (Bound)', quantity: 300 },
+      { name: "Knight's Lost Gear Chest (Bound)", quantity: 100 },
+    ],
+  },
+  {
+    id: 'september-supply-500', category: 'september-supply', title: 'SEPTEMBER SUPPLY PACKAGE', amount: 500,
+    rewards: [
+      { name: 'Diamonds', quantity: 2_500_000 },
+      { name: 'Mileage', quantity: 250_000 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 30 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 10_000 },
+      { name: 'Total War Supply Crates (Attributed)', quantity: 1_000 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 1_000 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 1_000 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 1_000 },
+      { name: 'Higher Arcane Scroll of Enlightenment (Bound)', quantity: 25 },
+      { name: 'Wind Orb Chest (Attributed)', quantity: 50 },
+      { name: 'Brilliant Weapon Refinement Stone (Bound)', quantity: 300 },
+      { name: 'Brilliant Armor Refinement Stone (Bound)', quantity: 500 },
+      { name: 'Brilliant Accessory Refinement Stone (Bound)', quantity: 1_500 },
+    ],
+  },
+  {
+    id: 'september-supply-1000', category: 'september-supply', title: 'SEPTEMBER SUPPLY PACKAGE', amount: 1000,
+    rewards: [
+      { name: 'Diamonds', quantity: 6_000_000 },
+      { name: 'Mileage', quantity: 500_000 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 80 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 25_000 },
+      { name: 'Total War Supply Crates (Attributed)', quantity: 2_500 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 2_500 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 2_500 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 2_500 },
+      { name: 'Higher Arcane Scroll of Enlightenment (Bound)', quantity: 75 },
+      { name: 'Wind Orb Chest (Attributed)', quantity: 150 },
+      { name: "Forgotten One's Remnant Selection Chest (Bound)", quantity: 20 },
+      { name: 'Brilliant Weapon Refinement Stone (Bound)', quantity: 750 },
+      { name: 'Brilliant Armor Refinement Stone (Bound)', quantity: 1_300 },
+      { name: 'Brilliant Accessory Refinement Stone (Bound)', quantity: 4_000 },
     ],
   },
 

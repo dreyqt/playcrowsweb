@@ -46,6 +46,10 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   '+10 Night Crows Claw Talisman (Bound)': 'night_crows_claw_talisman.png',
   '+10 nighthawk Mask (Attributed)': 'nighthawk_mask.png',
   '+10 nighthawk Taileather Whistle (attributed)': 'nighthawk_taileather_whistle.png',
+  '[UC] Crafting Material Selection Chest (Bound)': 'uc_crafting_chest.png',
+  'Brilliant Weapon Refinement Stone (Bound)': 'brilliant_weapon_refinement_stone.png',
+  'Brilliant Armor Refinement Stone (Bound)': 'brilliant_armor_refinement_stone.png',
+  'Brilliant Accessory Refinement Stone (Bound)': 'brilliant_accessory_refinement_stone.png',
 }
 
 function rewardNameToFilename(name: string) {
@@ -108,6 +112,7 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
     currency: { title: t('currency'), description: t('currencyDesc') },
     support: { title: t('supportPackages'), description: t('supportPackagesDesc') },
     'august-supply': { title: t('augustSupplyPackages'), description: t('augustSupplyPackagesDesc') },
+    'september-supply': { title: t('septemberSupplyPackages'), description: t('septemberSupplyPackagesDesc') },
   }
   const selectedCategory = useMemo<GiftPackageCategory | null>(() => {
     if (!selectedPackageId) return null
@@ -201,7 +206,9 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                           ? t('currency')
                           : giftPackage.category === 'august-supply'
                             ? t('augustSupplyPackage')
-                            : t('supportPackage')}
+                            : giftPackage.category === 'september-supply'
+                              ? t('septemberSupplyPackage')
+                              : t('supportPackage')}
                       </span>
                       {giftPackage.isNew && (
                         <span className="inline-flex items-center rounded-full border border-[#e7c36a]/60 bg-[#e7c36a]/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#f1d487] shadow-[0_0_16px_rgba(231,195,106,0.14)]">

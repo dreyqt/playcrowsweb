@@ -99,7 +99,9 @@ async function sendDiscordDonationNotification(options: {
     ? 'Currency'
     : selectedPackageId.startsWith('august-supply-')
       ? 'August Supply Package'
-      : 'Support Package'
+      : selectedPackageId.startsWith('september-supply-')
+        ? 'September Supply Package'
+        : 'Support Package'
 
   const receiptFilename = receipt && receiptExtension
     ? sanitizeDiscordFilename(receipt.name, receiptExtension)
@@ -255,6 +257,10 @@ const GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'august-supply-100': { title: 'AUGUST SUPPLY PACKAGE', amount: 100 },
   'august-supply-500': { title: 'AUGUST SUPPLY PACKAGE', amount: 500 },
   'august-supply-1000': { title: 'AUGUST SUPPLY PACKAGE', amount: 1000 },
+  'september-supply-50': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 50 },
+  'september-supply-100': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 100 },
+  'september-supply-500': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 500 },
+  'september-supply-1000': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 1000 },
 }
 
 const EARLY_PROMO_CODE = 'WEEKEND10'
