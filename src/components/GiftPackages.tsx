@@ -215,6 +215,11 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                           NEW
                         </span>
                       )}
+                      {giftPackage.oneTimeEventBonus && (
+                        <span className="inline-flex items-center rounded-full border border-[#d66cff]/60 bg-[#d66cff]/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#e4a7ff] shadow-[0_0_16px_rgba(214,108,255,0.14)]">
+                          EVENT BONUS
+                        </span>
+                      )}
                     </div>
                     <h3>{giftPackage.title}</h3>
                     <div className="mt-1 text-xl font-bold text-[#c9aa68]">
@@ -283,6 +288,14 @@ export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackage
                 ×
               </button>
             </div>
+
+            {rewardModalPackage.oneTimeEventBonus && (
+              <div className="mx-4 mt-4 rounded-lg border border-[#d9b85f]/50 bg-[#d9b85f]/10 p-4">
+                <div className="text-[11px] font-black uppercase tracking-[0.16em] text-[#e7c36a]">Limited Event • One-Time Reward</div>
+                <div className="mt-1 text-base font-bold text-[#f5efe2]">{rewardModalPackage.oneTimeEventBonus}</div>
+                <div className="mt-1 text-xs text-[#a9a39a]">Granted once per eligible player/account. Buying multiple quantities does not grant additional copies of this event bonus.</div>
+              </div>
+            )}
 
             <ul className="gift-rewards-modal__list">
               {rewardModalPackage.rewards.map(reward => (

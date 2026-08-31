@@ -12,6 +12,8 @@ export interface GiftPackage {
   amount: number
   /** Shows a prominent NEW badge on the package card. */
   isNew?: boolean
+  /** Optional event reward granted once per eligible player/account, not once per package quantity. */
+  oneTimeEventBonus?: string
   rewards: GiftReward[]
 }
 
@@ -286,6 +288,7 @@ export const giftPackages: GiftPackage[] = [
   },
   {
     id: 'september-supply-500', category: 'september-supply', title: 'SEPTEMBER SUPPLY PACKAGE', amount: 500,
+    oneTimeEventBonus: 'Rare Monster Weapon Style SET',
     rewards: [
       { name: 'Diamonds', quantity: 2_500_000 },
       { name: 'Mileage', quantity: 250_000 },
@@ -304,6 +307,7 @@ export const giftPackages: GiftPackage[] = [
   },
   {
     id: 'september-supply-1000', category: 'september-supply', title: 'SEPTEMBER SUPPLY PACKAGE', amount: 1000,
+    oneTimeEventBonus: 'Epic Monster Weapon Style',
     rewards: [
       { name: 'Diamonds', quantity: 6_000_000 },
       { name: 'Mileage', quantity: 500_000 },

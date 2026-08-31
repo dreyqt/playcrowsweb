@@ -294,6 +294,24 @@ function getDefaultItemsDelivered(donation: DonationRecord) {
   return `${title} ×${quantity}`
 }
 
+function getSeptemberEventBonusName(packageId: string | null | undefined) {
+  if (packageId === 'september-supply-500') return 'Rare Monster Weapon Style SET'
+  if (packageId === 'september-supply-1000') return 'Epic Monster Weapon Style'
+  return null
+}
+
+function getEventBonusDeliveryText(donation: DonationRecord) {
+  const bonusName = donation.event_bonus_name ?? getSeptemberEventBonusName(donation.selected_package_id)
+  if (!bonusName) return null
+  if (!donation.payment_verified_at || donation.event_bonus_eligible == null) {
+    return `Payment must be verified before the one-time ${bonusName} entitlement is locked.`
+  }
+  if (donation.event_bonus_eligible) {
+    return `ELIGIBLE — ${bonusName} is reserved for this order and should be granted exactly once.`
+  }
+  return `ALREADY CLAIMED — do not grant ${bonusName} again. Fulfill only the normal package rewards.`
+}
+
 function buildFulfillmentNotes(donation: DonationRecord, deliveredTo: string, itemsDelivered: string) {
   const packageAmount = Number(donation.selected_package_amount)
   const quantity = donation.package_quantity ?? 1
@@ -498,7 +516,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
+        'id, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -569,7 +587,13 @@ export function AdminApp() {
     setPaypalTransactionId(donation.paypal_transaction_id ?? '')
     setPaymentVerified(Boolean(donation.payment_verified_at))
     const defaultDeliveredTo = donation.delivered_to ?? donation.username ?? ''
-    const defaultItemsDelivered = donation.items_delivered ?? getDefaultItemsDelivered(donation)
+    const baseItemsDelivered = getDefaultItemsDelivered(donation)
+    const bonusName = donation.event_bonus_name ?? getSeptemberEventBonusName(donation.selected_package_id)
+    const defaultItemsDelivered = donation.items_delivered ?? (
+      bonusName && donation.event_bonus_eligible === true
+        ? `${baseItemsDelivered} + ${bonusName} (One-Time Event Bonus)`
+        : baseItemsDelivered
+    )
     setDeliveredTo(defaultDeliveredTo)
     setItemsDelivered(defaultItemsDelivered)
     setFulfillmentNotes(
@@ -653,6 +677,10 @@ const openReceipt = async () => {
     if (selected.payment_method === 'paypal' && !paypalTransactionId.trim()) return setSaveMessage('PayPal Transaction ID is required before delivery.')
     if (!deliveredTo.trim()) return setSaveMessage('Enter the player/account that received the package.')
     if (!itemsDelivered.trim()) return setSaveMessage('Enter the items or package that was delivered.')
+    const eventBonusName = getSeptemberEventBonusName(selected.selected_package_id)
+    if (eventBonusName && selected.event_bonus_eligible == null) {
+      return setSaveMessage('Save the verified payment first. Supabase must lock this player’s one-time event bonus eligibility before you fulfill the order.')
+    }
     if (!fulfillmentEvidence) return setSaveMessage('Upload the original backend ledger screenshot before marking this package delivered.')
     setSaving(true); setSaveMessage('Uploading fulfillment evidence…')
     const safeName = fulfillmentEvidence.name.replace(/[^a-zA-Z0-9._-]/g, '_')
@@ -775,7 +803,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by'
+        'id, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
       )
       .single()
 
@@ -790,6 +818,20 @@ const openReceipt = async () => {
       current.map(item => (item.id === updated.id ? updated : item))
     )
     setSelected(updated)
+
+    const newlyReservedBonus = updated.event_bonus_eligible === true
+      ? (updated.event_bonus_name ?? getSeptemberEventBonusName(updated.selected_package_id))
+      : null
+    if (newlyReservedBonus && updated.fulfillment_status !== 'delivered') {
+      const baseItems = getDefaultItemsDelivered(updated)
+      const withBonus = `${baseItems} + ${newlyReservedBonus} (One-Time Event Bonus)`
+      setItemsDelivered(withBonus)
+      setFulfillmentNotes(buildFulfillmentNotes(updated, deliveredTo, withBonus))
+    } else if (updated.event_bonus_eligible === false && getSeptemberEventBonusName(updated.selected_package_id) && updated.fulfillment_status !== 'delivered') {
+      const baseItems = getDefaultItemsDelivered(updated)
+      setItemsDelivered(baseItems)
+      setFulfillmentNotes(buildFulfillmentNotes(updated, deliveredTo, baseItems))
+    }
 
     try {
       const {
@@ -1165,6 +1207,16 @@ const openReceipt = async () => {
                 </label>
 
                 <div className="mt-4 rounded-xl border border-[#3b414b] bg-[#0d0f13] p-4">
+                  {getSeptemberEventBonusName(selected.selected_package_id) && (
+                    <div className={`mb-4 rounded-lg border p-3 ${selected.event_bonus_eligible === true ? 'border-[#22c55e]/50 bg-[#22c55e]/10' : selected.event_bonus_eligible === false ? 'border-[#ef4444]/50 bg-[#ef4444]/10' : 'border-[#d3ad62]/50 bg-[#d3ad62]/10'}`}>
+                      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c9aa68]">September One-Time Event Bonus</div>
+                      <div className={`mt-1 text-sm font-bold ${selected.event_bonus_eligible === true ? 'text-[#22c55e]' : selected.event_bonus_eligible === false ? 'text-[#ef4444]' : 'text-[#d3ad62]'}`}>
+                        {selected.event_bonus_name ?? getSeptemberEventBonusName(selected.selected_package_id)}
+                      </div>
+                      <div className="mt-1 text-xs leading-5 text-[#c9c3b9]">{getEventBonusDeliveryText(selected)}</div>
+                      {selected.event_bonus_reserved_at && <div className="mt-1 text-[10px] text-[#8c887f]">Entitlement locked: {formatDate(selected.event_bonus_reserved_at)}</div>}
+                    </div>
+                  )}
                   <div className="flex items-center justify-between gap-3"><span className="text-xs font-bold uppercase tracking-widest text-[#c9aa68]">Payment & Fulfillment Evidence</span><span className={`rounded-full border px-2 py-1 text-[9px] font-bold ${selected.fulfillment_status === 'delivered' ? 'border-[#22c55e]/40 text-[#22c55e]' : 'border-[#77746e]/40 text-[#aaa49a]'}`}>{selected.fulfillment_status === 'delivered' ? 'DELIVERED' : 'NOT DELIVERED'}</span></div>
                   {selected.payment_method === 'paypal' && <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">PayPal Transaction ID</span><input value={paypalTransactionId} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setPaypalTransactionId(e.target.value)} placeholder="Enter the transaction ID from PayPal" className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#11141a] px-3 text-sm outline-none disabled:opacity-60" /></label>}
                   <label className="mt-4 flex items-center gap-2 text-xs text-[#aaa49a]"><input type="checkbox" checked={paymentVerified} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setPaymentVerified(e.target.checked)} /> Payment independently verified in the payment provider</label>

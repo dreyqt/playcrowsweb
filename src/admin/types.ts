@@ -36,4 +36,8 @@ export interface DonationRecord {
   fulfillment_evidence_mime_type: string | null
   fulfillment_evidence_size_bytes: number | null
   fulfilled_by: string | null
+  event_bonus_key: string | null
+  event_bonus_name: string | null
+  event_bonus_eligible: boolean | null
+  event_bonus_reserved_at: string | null
 }

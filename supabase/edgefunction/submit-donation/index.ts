@@ -63,6 +63,8 @@ async function sendDiscordDonationNotification(options: {
   donation: {
     referenceCode: string
     createdAt: string
+    eventBonusName: string | null
+    eventBonusEligible: boolean | null
   }
   playerId: string
   username: string
@@ -166,6 +168,24 @@ async function sendDiscordDonationNotification(options: {
     embed.image = {
       url: `attachment://${receiptFilename}`,
     }
+  }
+
+  const oneTimeEventBonus = selectedPackageId === 'september-supply-500'
+    ? 'Rare Monster Weapon Style SET'
+    : selectedPackageId === 'september-supply-1000'
+      ? 'Epic Monster Weapon Style'
+      : null
+
+  if (oneTimeEventBonus) {
+    ;(embed.fields as Array<Record<string, unknown>>).push({
+      name: '🎁 One-Time Event Bonus',
+      value: donation.eventBonusEligible === true
+        ? `**${oneTimeEventBonus}**\n✅ Reserved for this verified order. Grant exactly once regardless of package quantity.`
+        : donation.eventBonusEligible === false
+          ? `**${oneTimeEventBonus}**\n⛔ Already claimed by this Player ID. Do NOT grant this event bonus again.`
+          : `**${oneTimeEventBonus}**\n⏳ Payment is not verified yet. Supabase will lock eligibility when verification is saved.`,
+      inline: false,
+    })
   }
 
   if (paymentMethod === 'paddle') {
@@ -699,7 +719,9 @@ export default {
           id,
           reference_code,
           created_at,
-          status
+          status,
+          event_bonus_name,
+          event_bonus_eligible
         `)
         .single()
 
@@ -730,6 +752,8 @@ export default {
             donation: {
               referenceCode: donation.reference_code,
               createdAt: donation.created_at,
+              eventBonusName: donation.event_bonus_name ?? null,
+              eventBonusEligible: donation.event_bonus_eligible ?? null,
             },
             playerId,
             username,

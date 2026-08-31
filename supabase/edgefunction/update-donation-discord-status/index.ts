@@ -176,7 +176,9 @@ Deno.serve(async request => {
       receipt_original_name,
       receipt_mime_type,
       status,
-      discord_message_id
+      discord_message_id,
+      event_bonus_name,
+      event_bonus_eligible
     `)
     .eq('id', donationId)
     .single()
@@ -198,9 +200,13 @@ Deno.serve(async request => {
   const packageId = donation.selected_package_id ?? ''
   const category = packageId.startsWith('currency-')
     ? 'Currency'
-    : packageId.startsWith('support-')
-      ? 'Support Package'
-      : 'Legacy'
+    : packageId.startsWith('august-supply-')
+      ? 'August Supply Package'
+      : packageId.startsWith('september-supply-')
+        ? 'September Supply Package'
+        : packageId.startsWith('support-')
+          ? 'Support Package'
+          : 'Legacy'
 
   const statusPresentation = getStatusPresentation(donation.status)
 
@@ -258,6 +264,24 @@ Deno.serve(async request => {
       text: 'PlayCrows Donation Center • Click the title to open Admin Dashboard',
     },
     timestamp: donation.created_at,
+  }
+
+  const oneTimeEventBonus = packageId === 'september-supply-500'
+    ? 'Rare Monster Weapon Style SET'
+    : packageId === 'september-supply-1000'
+      ? 'Epic Monster Weapon Style'
+      : null
+
+  if (oneTimeEventBonus) {
+    ;(embed.fields as Array<Record<string, unknown>>).push({
+      name: '🎁 One-Time Event Bonus',
+      value: donation.event_bonus_eligible === true
+        ? `**${donation.event_bonus_name ?? oneTimeEventBonus}**\n✅ Reserved for this verified order. Grant exactly once.`
+        : donation.event_bonus_eligible === false
+          ? `**${donation.event_bonus_name ?? oneTimeEventBonus}**\n⛔ Already claimed by this Player ID. Do NOT grant again.`
+          : `**${oneTimeEventBonus}**\n⏳ Eligibility pending payment verification.`,
+      inline: false,
+    })
   }
 
   const isImageReceipt = new Set([
