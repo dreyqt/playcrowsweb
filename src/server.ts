@@ -10,13 +10,13 @@ export const PLAYCROWS_SERVERS: Record<PlayCrowsServer, {
     id: 'v1',
     name: 'PlayCrows V1',
     shortName: 'V1',
-    description: 'Original PlayCrows server',
+    description: 'Server 1',
   },
   v2: {
     id: 'v2',
     name: 'PlayCrows V2',
     shortName: 'V2',
-    description: 'PlayCrows V2 server',
+    description: 'Server 2',
   },
 }
 
