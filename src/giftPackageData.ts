@@ -1,3 +1,5 @@
+import type { PlayCrowsServer } from './server'
+
 export interface GiftReward {
   name: string
   quantity?: number
@@ -17,7 +19,7 @@ export interface GiftPackage {
   rewards: GiftReward[]
 }
 
-export const giftPackages: GiftPackage[] = [
+export const v1GiftPackages: GiftPackage[] = [
 {
   id: 'currency-5',
   category: 'currency',
@@ -328,6 +330,23 @@ export const giftPackages: GiftPackage[] = [
 
 ]
 
-export function findGiftPackage(id: string | null) {
-  return giftPackages.find(item => item.id === id) ?? null
+// V2 currently starts with its own copy of the V1 catalog so the two servers can
+// diverge safely as new V2-only packages/rewards are introduced.
+export const v2GiftPackages: GiftPackage[] = v1GiftPackages.map(item => ({
+  ...item,
+  rewards: item.rewards.map(reward => ({ ...reward })),
+}))
+
+export const giftPackagesByServer: Record<PlayCrowsServer, GiftPackage[]> = {
+  v1: v1GiftPackages,
+  v2: v2GiftPackages,
 }
+
+export function getGiftPackages(server: PlayCrowsServer) {
+  return giftPackagesByServer[server]
+}
+
+export function findGiftPackage(server: PlayCrowsServer, id: string | null) {
+  return getGiftPackages(server).find(item => item.id === id) ?? null
+}
+

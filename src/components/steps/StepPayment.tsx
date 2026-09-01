@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormData, PaymentMethod } from '../../types'
+import type { PlayCrowsServer } from '../../server'
 import {
   PAYMENT_METHODS,
   PAYMENT_INFO,
@@ -39,19 +40,29 @@ declare global {
   }
 }
 
-let paypalSdkPromise: Promise<void> | null = null
+const paypalSdkPromises: Partial<Record<PlayCrowsServer, Promise<void>>> = {}
 
-function loadPayPalSdk() {
-  if (window.paypal?.Buttons) return Promise.resolve()
-  if (paypalSdkPromise) return paypalSdkPromise
+function loadPayPalSdk(server: PlayCrowsServer) {
+  const existingForServer = document.querySelector<HTMLScriptElement>(`script[data-playcrows-paypal-server="${server}"]`)
+  if (window.paypal?.Buttons && existingForServer) return Promise.resolve()
+  if (paypalSdkPromises[server]) return paypalSdkPromises[server]!
 
-  const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID
+  const env = import.meta.env as Record<string, string | undefined>
+  const clientId = env[`VITE_PAYPAL_CLIENT_ID_${server.toUpperCase()}`] || env.VITE_PAYPAL_CLIENT_ID
   if (!clientId) {
     return Promise.reject(new Error('VITE_PAYPAL_CLIENT_ID is missing. Add the new PayPal Business client ID in Vercel and redeploy.'))
   }
 
-  paypalSdkPromise = new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>('script[data-playcrows-paypal-sdk="true"]')
+  paypalSdkPromises[server] = new Promise<void>((resolve, reject) => {
+    const otherScripts = document.querySelectorAll<HTMLScriptElement>('script[data-playcrows-paypal-sdk="true"]')
+    otherScripts.forEach(script => {
+      if (script.dataset.playcrowsPaypalServer !== server) script.remove()
+    })
+    if (!existingForServer && window.paypal) {
+      try { delete window.paypal } catch { window.paypal = undefined }
+    }
+
+    const existing = document.querySelector<HTMLScriptElement>(`script[data-playcrows-paypal-server="${server}"]`)
     if (existing) {
       existing.addEventListener('load', () => resolve(), { once: true })
       existing.addEventListener('error', () => reject(new Error('Unable to load PayPal checkout.')), { once: true })
@@ -62,20 +73,23 @@ function loadPayPalSdk() {
     script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD&intent=capture&components=buttons`
     script.async = true
     script.dataset.playcrowsPaypalSdk = 'true'
+    script.dataset.playcrowsPaypalServer = server
     script.onload = () => resolve()
     script.onerror = () => reject(new Error('Unable to load PayPal checkout.'))
     document.head.appendChild(script)
   })
 
-  return paypalSdkPromise
+  return paypalSdkPromises[server]!
 }
 
 function PayPalCheckout({
+  server,
   data,
   selectedPackageId,
   promoCode,
   onCompleted,
 }: {
+  server: PlayCrowsServer
   data: FormData
   selectedPackageId: string | null
   promoCode: string | null
@@ -93,7 +107,7 @@ function PayPalCheckout({
     const render = async () => {
       try {
         setStatus('loading')
-        await loadPayPalSdk()
+        await loadPayPalSdk(server)
         if (cancelled || !containerRef.current || !window.paypal?.Buttons) return
 
         containerRef.current.innerHTML = ''
@@ -104,6 +118,7 @@ function PayPalCheckout({
             if (!Number.isInteger(quantity) || quantity < 1) throw new Error('Invalid package quantity.')
             setMessage('Creating your secure PayPal order…')
             return createPayPalOrder({
+              server,
               selectedPackageId,
               packageQuantity: quantity,
               promoCode,
@@ -114,7 +129,7 @@ function PayPalCheckout({
           onApprove: async (approvalData: { orderID?: string }) => {
             if (!approvalData.orderID) throw new Error('PayPal did not return an order ID.')
             setMessage('Confirming your PayPal payment…')
-            const result = await capturePayPalOrder(approvalData.orderID)
+            const result = await capturePayPalOrder(server, approvalData.orderID)
             if (cancelled) return
             setStatus('completed')
             setMessage(`Payment completed · ${result.captureId}`)
@@ -151,7 +166,7 @@ function PayPalCheckout({
       cancelled = true
       void buttons?.close?.()
     }
-  }, [data.packageQuantity, data.playerId, data.username, onCompleted, promoCode, selectedPackageId])
+  }, [server, data.packageQuantity, data.playerId, data.username, onCompleted, promoCode, selectedPackageId])
 
   if (data.paypalPaymentStatus === 'COMPLETED' && data.paypalCaptureId) {
     return (
@@ -259,6 +274,7 @@ function PaymentDetailRow({
 }
 
 export function StepPayment({
+  server,
   data,
   selectedPackageAmount,
   selectedPackageId,
@@ -269,6 +285,7 @@ export function StepPayment({
   onNext,
   onBack,
 }: {
+  server: PlayCrowsServer
   data: FormData
   selectedPackageAmount: number | null
   selectedPackageId: string | null

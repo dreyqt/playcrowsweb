@@ -464,6 +464,7 @@ export function AdminApp() {
   const [loadError, setLoadError] = useState('')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | DonationStatus>('all')
+  const [serverFilter, setServerFilter] = useState<'all' | 'v1' | 'v2'>('all')
   const [selected, setSelected] = useState<DonationRecord | null>(null)
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState<DonationStatus>('pending')
@@ -516,7 +517,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -556,19 +557,22 @@ export function AdminApp() {
     return donations.filter(donation => {
       const statusMatches =
         statusFilter === 'all' || donation.status === statusFilter
+      const serverMatches =
+        serverFilter === 'all' || donation.server === serverFilter
 
       const searchMatches =
         !query ||
         donation.reference_code.toLowerCase().includes(query) ||
+        donation.server.toLowerCase().includes(query) ||
         donation.player_id.toLowerCase().includes(query) ||
         donation.username.toLowerCase().includes(query) ||
         donation.payment_method.toLowerCase().includes(query) ||
         donation.selected_package_id?.toLowerCase().includes(query) ||
         donation.selected_package_title?.toLowerCase().includes(query)
 
-      return statusMatches && searchMatches
+      return statusMatches && serverMatches && searchMatches
     })
-  }, [donations, search, statusFilter])
+  }, [donations, search, statusFilter, serverFilter])
 
   const counts = useMemo(
     () => ({
@@ -684,7 +688,7 @@ const openReceipt = async () => {
     if (!fulfillmentEvidence) return setSaveMessage('Upload the original backend ledger screenshot before marking this package delivered.')
     setSaving(true); setSaveMessage('Uploading fulfillment evidence…')
     const safeName = fulfillmentEvidence.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-    const evidencePath = `fulfillment/${selected.reference_code}/${Date.now()}-${safeName}`
+    const evidencePath = `fulfillment/${selected.server}/${selected.reference_code}/${Date.now()}-${safeName}`
     const upload = await supabase.storage.from('payment-receipts').upload(evidencePath, fulfillmentEvidence, { upsert: false, contentType: fulfillmentEvidence.type })
     if (upload.error) { setSaving(false); return setSaveMessage(upload.error.message) }
     const now = new Date().toISOString()
@@ -720,6 +724,7 @@ const openReceipt = async () => {
     try {
       const rows: Array<[string, string]> = [
         ['PlayCrows Reference', selected.reference_code],
+        ['Server', `PlayCrows ${selected.server.toUpperCase()}`],
         ['Submitted', formatDate(selected.created_at)],
         ['Player ID', selected.player_id],
         ['Character / Username', selected.username],
@@ -803,7 +808,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
       )
       .single()
 
@@ -981,6 +986,16 @@ const openReceipt = async () => {
             placeholder="Search reference, player, package, or payment method"
             className="min-h-11 flex-1 rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-sm outline-none focus:border-[#c9aa68]"
           />
+          <select
+            value={serverFilter}
+            onChange={event => setServerFilter(event.target.value as 'all' | 'v1' | 'v2')}
+            className="min-h-11 rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-xs font-bold text-[#d7d2c8] outline-none focus:border-[#c9aa68]"
+            aria-label="Filter by server"
+          >
+            <option value="all">All Servers</option>
+            <option value="v1">PlayCrows V1</option>
+            <option value="v2">PlayCrows V2</option>
+          </select>
           <a
             href="/admin/events"
             className="rounded-lg border border-[#c9aa68]/45 bg-[#c9aa68]/8 px-3 py-2 text-xs font-bold text-[#c9aa68] no-underline hover:bg-[#c9aa68]/12"
@@ -1010,6 +1025,7 @@ const openReceipt = async () => {
               <thead className="bg-[#171a20] text-[10px] uppercase tracking-widest text-[#8f8b84]">
                 <tr>
                   <th className="w-[135px] px-4 py-3">Reference</th>
+                  <th className="w-[90px] px-3 py-3">Server</th>
                   <th className="w-[150px] px-4 py-3">Submitted</th>
                   <th className="w-[165px] px-4 py-3">Player</th>
                   <th className="w-[110px] px-3 py-3">Category</th>
@@ -1026,6 +1042,11 @@ const openReceipt = async () => {
                   <tr key={donation.id} className="border-t border-[#292d34] text-sm">
                     <td className="px-4 py-4 font-mono text-xs text-[#c9aa68]">
                       {donation.reference_code}
+                    </td>
+                    <td className="px-3 py-4">
+                      <span className="inline-flex rounded-full border border-[#c9aa68]/35 bg-[#c9aa68]/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-[#c9aa68]">
+                        {donation.server?.toUpperCase() ?? 'V1'}
+                      </span>
                     </td>
                     <td className="px-4 py-4 text-xs text-[#aaa49a]">
                       <div>{formatTableDate(donation.created_at).date}</div>
@@ -1079,7 +1100,7 @@ const openReceipt = async () => {
 
                 {!loading && filteredDonations.length === 0 && (
                   <tr>
-                    <td colSpan={10} className="px-4 py-12 text-center text-sm text-[#77746e]">
+                    <td colSpan={11} className="px-4 py-12 text-center text-sm text-[#77746e]">
                       No donation submissions match the current filters.
                     </td>
                   </tr>
@@ -1112,6 +1133,7 @@ const openReceipt = async () => {
               <div>
                 <h2 className="text-sm font-bold">Submission Details</h2>
                 <div className="mt-3 rounded-xl border border-[#292d34] bg-[#0d0f13] px-4">
+                  <DetailRow label="Server" value={`PlayCrows ${selected.server.toUpperCase()}`} />
                   <DetailRow label="Player ID" value={selected.player_id} />
                   <DetailRow label="Username" value={selected.username} />
                   <DetailRow label="Amount" value={formatMoney(selected.currency, selected.amount)} />

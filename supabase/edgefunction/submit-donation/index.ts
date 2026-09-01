@@ -66,6 +66,7 @@ async function sendDiscordDonationNotification(options: {
     eventBonusName: string | null
     eventBonusEligible: boolean | null
   }
+  server: PlayCrowsServer
   playerId: string
   username: string
   currency: string
@@ -83,6 +84,7 @@ async function sendDiscordDonationNotification(options: {
     webhookUrl,
     adminDashboardUrl,
     donation,
+    server,
     playerId,
     username,
     currency,
@@ -131,6 +133,11 @@ async function sendDiscordDonationNotification(options: {
         inline: true,
       },
       {
+        name: 'Server',
+        value: `**PlayCrows ${server.toUpperCase()}**`,
+        inline: true,
+      },
+      {
         name: 'Player',
         value: `**${username}**\nID: \`${playerId}\``,
         inline: false,
@@ -159,7 +166,7 @@ async function sendDiscordDonationNotification(options: {
       },
     ],
     footer: {
-      text: 'PlayCrows Donation Center • Click the title to open Admin Dashboard',
+      text: `PlayCrows ${server.toUpperCase()} Donation Center • Click the title to open Admin Dashboard`,
     },
     timestamp: donation.createdAt,
   }
@@ -258,7 +265,7 @@ interface GiftPackageDefinition {
  * Keep this catalog synchronized with src/giftPackageData.ts.
  * The server uses it to prevent clients from changing package prices/titles.
  */
-const GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
+const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'currency-5': { title: 'Diamond Package', amount: 5 },
   'currency-10': { title: 'Diamond Package', amount: 10 },
   'currency-50': { title: 'Diamond Package', amount: 50 },
@@ -283,6 +290,16 @@ const GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'september-supply-1000': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 1000 },
 }
 
+// Server catalogs are intentionally separate. V2 begins mirrored from V1, but
+// either catalog can now be changed independently without affecting the other.
+const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = { ...V1_GIFT_PACKAGES }
+const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
+type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
+
+function parseServer(value: unknown): PlayCrowsServer | null {
+  return value === 'v1' || value === 'v2' ? value : null
+}
+
 const EARLY_PROMO_CODE = 'WEEKEND10'
 const EARLY_PROMO_DISCOUNT_PERCENT = 10
 const EARLY_PROMO_END_TIMESTAMP = Date.parse(
@@ -300,8 +317,8 @@ function roundMoney(amount: number) {
   return Math.round((amount + Number.EPSILON) * 100) / 100
 }
 
-function buildPayPalCustomId(playerId: string, username: string) {
-  return `PC|${playerId.trim()}|${username.trim()}`.slice(0, 127)
+function buildPayPalCustomId(server: PlayCrowsServer, playerId: string, username: string) {
+  return `PC|${server.toUpperCase()}|${playerId.trim()}|${username.trim()}`.slice(0, 127)
 }
 
 function getPayPalBaseUrl() {
@@ -310,9 +327,10 @@ function getPayPalBaseUrl() {
     : 'https://api-m.paypal.com'
 }
 
-async function getPayPalAccessToken() {
-  const clientId = Deno.env.get('PAYPAL_CLIENT_ID')
-  const clientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET')
+async function getPayPalAccessToken(server: PlayCrowsServer) {
+  const suffix = server.toUpperCase()
+  const clientId = Deno.env.get(`PAYPAL_CLIENT_ID_${suffix}`) || Deno.env.get('PAYPAL_CLIENT_ID')
+  const clientSecret = Deno.env.get(`PAYPAL_CLIENT_SECRET_${suffix}`) || Deno.env.get('PAYPAL_CLIENT_SECRET')
 
   if (!clientId || !clientSecret) {
     throw new Error('PayPal server credentials are not configured.')
@@ -337,14 +355,15 @@ async function getPayPalAccessToken() {
 }
 
 async function verifyPayPalOrder(options: {
+  server: PlayCrowsServer
   orderId: string
   captureId: string
   playerId: string
   username: string
   expectedAmountUsd: number
 }) {
-  const { orderId, captureId, playerId, username, expectedAmountUsd } = options
-  const accessToken = await getPayPalAccessToken()
+  const { server, orderId, captureId, playerId, username, expectedAmountUsd } = options
+  const accessToken = await getPayPalAccessToken(server)
 
   const response = await fetch(
     `${getPayPalBaseUrl()}/v2/checkout/orders/${encodeURIComponent(orderId)}`,
@@ -370,7 +389,7 @@ async function verifyPayPalOrder(options: {
     throw new Error('The PayPal capture could not be verified.')
   }
 
-  if (purchaseUnit?.custom_id !== buildPayPalCustomId(playerId, username)) {
+  if (purchaseUnit?.custom_id !== buildPayPalCustomId(server, playerId, username)) {
     throw new Error('The PayPal payment does not match this PlayCrows account.')
   }
 
@@ -431,6 +450,7 @@ export default {
       const website = getText(formData, 'website')
       if (website) return errorResponse('Submission rejected.')
 
+      const server = parseServer(getText(formData, 'server').toLowerCase())
       const playerId = getText(formData, 'playerId')
       const username = getText(formData, 'username')
       const currency = getText(formData, 'currency').toUpperCase()
@@ -451,6 +471,7 @@ export default {
       const paddlePaymentStatus = getText(formData, 'paddlePaymentStatus').toUpperCase()
       const receipt = formData.get('receipt')
 
+      if (!server) return errorResponse('Please select a valid PlayCrows server.')
       if (!playerId) return errorResponse('Player ID is required.')
       if (playerId.length > 100) return errorResponse('Player ID is too long.')
       if (!username) return errorResponse('Username is required.')
@@ -464,7 +485,7 @@ export default {
         return errorResponse('Invalid donation amount mode.')
       }
 
-      const selectedPackage = GIFT_PACKAGES[selectedPackageId]
+      const selectedPackage = GIFT_PACKAGES_BY_SERVER[server][selectedPackageId]
       if (!selectedPackage) {
         return errorResponse('Invalid gift package.')
       }
@@ -582,6 +603,7 @@ export default {
 
         if (
           paddleCustomData.game !== 'playcrows' ||
+          (paddleCustomData.server != null && paddleCustomData.server !== server) ||
           paddleCustomData.package_id !== selectedPackageId ||
           paddleCustomData.player_id !== playerId ||
           paddleCustomData.username !== username
@@ -636,6 +658,7 @@ export default {
 
         try {
           const verification = await verifyPayPalOrder({
+            server,
             orderId: paypalOrderId,
             captureId: paypalCaptureId,
             playerId,
@@ -668,7 +691,7 @@ export default {
 
         extension = FILE_EXTENSIONS[receiptFile.type]
         const today = new Date().toISOString().slice(0, 10)
-        receiptPath = `${today}/${crypto.randomUUID()}.${extension}`
+        receiptPath = `${server}/${today}/${crypto.randomUUID()}.${extension}`
 
         const { error: uploadError } = await context.supabaseAdmin.storage
           .from('payment-receipts')
@@ -686,6 +709,7 @@ export default {
       const { data: donation, error: insertError } = await context.supabaseAdmin
         .from('donations')
         .insert({
+          server,
           player_id: playerId,
           username,
           currency: recordedCurrency,
@@ -736,9 +760,9 @@ export default {
       }
 
 
-      const discordWebhookUrl = Deno.env.get(
-        'DISCORD_DONATION_WEBHOOK_URL'
-      )
+      const discordWebhookUrl =
+        Deno.env.get(`DISCORD_DONATION_WEBHOOK_URL_${server.toUpperCase()}`) ||
+        Deno.env.get('DISCORD_DONATION_WEBHOOK_URL')
 
       const adminDashboardUrl =
         Deno.env.get('ADMIN_DASHBOARD_URL') ||
@@ -755,6 +779,7 @@ export default {
               eventBonusName: donation.event_bonus_name ?? null,
               eventBonusEligible: donation.event_bonus_eligible ?? null,
             },
+            server,
             playerId,
             username,
             currency: recordedCurrency,

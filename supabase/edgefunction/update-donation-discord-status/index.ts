@@ -87,7 +87,7 @@ Deno.serve(async request => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  const webhookUrl = Deno.env.get('DISCORD_DONATION_WEBHOOK_URL')
+  const defaultWebhookUrl = Deno.env.get('DISCORD_DONATION_WEBHOOK_URL')
   const adminDashboardUrl =
     Deno.env.get('ADMIN_DASHBOARD_URL') || DEFAULT_ADMIN_DASHBOARD_URL
 
@@ -95,9 +95,7 @@ Deno.serve(async request => {
     return jsonResponse({ error: 'Supabase environment is not configured.' }, 500)
   }
 
-  if (!webhookUrl) {
-    return jsonResponse({ error: 'Discord webhook is not configured.' }, 500)
-  }
+
 
   const authorization = request.headers.get('authorization')
   if (!authorization?.startsWith('Bearer ')) {
@@ -161,6 +159,7 @@ Deno.serve(async request => {
     .from('donations')
     .select(`
       id,
+      server,
       reference_code,
       created_at,
       player_id,
@@ -185,6 +184,12 @@ Deno.serve(async request => {
 
   if (donationError || !donation) {
     return jsonResponse({ error: 'Donation was not found.' }, 404)
+  }
+
+  const server = donation.server === 'v2' ? 'v2' : 'v1'
+  const webhookUrl = Deno.env.get(`DISCORD_DONATION_WEBHOOK_URL_${server.toUpperCase()}`) || defaultWebhookUrl
+  if (!webhookUrl) {
+    return jsonResponse({ error: `Discord webhook is not configured for PlayCrows ${server.toUpperCase()}.` }, 500)
   }
 
   if (!donation.discord_message_id) {
@@ -226,6 +231,11 @@ Deno.serve(async request => {
         inline: true,
       },
       {
+        name: 'Server',
+        value: `**PlayCrows ${server.toUpperCase()}**`,
+        inline: true,
+      },
+      {
         name: 'Player',
         value: `**${donation.username}**\nID: \`${donation.player_id}\``,
         inline: false,
@@ -261,7 +271,7 @@ Deno.serve(async request => {
       },
     ],
     footer: {
-      text: 'PlayCrows Donation Center • Click the title to open Admin Dashboard',
+      text: `PlayCrows ${server.toUpperCase()} Donation Center • Click the title to open Admin Dashboard`,
     },
     timestamp: donation.created_at,
   }

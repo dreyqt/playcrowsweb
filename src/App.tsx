@@ -22,6 +22,9 @@ import CrowLogo from './assets/playcrows-icon.jpg'
 import { findGiftPackage } from './giftPackageData'
 import { I18nProvider, useI18n } from './i18n'
 import { LanguageSelector } from './components/LanguageSelector'
+import { ServerSelection } from './components/ServerSelection'
+import type { PlayCrowsServer } from './server'
+import { PLAYCROWS_SERVERS } from './server'
 
 type InformationTab = 'packages' | 'support' | 'cumulative'
 
@@ -42,6 +45,7 @@ const INITIAL: FormData = {
 
 function PublicApp() {
   const { t } = useI18n()
+  const [selectedServer, setSelectedServer] = useState<PlayCrowsServer | null>(null)
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [submissionReference, setSubmissionReference] = useState('')
@@ -107,7 +111,8 @@ function PublicApp() {
   }
 
   const selectGiftPackage = (packageId: string) => {
-    const giftPackage = findGiftPackage(packageId)
+    if (!selectedServer) return
+    const giftPackage = findGiftPackage(selectedServer, packageId)
     if (!giftPackage) return
 
     setAppliedPromoCode(null)
@@ -218,6 +223,7 @@ function PublicApp() {
 
     try {
       const result = await submitDonation({
+        server: selectedServer!,
         data: form,
         selectedPackageAmount: selectedPackage?.amount ?? null,
         selectedPackageId,
@@ -238,7 +244,24 @@ function PublicApp() {
     }
   }
 
-  const selectedPackage = findGiftPackage(selectedPackageId)
+  const changeServer = () => {
+    if (form.receiptPreview) URL.revokeObjectURL(form.receiptPreview)
+    setForm(INITIAL)
+    setStep(1)
+    setSubmitted(false)
+    setSubmissionReference('')
+    setSubmitError('')
+    setAppliedPromoCode(null)
+    setSelectedPackageId(null)
+    setActiveTab('packages')
+    setSelectedServer(null)
+  }
+
+  if (!selectedServer) {
+    return <ServerSelection onSelect={setSelectedServer} />
+  }
+
+  const selectedPackage = selectedServer ? findGiftPackage(selectedServer, selectedPackageId) : null
   const hasSelectedPackage = selectedPackage !== null
 
   const tabClass = (
@@ -282,6 +305,14 @@ function PublicApp() {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={changeServer}
+              className="rounded-lg border border-[#3b414b] bg-[#15181e] px-3 py-2 text-xs font-bold text-[#d9d5cc] transition-colors hover:border-[#c9aa68]/60 hover:text-[#c9aa68]"
+              title="Change server"
+            >
+              {PLAYCROWS_SERVERS[selectedServer].name}
+            </button>
             <a
               href="/events"
               className="rounded-lg border border-[#c9aa68]/35 bg-[#c9aa68]/5 px-3 py-2 text-xs font-bold text-[#c9aa68] no-underline transition-colors hover:bg-[#c9aa68]/10"
@@ -333,6 +364,13 @@ function PublicApp() {
           </section>
         ) : (
           <>
+            <div className="mb-4 flex items-center justify-between rounded-xl border border-[#292d34] bg-[#0f1115] px-4 py-3">
+              <div>
+                <div className="text-[9px] font-black uppercase tracking-[0.18em] text-[#77746e]">Selected Server</div>
+                <div className="mt-0.5 text-sm font-bold text-[#c9aa68]">{PLAYCROWS_SERVERS[selectedServer].name}</div>
+              </div>
+              <button type="button" onClick={changeServer} className="text-xs font-bold text-[#8f8b84] hover:text-[#c9aa68]">Change</button>
+            </div>
             <StepProgress current={step} />
 
             {step === 1 && (
@@ -405,6 +443,7 @@ function PublicApp() {
                 {activeTab === 'packages' &&
                   !hasSelectedPackage && (
                     <GiftPackages
+                      server={selectedServer}
                       selectedPackageId={selectedPackageId}
                       onSelectPackage={selectGiftPackage}
                     />
@@ -464,6 +503,7 @@ function PublicApp() {
 
             {step === 3 && (
               <StepPayment
+                server={selectedServer}
                 data={form}
                 selectedPackageAmount={selectedPackage?.amount ?? null}
                 selectedPackageId={selectedPackageId}

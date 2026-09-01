@@ -1,4 +1,7 @@
+import type { PlayCrowsServer } from '../server'
+
 interface CreatePayPalOrderOptions {
+  server: PlayCrowsServer
   selectedPackageId: string
   packageQuantity: number
   promoCode: string | null
@@ -48,8 +51,8 @@ export async function createPayPalOrder(options: CreatePayPalOrderOptions): Prom
   return payload.orderId
 }
 
-export async function capturePayPalOrder(orderId: string): Promise<CapturePayPalOrderResult> {
-  const payload = await paypalRequest({ action: 'capture', orderId }) as CapturePayPalOrderResult
+export async function capturePayPalOrder(server: PlayCrowsServer, orderId: string): Promise<CapturePayPalOrderResult> {
+  const payload = await paypalRequest({ action: 'capture', server, orderId }) as CapturePayPalOrderResult
   if (!payload.captureId || payload.status !== 'COMPLETED') {
     throw new Error('PayPal payment was not completed.')
   }

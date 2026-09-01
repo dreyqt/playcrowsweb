@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { giftPackages, type GiftPackageCategory } from '../giftPackageData'
+import { getGiftPackages, type GiftPackageCategory } from '../giftPackageData'
+import type { PlayCrowsServer } from '../server'
 import { useI18n } from '../i18n'
 
 interface GiftPackagesProps {
+  server: PlayCrowsServer
   selectedPackageId?: string | null
   onSelectPackage?: (packageId: string) => void
 }
@@ -106,8 +108,9 @@ function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: s
   )
 }
 
-export function GiftPackages({ selectedPackageId, onSelectPackage }: GiftPackagesProps) {
+export function GiftPackages({ server, selectedPackageId, onSelectPackage }: GiftPackagesProps) {
   const { t } = useI18n()
+  const giftPackages = useMemo(() => getGiftPackages(server), [server])
   const sections: Record<GiftPackageCategory, { title: string; description: string }> = {
     currency: { title: t('currency'), description: t('currencyDesc') },
     support: { title: t('supportPackages'), description: t('supportPackagesDesc') },

@@ -1,4 +1,5 @@
 import type { FormData as DonationFormData } from '../types'
+import type { PlayCrowsServer } from '../server'
 
 export interface DonationResponse {
   success: true
@@ -12,6 +13,7 @@ export interface DonationResponse {
 }
 
 interface SubmitDonationOptions {
+  server: PlayCrowsServer
   data: DonationFormData
   selectedPackageAmount: number | null
   selectedPackageId: string | null
@@ -27,6 +29,7 @@ function getRequiredEnvironmentVariable(name: string, value?: string) {
 }
 
 export async function submitDonation({
+  server,
   data,
   selectedPackageAmount,
   selectedPackageId,
@@ -49,6 +52,7 @@ export async function submitDonation({
   const publishableKey = getRequiredEnvironmentVariable('VITE_SUPABASE_PUBLISHABLE_KEY', import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY)
 
   const body = new globalThis.FormData()
+  body.append('server', server)
   body.append('playerId', data.playerId.trim())
   body.append('username', data.username.trim())
   body.append('currency', data.currency)

@@ -2,6 +2,7 @@ export type DonationStatus = 'pending' | 'approved' | 'rejected'
 
 export interface DonationRecord {
   id: string
+  server: 'v1' | 'v2'
   reference_code: string
   created_at: string
   player_id: string

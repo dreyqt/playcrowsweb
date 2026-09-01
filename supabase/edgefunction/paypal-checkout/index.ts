@@ -14,7 +14,7 @@ interface GiftPackageDefinition {
 }
 
 /* Keep synchronized with src/giftPackageData.ts and submit-donation. */
-const GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
+const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'currency-5': { title: 'Diamond Package', amount: 5 },
   'currency-10': { title: 'Diamond Package', amount: 10 },
   'currency-50': { title: 'Diamond Package', amount: 50 },
@@ -40,6 +40,16 @@ const GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
 }
 
 
+// Keep server catalogs separate even while V2 initially mirrors V1.
+// V2 package pricing can now be changed without changing V1 checkout behavior.
+const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = { ...V1_GIFT_PACKAGES }
+const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
+type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
+
+function parseServer(value: unknown): PlayCrowsServer | null {
+  return value === 'v1' || value === 'v2' ? value : null
+}
+
 function jsonResponse(body: unknown, status = 200) {
   return Response.json(body, { status, headers: CORS_HEADERS })
 }
@@ -48,8 +58,8 @@ function roundMoney(amount: number) {
   return Math.round((amount + Number.EPSILON) * 100) / 100
 }
 
-function buildCustomId(playerId: string, username: string) {
-  return `PC|${playerId.trim()}|${username.trim()}`.slice(0, 127)
+function buildCustomId(server: PlayCrowsServer, playerId: string, username: string) {
+  return `PC|${server.toUpperCase()}|${playerId.trim()}|${username.trim()}`.slice(0, 127)
 }
 
 function getPayPalBaseUrl() {
@@ -58,9 +68,10 @@ function getPayPalBaseUrl() {
     : 'https://api-m.paypal.com'
 }
 
-function getPayPalCredentials() {
-  const clientId = Deno.env.get('PAYPAL_CLIENT_ID')
-  const clientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET')
+function getPayPalCredentials(server: PlayCrowsServer) {
+  const suffix = server.toUpperCase()
+  const clientId = Deno.env.get(`PAYPAL_CLIENT_ID_${suffix}`) || Deno.env.get('PAYPAL_CLIENT_ID')
+  const clientSecret = Deno.env.get(`PAYPAL_CLIENT_SECRET_${suffix}`) || Deno.env.get('PAYPAL_CLIENT_SECRET')
 
   if (!clientId || !clientSecret) {
     throw new Error('PayPal server credentials are not configured.')
@@ -69,8 +80,8 @@ function getPayPalCredentials() {
   return { clientId, clientSecret }
 }
 
-async function getPayPalAccessToken() {
-  const { clientId, clientSecret } = getPayPalCredentials()
+async function getPayPalAccessToken(server: PlayCrowsServer) {
+  const { clientId, clientSecret } = getPayPalCredentials(server)
   const auth = btoa(`${clientId}:${clientSecret}`)
 
   const response = await fetch(`${getPayPalBaseUrl()}/v1/oauth2/token`, {
@@ -120,13 +131,15 @@ export default {
 
   try {
     if (action === 'create') {
+      const server = parseServer(body.server)
       const selectedPackageId = String(body.selectedPackageId ?? '').trim()
       const packageQuantity = Number(body.packageQuantity)
       const promoCode = String(body.promoCode ?? '').trim().toUpperCase()
       const playerId = String(body.playerId ?? '').trim()
       const username = String(body.username ?? '').trim()
 
-      const packageDefinition = GIFT_PACKAGES[selectedPackageId]
+      if (!server) return jsonResponse({ error: 'Please select a valid PlayCrows server.' }, 400)
+      const packageDefinition = GIFT_PACKAGES_BY_SERVER[server][selectedPackageId]
       if (!packageDefinition) return jsonResponse({ error: 'Invalid support package.' }, 400)
       if (!Number.isInteger(packageQuantity) || packageQuantity < 1 || packageQuantity > MAX_PACKAGE_QUANTITY) {
         return jsonResponse({ error: 'Invalid package quantity.' }, 400)
@@ -135,7 +148,7 @@ export default {
       if (playerId.length > 100 || username.length > 100) return jsonResponse({ error: 'Player information is too long.' }, 400)
 
       const amount = calculateAmount(packageDefinition, packageQuantity, promoCode)
-      const accessToken = await getPayPalAccessToken()
+      const accessToken = await getPayPalAccessToken(server)
       const requestId = `pc-create-${crypto.randomUUID()}`
 
       const response = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders`, {
@@ -155,10 +168,10 @@ export default {
           },
           purchase_units: [
             {
-              reference_id: 'PLAYCROWS_SUPPORT',
-              custom_id: buildCustomId(playerId, username),
-              description: `${packageDefinition.title} ×${packageQuantity} | PlayCrows Digital Support`.slice(0, 127),
-              invoice_id: `PC-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+              reference_id: `PLAYCROWS_${server.toUpperCase()}_SUPPORT`,
+              custom_id: buildCustomId(server, playerId, username),
+              description: `${packageDefinition.title} ×${packageQuantity} | PlayCrows ${server.toUpperCase()}`.slice(0, 127),
+              invoice_id: `PC-${server.toUpperCase()}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
               amount: {
                 currency_code: 'USD',
                 value: amount.toFixed(2),
@@ -183,10 +196,12 @@ export default {
     }
 
     if (action === 'capture') {
+      const server = parseServer(body.server)
+      if (!server) return jsonResponse({ error: 'Please select a valid PlayCrows server.' }, 400)
       const orderId = String(body.orderId ?? '').trim()
       if (!/^[A-Z0-9]+$/i.test(orderId)) return jsonResponse({ error: 'Invalid PayPal order ID.' }, 400)
 
-      const accessToken = await getPayPalAccessToken()
+      const accessToken = await getPayPalAccessToken(server)
       const response = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
         method: 'POST',
         headers: {
