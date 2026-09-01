@@ -27,7 +27,7 @@ export function ServerSelection({ onSelect }: { onSelect: (server: PlayCrowsServ
 
         <section className="relative z-10 w-full">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="text-xs font-black uppercase tracking-[0.28em] text-[#d6ad54]">Donation Center</div>
+            <div className="text-xs font-black uppercase tracking-[0.28em] text-[#d6ad54]">WEB SHOP</div>
             <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-5xl">Select Your Server</h1>
           </div>
 
