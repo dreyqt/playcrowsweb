@@ -14,19 +14,18 @@ link is submitted by a different Player ID, both claims are permanently marked
 with their conflicting reference codes. The dashboard also blocks approval if
 the matching link already belongs to an approved claim.
 
-## Promotional link for KO / TW / RU
+## Promotional post for KO / TW / RU
 
-These languages ask players to copy one V2 link and publish it on five different
-active promotional/community sites. Configure the exact link in Vercel:
-
-```text
-VITE_V2_PROMOTION_URL=https://your-v2-information-page.example
-```
-
-When this variable is not configured, the form uses the event link supplied for
-the promotion: `https://www.facebook.com/share/p/1EsoFCFXef/`.
+These languages display a complete localized V2 server announcement with a
+one-click copy button. Players publish the entire announcement on five different
+active promotional/community sites and submit the direct links to those posts.
 
 Claims and proof links are saved privately in `v2_beta_claims`. Invite Tracker images are stored in the private `v2-beta-proofs` Storage bucket. Administrators can review claims in the Supabase Table Editor and view images through Storage.
+
+The public claim page also includes privacy-safe results. It displays the
+Discord ID, selected event, and processing status. Rejected claims also display
+their rejection reason so players know what to correct. Player IDs, nicknames,
+proof links, reference codes, and private admin notes remain private.
 
 ## Disable after the beta test
 

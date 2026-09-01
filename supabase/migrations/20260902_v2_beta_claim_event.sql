@@ -93,6 +93,9 @@ create policy "Admins manage beta claims" on public.v2_beta_claims for all to au
 using (exists (select 1 from public.admin_users a where a.user_id = auth.uid()))
 with check (exists (select 1 from public.admin_users a where a.user_id = auth.uid()));
 
+grant select, update on table public.v2_beta_claims to authenticated;
+grant select, update on table public.v2_beta_claim_settings to authenticated;
+
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('v2-beta-proofs', 'v2-beta-proofs', false, 5242880, array['image/jpeg','image/png','image/webp'])
 on conflict (id) do update set public = false, file_size_limit = 5242880,
@@ -116,6 +119,28 @@ language sql security definer set search_path = public
 as $$ select coalesce((select s.enabled from public.v2_beta_claim_settings s where s.id = true), false); $$;
 revoke all on function public.get_v2_beta_claim_status() from public;
 grant execute on function public.get_v2_beta_claim_status() to anon, authenticated;
+
+-- Privacy-safe public results. Rejection reasons are public so players can
+-- correct a claim; Player ID, nickname, proof, reference code, and private
+-- admin notes are never exposed.
+drop function if exists public.get_v2_beta_public_results();
+create or replace function public.get_v2_beta_public_results()
+returns table(discord_id text, event_type text, public_status text, review_note text)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select c.discord_id,
+         c.event_type,
+         case when c.status = 'pending' then 'pending' when c.status = 'rejected' then 'rejected' else 'processed' end,
+         case when c.status = 'rejected' then c.rejection_reason else null end
+    from public.v2_beta_claims c
+   order by c.created_at desc
+   limit 500;
+$$;
+revoke all on function public.get_v2_beta_public_results() from public;
+grant execute on function public.get_v2_beta_public_results() to anon, authenticated;
 
 create or replace function public.submit_v2_beta_claim(
   p_player_id text, p_nickname text, p_discord_id text, p_event_type text,
