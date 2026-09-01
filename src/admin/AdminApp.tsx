@@ -1002,6 +1002,12 @@ const openReceipt = async () => {
           >
             Event Admin
           </a>
+          <a
+            href="/admin/v2-beta-claims"
+            className="rounded-lg border border-[#a78bfa]/45 bg-[#a78bfa]/8 px-3 py-2 text-xs font-bold text-[#a78bfa] no-underline hover:bg-[#a78bfa]/12"
+          >
+            V2 Beta Claims
+          </a>
 
           <button
             type="button"
