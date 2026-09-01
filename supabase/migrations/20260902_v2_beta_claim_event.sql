@@ -26,7 +26,6 @@ create table if not exists public.v2_beta_claims (
   duplicate_link_references text[] not null default '{}'::text[],
   status text not null default 'pending' check (status in ('pending','approved','rejected')),
   rejection_reason text,
-  admin_notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -49,7 +48,12 @@ as $$
   );
 $$;
 
--- Backfill security marks if this migration is rerun after claims already exist.
+-- Rejected claims are retryable and do not participate in duplicate security.
+update public.v2_beta_claims
+   set duplicate_link_detected = false,
+       duplicate_link_references = '{}'::text[];
+
+-- Backfill security marks only for pending and processed (approved) claims.
 with duplicate_claims as (
   select c1.id, array_agg(distinct c2.reference_code) as references
     from public.v2_beta_claims c1
@@ -57,6 +61,8 @@ with duplicate_claims as (
     cross join public.v2_beta_claims c2
     cross join lateral jsonb_array_elements_text(c2.proof_links) link2(value)
    where c2.id <> c1.id
+     and c1.status in ('pending','approved')
+     and c2.status in ('pending','approved')
      and lower(trim(c2.player_id)) <> lower(trim(c1.player_id))
      and public.normalize_v2_beta_proof_url(link2.value) = public.normalize_v2_beta_proof_url(link1.value)
    group by c1.id
@@ -67,11 +73,14 @@ update public.v2_beta_claims claim
   from duplicate_claims
  where claim.id = duplicate_claims.id;
 
-create unique index if not exists v2_beta_claims_player_daily_event_uq
-  on public.v2_beta_claims (lower(trim(player_id)), event_type, claim_date);
+drop index if exists public.v2_beta_claims_player_daily_event_uq;
+create unique index v2_beta_claims_player_daily_event_uq
+  on public.v2_beta_claims (lower(trim(player_id)), event_type, claim_date)
+  where status in ('pending','approved');
 drop index if exists public.v2_beta_claims_discord_daily_event_uq;
 create unique index v2_beta_claims_discord_daily_event_uq
-  on public.v2_beta_claims (lower(trim(discord_id)), event_type, claim_date);
+  on public.v2_beta_claims (lower(trim(discord_id)), event_type, claim_date)
+  where status in ('pending','approved');
 create index if not exists v2_beta_claims_review_idx
   on public.v2_beta_claims (status, created_at desc);
 
@@ -121,8 +130,7 @@ revoke all on function public.get_v2_beta_claim_status() from public;
 grant execute on function public.get_v2_beta_claim_status() to anon, authenticated;
 
 -- Privacy-safe public results. Rejection reasons are public so players can
--- correct a claim; Player ID, nickname, proof, reference code, and private
--- admin notes are never exposed.
+-- correct a claim; Player ID, nickname, proof, and reference code are never exposed.
 drop function if exists public.get_v2_beta_public_results();
 create or replace function public.get_v2_beta_public_results()
 returns table(discord_id text, event_type text, public_status text, review_note text)
@@ -167,15 +175,16 @@ begin
      or (p_event_type in ('invite_discord','share_livestream') and v_count <> 1) then raise exception 'Complete and unique proof links are required.'; end if;
   if p_event_type = 'invite_discord' and (coalesce(p_screenshot_path,'') = '' or not exists (select 1 from storage.objects where bucket_id='v2-beta-proofs' and name=p_screenshot_path)) then raise exception 'Invite Tracker screenshot is required.'; end if;
   if p_event_type <> 'invite_discord' and p_screenshot_path is not null then raise exception 'Unexpected screenshot.'; end if;
-  if exists (select 1 from public.v2_beta_claims c where c.event_type=p_event_type and c.claim_date=v_claim_date and (lower(trim(c.player_id))=lower(trim(p_player_id)) or lower(trim(c.discord_id))=lower(trim(p_discord_id)))) then raise exception 'You already submitted this event today. You may submit it again after midnight GMT+8.'; end if;
+  if exists (select 1 from public.v2_beta_claims c where c.event_type=p_event_type and c.claim_date=v_claim_date and c.status in ('pending','approved') and (lower(trim(c.player_id))=lower(trim(p_player_id)) or lower(trim(c.discord_id))=lower(trim(p_discord_id)))) then raise exception 'You already have a pending or processed submission for this event today.'; end if;
   select array_agg(distinct public.normalize_v2_beta_proof_url(value))
     into v_normalized_links
     from jsonb_array_elements_text(p_proof_links);
   select coalesce(array_agg(distinct c.reference_code), '{}'::text[])
     into v_duplicate_refs
-    from public.v2_beta_claims c
+   from public.v2_beta_claims c
     cross join lateral jsonb_array_elements_text(c.proof_links) existing_link(value)
    where lower(trim(c.player_id)) <> lower(trim(p_player_id))
+     and c.status in ('pending','approved')
      and public.normalize_v2_beta_proof_url(existing_link.value) = any(v_normalized_links);
   v_reference := 'V2-' || upper(substr(replace(gen_random_uuid()::text,'-',''),1,10));
   insert into public.v2_beta_claims(reference_code,player_id,nickname,discord_id,event_type,locale,claim_date,proof_links,screenshot_path,duplicate_link_detected,duplicate_link_references)
@@ -189,10 +198,11 @@ begin
                from unnest(coalesce(c.duplicate_link_references, '{}'::text[]) || array[v_reference]) item
            ),
            updated_at = now()
-     where c.reference_code = any(v_duplicate_refs);
+     where c.reference_code = any(v_duplicate_refs)
+       and c.status in ('pending','approved');
   end if;
   return query select v_id, v_reference;
-exception when unique_violation then raise exception 'You already submitted this event today. You may submit it again after midnight GMT+8.';
+exception when unique_violation then raise exception 'You already have a pending or processed submission for this event today.';
 end; $$;
 revoke all on function public.submit_v2_beta_claim(text,text,text,text,text,jsonb,text) from public;
 grant execute on function public.submit_v2_beta_claim(text,text,text,text,text,jsonb,text) to anon, authenticated;
@@ -207,6 +217,15 @@ security definer
 set search_path = public
 as $$
 begin
+  if new.status = 'rejected' then
+    new.duplicate_link_detected := false;
+    new.duplicate_link_references := '{}'::text[];
+    update public.v2_beta_claims c
+       set duplicate_link_references = array_remove(coalesce(c.duplicate_link_references, '{}'::text[]), old.reference_code),
+           duplicate_link_detected = cardinality(array_remove(coalesce(c.duplicate_link_references, '{}'::text[]), old.reference_code)) > 0,
+           updated_at = now()
+     where old.reference_code = any(coalesce(c.duplicate_link_references, '{}'::text[]));
+  end if;
   if new.status = 'approved' and old.status is distinct from 'approved' and exists (
     select 1
       from public.v2_beta_claims other
