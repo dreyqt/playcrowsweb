@@ -43,6 +43,10 @@ declare global {
 const paypalSdkPromises: Partial<Record<PlayCrowsServer, Promise<void>>> = {}
 
 function loadPayPalSdk(server: PlayCrowsServer) {
+  if (server !== 'v1' && server !== 'v2') {
+    return Promise.reject(new Error('Please select a valid PlayCrows server before opening PayPal checkout.'))
+  }
+
   const existingForServer = document.querySelector<HTMLScriptElement>(`script[data-playcrows-paypal-server="${server}"]`)
   if (window.paypal?.Buttons && existingForServer) return Promise.resolve()
   if (paypalSdkPromises[server]) return paypalSdkPromises[server]!
@@ -684,6 +688,7 @@ export function StepPayment({
           {/* PayPal */}
           {data.paymentMethod === 'paypal' && (
             <PayPalCheckout
+              server={server}
               data={data}
               selectedPackageId={selectedPackageId}
               promoCode={promoApplied ? EARLY_PROMO_CODE : null}
