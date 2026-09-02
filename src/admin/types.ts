@@ -23,7 +23,10 @@ export interface DonationRecord {
   receipt_size_bytes: number | null
   status: DonationStatus
   admin_notes: string | null
+  paypal_order_id: string | null
+  paypal_capture_id: string | null
   paypal_transaction_id: string | null
+  paypal_payer_email: string | null
   paddle_transaction_id: string | null
   payment_verified_at: string | null
   fulfillment_status: 'not_delivered' | 'delivered'

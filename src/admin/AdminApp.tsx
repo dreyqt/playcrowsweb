@@ -517,7 +517,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -588,7 +588,7 @@ export function AdminApp() {
     setSelected(donation)
     setNotes(donation.admin_notes ?? '')
     setStatus(donation.status)
-    setPaypalTransactionId(donation.paypal_transaction_id ?? '')
+    setPaypalTransactionId(donation.paypal_transaction_id ?? donation.paypal_capture_id ?? '')
     setPaymentVerified(Boolean(donation.payment_verified_at))
     const defaultDeliveredTo = donation.delivered_to ?? donation.username ?? ''
     const baseItemsDelivered = getDefaultItemsDelivered(donation)
@@ -722,6 +722,15 @@ const openReceipt = async () => {
     setGeneratingEvidencePdf(true)
     setSaveMessage('Building evidence PDF…')
     try {
+      const paymentRows: Array<[string, string]> = selected.payment_method === 'paypal'
+        ? [
+            ['PayPal Order ID', selected.paypal_order_id ?? 'Not recorded'],
+            ['PayPal Transaction ID', selected.paypal_transaction_id ?? selected.paypal_capture_id ?? 'Not recorded'],
+            ['PayPal Payer Email', selected.paypal_payer_email ?? 'Not recorded'],
+          ]
+        : selected.payment_method === 'paddle'
+          ? [['Paddle Transaction ID', selected.paddle_transaction_id ?? 'Not recorded']]
+          : []
       const rows: Array<[string, string]> = [
         ['PlayCrows Reference', selected.reference_code],
         ['Server', `PlayCrows ${selected.server.toUpperCase()}`],
@@ -730,8 +739,7 @@ const openReceipt = async () => {
         ['Character / Username', selected.username],
         ['Payment Method', PAYMENT_LABELS[selected.payment_method]],
         ['Amount', formatMoney(selected.currency, selected.amount)],
-        ['PayPal Transaction ID', selected.paypal_transaction_id ?? 'Not recorded'],
-        ['Paddle Transaction ID', selected.paddle_transaction_id ?? 'Not recorded'],
+        ...paymentRows,
         ['Payment Verified', selected.payment_verified_at ? formatDate(selected.payment_verified_at) : 'No'],
         ['Package', getPackageDisplayName(selected)],
         ['Quantity', String(selected.package_quantity ?? 1)],
@@ -808,7 +816,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_transaction_id, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
       )
       .single()
 
@@ -1200,6 +1208,11 @@ const openReceipt = async () => {
                   <DetailRow label="Package ID" value={selected.selected_package_id ?? 'Legacy record'} />
                   <DetailRow label="Additional Notes" value={selected.additional_notes ?? 'None'} />
                   <DetailRow label="Payment Method" value={PAYMENT_LABELS[selected.payment_method]} />
+                  {selected.payment_method === 'paypal' && <>
+                    <DetailRow label="PayPal Order ID" value={selected.paypal_order_id ?? 'Not recorded'} />
+                    <DetailRow label="PayPal Transaction ID" value={selected.paypal_transaction_id ?? selected.paypal_capture_id ?? 'Not recorded'} />
+                    <DetailRow label="PayPal Payer Email" value={selected.paypal_payer_email ?? 'Not recorded'} />
+                  </>}
                   {selected.payment_method === 'paddle' && <DetailRow label="Paddle Transaction ID" value={selected.paddle_transaction_id ?? 'Not recorded'} />}
                   <DetailRow
                     label="Receipt File"

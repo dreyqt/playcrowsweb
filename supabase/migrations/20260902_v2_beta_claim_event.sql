@@ -24,7 +24,7 @@ create table if not exists public.v2_beta_claims (
   screenshot_path text,
   duplicate_link_detected boolean not null default false,
   duplicate_link_references text[] not null default '{}'::text[],
-  status text not null default 'pending' check (status in ('pending','approved','rejected')),
+  status text not null default 'for_review' check (status in ('for_review','pending','approved','rejected')),
   rejection_reason text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -33,6 +33,30 @@ create table if not exists public.v2_beta_claims (
 -- Safe when upgrading an installation created by an earlier migration version.
 alter table public.v2_beta_claims add column if not exists duplicate_link_detected boolean not null default false;
 alter table public.v2_beta_claims add column if not exists duplicate_link_references text[] not null default '{}'::text[];
+
+-- Upgrade the original workflow once: legacy "pending" meant unreviewed.
+-- On later reruns, manually reviewed "pending" rows are preserved.
+alter table public.v2_beta_claims drop constraint if exists v2_beta_claims_status_check;
+do $$
+declare
+  v_legacy_pending_default boolean := false;
+begin
+  select coalesce(column_default like '%pending%' and column_default not like '%for_review%', false)
+    into v_legacy_pending_default
+    from information_schema.columns
+   where table_schema = 'public'
+     and table_name = 'v2_beta_claims'
+     and column_name = 'status';
+
+  alter table public.v2_beta_claims alter column status set default 'for_review';
+
+  if v_legacy_pending_default then
+    update public.v2_beta_claims set status = 'for_review' where status = 'pending';
+  end if;
+end;
+$$;
+alter table public.v2_beta_claims add constraint v2_beta_claims_status_check
+  check (status in ('for_review','pending','approved','rejected'));
 
 create or replace function public.normalize_v2_beta_proof_url(p_url text)
 returns text
@@ -53,7 +77,7 @@ update public.v2_beta_claims
    set duplicate_link_detected = false,
        duplicate_link_references = '{}'::text[];
 
--- Backfill security marks only for pending and processed (approved) claims.
+-- Backfill security marks for every active claim. Rejected claims remain retryable.
 with duplicate_claims as (
   select c1.id, array_agg(distinct c2.reference_code) as references
     from public.v2_beta_claims c1
@@ -61,8 +85,8 @@ with duplicate_claims as (
     cross join public.v2_beta_claims c2
     cross join lateral jsonb_array_elements_text(c2.proof_links) link2(value)
    where c2.id <> c1.id
-     and c1.status in ('pending','approved')
-     and c2.status in ('pending','approved')
+     and c1.status in ('for_review','pending','approved')
+     and c2.status in ('for_review','pending','approved')
      and lower(trim(c2.player_id)) <> lower(trim(c1.player_id))
      and public.normalize_v2_beta_proof_url(link2.value) = public.normalize_v2_beta_proof_url(link1.value)
    group by c1.id
@@ -76,11 +100,11 @@ update public.v2_beta_claims claim
 drop index if exists public.v2_beta_claims_player_daily_event_uq;
 create unique index v2_beta_claims_player_daily_event_uq
   on public.v2_beta_claims (lower(trim(player_id)), event_type, claim_date)
-  where status in ('pending','approved');
+  where status in ('for_review','pending','approved');
 drop index if exists public.v2_beta_claims_discord_daily_event_uq;
 create unique index v2_beta_claims_discord_daily_event_uq
   on public.v2_beta_claims (lower(trim(discord_id)), event_type, claim_date)
-  where status in ('pending','approved');
+  where status in ('for_review','pending','approved');
 create index if not exists v2_beta_claims_review_idx
   on public.v2_beta_claims (status, created_at desc);
 
@@ -141,7 +165,12 @@ set search_path = public
 as $$
   select c.discord_id,
          c.event_type,
-         case when c.status = 'pending' then 'pending' when c.status = 'rejected' then 'rejected' else 'processed' end,
+         case
+           when c.status = 'for_review' then 'for_review'
+           when c.status = 'pending' then 'pending'
+           when c.status = 'rejected' then 'rejected'
+           else 'processed'
+         end,
          case when c.status = 'rejected' then c.rejection_reason else null end
     from public.v2_beta_claims c
    order by c.created_at desc
@@ -175,7 +204,7 @@ begin
      or (p_event_type in ('invite_discord','share_livestream') and v_count <> 1) then raise exception 'Complete and unique proof links are required.'; end if;
   if p_event_type = 'invite_discord' and (coalesce(p_screenshot_path,'') = '' or not exists (select 1 from storage.objects where bucket_id='v2-beta-proofs' and name=p_screenshot_path)) then raise exception 'Invite Tracker screenshot is required.'; end if;
   if p_event_type <> 'invite_discord' and p_screenshot_path is not null then raise exception 'Unexpected screenshot.'; end if;
-  if exists (select 1 from public.v2_beta_claims c where c.event_type=p_event_type and c.claim_date=v_claim_date and c.status in ('pending','approved') and (lower(trim(c.player_id))=lower(trim(p_player_id)) or lower(trim(c.discord_id))=lower(trim(p_discord_id)))) then raise exception 'You already have a pending or processed submission for this event today.'; end if;
+  if exists (select 1 from public.v2_beta_claims c where c.event_type=p_event_type and c.claim_date=v_claim_date and c.status in ('for_review','pending','approved') and (lower(trim(c.player_id))=lower(trim(p_player_id)) or lower(trim(c.discord_id))=lower(trim(p_discord_id)))) then raise exception 'You already have an active submission for this event today.'; end if;
   select array_agg(distinct public.normalize_v2_beta_proof_url(value))
     into v_normalized_links
     from jsonb_array_elements_text(p_proof_links);
@@ -184,7 +213,7 @@ begin
    from public.v2_beta_claims c
     cross join lateral jsonb_array_elements_text(c.proof_links) existing_link(value)
    where lower(trim(c.player_id)) <> lower(trim(p_player_id))
-     and c.status in ('pending','approved')
+     and c.status in ('for_review','pending','approved')
      and public.normalize_v2_beta_proof_url(existing_link.value) = any(v_normalized_links);
   v_reference := 'V2-' || upper(substr(replace(gen_random_uuid()::text,'-',''),1,10));
   insert into public.v2_beta_claims(reference_code,player_id,nickname,discord_id,event_type,locale,claim_date,proof_links,screenshot_path,duplicate_link_detected,duplicate_link_references)
@@ -199,17 +228,16 @@ begin
            ),
            updated_at = now()
      where c.reference_code = any(v_duplicate_refs)
-       and c.status in ('pending','approved');
+       and c.status in ('for_review','pending','approved');
   end if;
   return query select v_id, v_reference;
-exception when unique_violation then raise exception 'You already have a pending or processed submission for this event today.';
+exception when unique_violation then raise exception 'You already have an active submission for this event today.';
 end; $$;
 revoke all on function public.submit_v2_beta_claim(text,text,text,text,text,jsonb,text) from public;
 grant execute on function public.submit_v2_beta_claim(text,text,text,text,text,jsonb,text) to anon, authenticated;
 
--- Database-level guard: the admin UI is not the only protection. A claim
--- cannot be approved when one of its proof URLs already belongs to an approved
--- claim submitted under a different Player ID.
+-- Database-level workflow and duplicate guard. Admins must move claims through
+-- For Review -> Pending -> Processed; rejection is allowed during review.
 create or replace function public.guard_v2_beta_duplicate_approval()
 returns trigger
 language plpgsql
@@ -217,6 +245,20 @@ security definer
 set search_path = public
 as $$
 begin
+  if new.status is not distinct from old.status then
+    return new;
+  end if;
+
+  if new.status = 'pending' and old.status <> 'for_review' then
+    raise exception 'Only a claim marked For Review can be moved to Pending.';
+  end if;
+  if new.status = 'approved' and old.status <> 'pending' then
+    raise exception 'Only a Pending claim can be marked Processed.';
+  end if;
+  if new.status = 'rejected' and old.status not in ('for_review','pending') then
+    raise exception 'Only a claim under review or Pending can be rejected.';
+  end if;
+
   if new.status = 'rejected' then
     new.duplicate_link_detected := false;
     new.duplicate_link_references := '{}'::text[];
@@ -226,7 +268,7 @@ begin
            updated_at = now()
      where old.reference_code = any(coalesce(c.duplicate_link_references, '{}'::text[]));
   end if;
-  if new.status = 'approved' and old.status is distinct from 'approved' and exists (
+  if new.status = 'approved' and exists (
     select 1
       from public.v2_beta_claims other
       cross join lateral jsonb_array_elements_text(other.proof_links) other_link(value)
@@ -236,7 +278,7 @@ begin
        and lower(trim(other.player_id)) <> lower(trim(new.player_id))
        and public.normalize_v2_beta_proof_url(other_link.value) = public.normalize_v2_beta_proof_url(new_link.value)
   ) then
-    raise exception 'Approval blocked: a proof link is already used by an approved claim with a different Player ID.';
+    raise exception 'Processing blocked: a proof link is already used by a processed claim with a different Player ID.';
   end if;
   return new;
 end;

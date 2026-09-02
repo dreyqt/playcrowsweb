@@ -8,12 +8,17 @@
 The protected review dashboard is available at `/admin/v2-beta-claims`. Sign in
 with the same authorized Supabase administrator account used by the existing
 PlayCrows admin pages. It provides separate event counters, filters, search,
-proof links, private Invite Tracker screenshots, and approve/reject actions.
+proof links, private Invite Tracker screenshots, and review actions. Every new
+submission starts as **For Review**. Admins move a valid claim to **Pending**
+(ready to process), then mark it **Processed** after fulfillment. A claim can be
+rejected while it is For Review or Pending.
+
 Proof URLs are normalized and compared across different Player IDs while a
-claim is pending or approved. Matching active claims are marked with their
-conflicting reference codes, and approval is blocked when a matching link
-already belongs to an approved claim. Rejected claims are removed from these
-security checks and can be corrected and submitted again, even on the same day.
+claim is active (For Review, Pending, or Processed). Matching active claims are
+marked with their conflicting reference codes, and processing is blocked when
+a matching link already belongs to a processed claim. Rejected claims are
+removed from these security checks and can be corrected and submitted again,
+even on the same day.
 
 ## Promotional post for KO / TW / RU
 
