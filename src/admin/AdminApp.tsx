@@ -477,6 +477,10 @@ export function AdminApp() {
   const [itemsDelivered, setItemsDelivered] = useState('')
   const [fulfillmentEvidence, setFulfillmentEvidence] = useState<File | null>(null)
   const [generatingEvidencePdf, setGeneratingEvidencePdf] = useState(false)
+  const [recoverPaypalId, setRecoverPaypalId] = useState('')
+  const [recoverServer, setRecoverServer] = useState<'v1' | 'v2'>('v1')
+  const [recoveringPaypal, setRecoveringPaypal] = useState(false)
+  const [recoverPaypalMessage, setRecoverPaypalMessage] = useState('')
 
   const verifyAdmin = async (currentSession?: Session | null) => {
     const activeSession =
@@ -901,6 +905,55 @@ const openReceipt = async () => {
     }
   }
 
+  const recoverPayPalPayment = async (event: FormEvent) => {
+    event.preventDefault()
+    const paypalId = recoverPaypalId.trim()
+    if (!paypalId) {
+      setRecoverPaypalMessage('Enter the PayPal Order ID or Capture ID.')
+      return
+    }
+    if (!session?.access_token) {
+      setRecoverPaypalMessage('Your admin session has expired. Sign in again.')
+      return
+    }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
+    const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+    if (!supabaseUrl || !publishableKey) {
+      setRecoverPaypalMessage('Supabase frontend environment variables are missing.')
+      return
+    }
+
+    setRecoveringPaypal(true)
+    setRecoverPaypalMessage('Verifying the payment directly with PayPal…')
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/recover-paypal-payment`, {
+        method: 'POST',
+        headers: {
+          apikey: publishableKey,
+          authorization: `Bearer ${session.access_token}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ paypalId, server: recoverServer }),
+      })
+      const payload = await response.json().catch(() => null) as {
+        error?: string
+        message?: string
+        referenceCode?: string
+      } | null
+      if (!response.ok) {
+        throw new Error(payload?.error ?? `Recovery failed with status ${response.status}.`)
+      }
+      setRecoverPaypalMessage(payload?.message ?? 'PayPal payment recovered successfully.')
+      setRecoverPaypalId('')
+      await loadDonations()
+    } catch (error) {
+      setRecoverPaypalMessage(error instanceof Error ? error.message : 'Unable to recover PayPal payment.')
+    } finally {
+      setRecoveringPaypal(false)
+    }
+  }
+
   const signOut = async () => {
     await supabase.auth.signOut()
     setAuthorized(false)
@@ -1026,6 +1079,49 @@ const openReceipt = async () => {
             {loading ? 'Refreshing…' : 'Refresh'}
           </button>
         </div>
+
+        <form
+          onSubmit={event => void recoverPayPalPayment(event)}
+          className="mt-4 rounded-xl border border-[#0070ba]/35 bg-[#0070ba]/5 p-4"
+        >
+          <div className="flex flex-col gap-1">
+            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#63b3ed]">Admin Tool</div>
+            <div className="text-sm font-bold text-[#eee9df]">Recover PayPal Payment</div>
+            <div className="text-xs text-[#8f8b84]">
+              Use this only when PayPal was completed but the player closed the Donation Center before submitting. The payment is verified with PayPal and duplicate Order/Capture IDs are blocked.
+            </div>
+          </div>
+          <div className="mt-3 flex flex-col gap-2 md:flex-row">
+            <select
+              value={recoverServer}
+              onChange={event => setRecoverServer(event.target.value as 'v1' | 'v2')}
+              className="min-h-11 rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-xs font-bold text-[#d7d2c8] outline-none focus:border-[#63b3ed]"
+              aria-label="PayPal recovery server"
+            >
+              <option value="v1">PlayCrows V1</option>
+              <option value="v2">PlayCrows V2</option>
+            </select>
+            <input
+              value={recoverPaypalId}
+              onChange={event => setRecoverPaypalId(event.target.value)}
+              placeholder="PayPal Order ID or Capture ID"
+              autoComplete="off"
+              className="min-h-11 flex-1 rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 font-mono text-sm outline-none focus:border-[#63b3ed]"
+            />
+            <button
+              type="submit"
+              disabled={recoveringPaypal || !recoverPaypalId.trim()}
+              className="min-h-11 rounded-lg border border-[#63b3ed]/45 bg-[#63b3ed]/10 px-4 text-xs font-bold text-[#8ecdf7] hover:bg-[#63b3ed]/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {recoveringPaypal ? 'Verifying…' : 'Verify & Recover'}
+            </button>
+          </div>
+          {recoverPaypalMessage && (
+            <div className="mt-3 rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 py-2 text-xs text-[#d7d2c8]">
+              {recoverPaypalMessage}
+            </div>
+          )}
+        </form>
 
         {loadError && (
           <div className="mt-4 rounded-lg border border-[#ef4444]/35 bg-[#ef4444]/5 px-4 py-3 text-xs text-[#ef4444]">
