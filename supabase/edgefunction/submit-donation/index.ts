@@ -457,6 +457,9 @@ export default {
 
       const server = parseServer(getText(formData, 'server').toLowerCase())
       const playerId = getText(formData, 'playerId')
+      const deviceId = getText(formData, 'deviceId').slice(0, 100)
+      const forwardedIp = (request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0] || '').trim()
+      const ipHash = forwardedIp ? Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(forwardedIp)))).map(b => b.toString(16).padStart(2, '0')).join('') : ''
       const username = getText(formData, 'username')
       const currency = getText(formData, 'currency').toUpperCase()
       const amountText = getText(formData, 'amount')
@@ -481,6 +484,31 @@ export default {
       if (playerId.length > 100) return errorResponse('Player ID is too long.')
       if (!username) return errorResponse('Username is required.')
       if (username.length > 100) return errorResponse('Username is too long.')
+
+      // Submission restrictions are checked before receipt upload or donation creation.
+      const identifiers = [
+        { type: 'player_id', value: playerId.trim().toLowerCase() },
+        ...(ipHash ? [{ type: 'ip_hash', value: ipHash }] : []),
+        ...(deviceId ? [{ type: 'device_id', value: deviceId }] : []),
+      ]
+      for (const identifier of identifiers) {
+        const { data: activeBlock, error: blockError } = await context.supabaseAdmin
+          .from('submission_blocks')
+          .select('id, expires_at')
+          .eq('identifier_type', identifier.type)
+          .eq('identifier_value', identifier.value)
+          .eq('active', true)
+          .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+          .limit(1)
+          .maybeSingle()
+        if (blockError) {
+          console.error('Submission block check failed:', blockError)
+          return errorResponse('Unable to validate this submission right now. Please try again.', 500)
+        }
+        if (activeBlock) {
+          return errorResponse('You are temporarily restricted from submitting payment receipts. Please contact PlayCrows support if you believe this is an error.', 403)
+        }
+      }
 
       if (!ALLOWED_CURRENCIES.has(currency)) {
         return errorResponse('Invalid currency.')
@@ -743,6 +771,8 @@ export default {
           promo_code: appliedPromoCode,
           discount_percent: discountPercent,
           status: 'pending',
+          submission_ip_hash: ipHash || null,
+          submission_device_id: deviceId || null,
         })
         .select(`
           id,

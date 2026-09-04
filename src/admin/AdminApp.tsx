@@ -481,6 +481,8 @@ export function AdminApp() {
   const [recoverServer, setRecoverServer] = useState<'v1' | 'v2'>('v1')
   const [recoveringPaypal, setRecoveringPaypal] = useState(false)
   const [recoverPaypalMessage, setRecoverPaypalMessage] = useState('')
+  const [blocking, setBlocking] = useState(false)
+  const [blockMessage, setBlockMessage] = useState('')
 
   const verifyAdmin = async (currentSession?: Session | null) => {
     const activeSession =
@@ -521,7 +523,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, submission_ip_hash, submission_device_id'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -609,12 +611,40 @@ export function AdminApp() {
     )
     setFulfillmentEvidence(null)
     setSaveMessage('')
+    setBlockMessage('')
   }
 
   useEffect(() => {
     if (!selected || selected.fulfillment_status === 'delivered') return
     setFulfillmentNotes(buildFulfillmentNotes(selected, deliveredTo, itemsDelivered))
   }, [selected, deliveredTo, itemsDelivered])
+
+const blockSelectedSubmission = async (duration: '1h' | '24h' | '7d' | 'permanent') => {
+  if (!selected || !session) return
+  const labels = { '1h': '1 hour', '24h': '24 hours', '7d': '7 days', permanent: 'permanently' }
+  if (!window.confirm(`Block this player from receipt submissions ${labels[duration]}? This will use Player ID plus the recorded IP/device identifiers when available.`)) return
+  setBlocking(true); setBlockMessage('')
+  const now = Date.now()
+  const expiresAt = duration === 'permanent' ? null : new Date(now + ({ '1h': 3600000, '24h': 86400000, '7d': 604800000 } as const)[duration]).toISOString()
+  const identifiers = [
+    { identifier_type: 'player_id', identifier_value: selected.player_id.trim().toLowerCase() },
+    ...(selected.submission_ip_hash ? [{ identifier_type: 'ip_hash', identifier_value: selected.submission_ip_hash }] : []),
+    ...(selected.submission_device_id ? [{ identifier_type: 'device_id', identifier_value: selected.submission_device_id }] : []),
+  ]
+  const rows = identifiers.map(item => ({ ...item, source_donation_id: selected.id, reason: 'Admin submission restriction', expires_at: expiresAt, active: true, created_by: session.user.id }))
+  const { error } = await supabase.from('submission_blocks').upsert(rows, { onConflict: 'identifier_type,identifier_value' })
+  setBlocking(false)
+  setBlockMessage(error ? `Unable to block: ${error.message}` : `Submission blocked ${labels[duration]}. ${identifiers.length} identifier(s) protected.`)
+}
+
+const unblockSelectedSubmission = async () => {
+  if (!selected) return
+  setBlocking(true); setBlockMessage('')
+  const values = [selected.player_id.trim().toLowerCase(), selected.submission_ip_hash, selected.submission_device_id].filter(Boolean) as string[]
+  const { error } = await supabase.from('submission_blocks').update({ active: false }).in('identifier_value', values)
+  setBlocking(false)
+  setBlockMessage(error ? `Unable to unblock: ${error.message}` : 'Submission restriction removed for this Player ID / recorded device identifiers.')
+}
 
 const openReceipt = async () => {
   if (!selected) {
@@ -820,7 +850,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, submission_ip_hash, submission_device_id'
       )
       .single()
 
@@ -1382,6 +1412,19 @@ const openReceipt = async () => {
                   <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">Items Delivered</span><input value={itemsDelivered} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setItemsDelivered(e.target.value)} placeholder="Auto-filled from the selected package and quantity" className="mt-2 min-h-11 w-full rounded-lg border border-[#3b414b] bg-[#11141a] px-3 text-sm outline-none disabled:opacity-60" /><span className="mt-1 block text-[11px] leading-4 text-[#77746e]">Auto-filled from the order. You can still edit this before marking the package delivered if the actual fulfillment differs.</span></label>
                   <label className="mt-4 block"><span className="text-xs text-[#aaa49a]">Fulfillment Notes</span><textarea value={fulfillmentNotes} disabled={selected.fulfillment_status === 'delivered'} onChange={e => setFulfillmentNotes(e.target.value)} rows={3} placeholder="Automatically generated from Items Delivered and backend ledger context…" className="mt-2 w-full rounded-lg border border-[#3b414b] bg-[#11141a] p-3 text-sm disabled:opacity-60" /></label>
                   {selected.fulfillment_status !== 'delivered' ? <><div className="mt-4"><span className="text-xs text-[#aaa49a]">Backend Ledger Screenshot (required)</span><div className="mt-1 text-[11px] leading-4 text-[#77746e]">Upload the original screenshot exactly as shown in the backend. Its visible timestamp is treated as the backend source timestamp; no manual timestamp entry is required.</div><label className="mt-2 flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-dashed border-[#c9aa68]/60 bg-[#c9aa68]/5 px-4 text-sm font-semibold text-[#c9aa68] hover:bg-[#c9aa68]/10"><input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={e => setFulfillmentEvidence(e.target.files?.[0] ?? null)} className="sr-only" />{fulfillmentEvidence ? `Selected: ${fulfillmentEvidence.name}` : 'Upload Backend Ledger Screenshot'}</label>{fulfillmentEvidence && <div className="mt-2 text-[11px] text-[#aaa49a]">Evidence ready to upload when you mark the package as delivered.</div>}</div><button type="button" disabled={saving} onClick={() => void markDelivered()} className="mt-4 min-h-11 w-full rounded-lg border border-[#22c55e]/50 bg-[#22c55e]/10 px-4 text-sm font-bold text-[#22c55e] hover:bg-[#22c55e]/20 disabled:opacity-60">Mark Package as Delivered & Lock Evidence</button></> : <div className="mt-4 space-y-2 text-xs text-[#aaa49a]"><div>Delivered: {selected.fulfilled_at ? formatDate(selected.fulfilled_at) : 'Recorded'}</div><div>Processed by: {selected.fulfilled_by ?? 'Admin'}</div><button type="button" onClick={() => void openFulfillmentEvidence()} className="min-h-10 w-full rounded-lg border border-[#3b414b] px-3 font-semibold text-[#eee9df]">Open Backend Delivery Evidence</button><button type="button" disabled={generatingEvidencePdf} onClick={() => void downloadEvidencePdf()} className="min-h-10 w-full rounded-lg border border-[#c9aa68]/50 px-3 font-bold text-[#c9aa68] disabled:opacity-60">{generatingEvidencePdf ? 'Building Evidence PDF…' : 'Download Evidence PDF'}</button></div>}
+                </div>
+
+                <div className="mt-4 rounded-xl border border-[#ef4444]/30 bg-[#ef4444]/5 p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ef4444]">Submission Restriction</div>
+                  <div className="mt-1 text-xs leading-5 text-[#aaa49a]">Blocks future receipt submissions using this Player ID and, when captured, the same network/device identifiers. Device identification is browser-based, not a hardware ID.</div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <button type="button" disabled={blocking} onClick={() => void blockSelectedSubmission('1h')} className="min-h-10 rounded-lg border border-[#ef4444]/35 px-2 text-xs font-bold text-[#ef8b8b] disabled:opacity-50">Block 1 Hour</button>
+                    <button type="button" disabled={blocking} onClick={() => void blockSelectedSubmission('24h')} className="min-h-10 rounded-lg border border-[#ef4444]/35 px-2 text-xs font-bold text-[#ef8b8b] disabled:opacity-50">Block 24 Hours</button>
+                    <button type="button" disabled={blocking} onClick={() => void blockSelectedSubmission('7d')} className="min-h-10 rounded-lg border border-[#ef4444]/35 px-2 text-xs font-bold text-[#ef8b8b] disabled:opacity-50">Block 7 Days</button>
+                    <button type="button" disabled={blocking} onClick={() => void blockSelectedSubmission('permanent')} className="min-h-10 rounded-lg bg-[#ef4444]/15 px-2 text-xs font-bold text-[#ff9b9b] disabled:opacity-50">Permanent</button>
+                  </div>
+                  <button type="button" disabled={blocking} onClick={() => void unblockSelectedSubmission()} className="mt-2 min-h-9 w-full rounded-lg border border-[#3b414b] text-xs font-semibold text-[#aaa49a] disabled:opacity-50">Unblock Player / Device</button>
+                  {blockMessage && <div className="mt-2 text-xs text-[#d7d2c8]">{blockMessage}</div>}
                 </div>
 
                 <label className="mt-4 block">

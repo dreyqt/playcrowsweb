@@ -52,7 +52,13 @@ export async function submitDonation({
   const publishableKey = getRequiredEnvironmentVariable('VITE_SUPABASE_PUBLISHABLE_KEY', import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY)
 
   const body = new globalThis.FormData()
+  let deviceId = localStorage.getItem('playcrows_device_id')
+  if (!deviceId) {
+    deviceId = crypto.randomUUID()
+    localStorage.setItem('playcrows_device_id', deviceId)
+  }
   body.append('server', server)
+  body.append('deviceId', deviceId)
   body.append('playerId', data.playerId.trim())
   body.append('username', data.username.trim())
   body.append('currency', data.currency)

@@ -44,4 +44,6 @@ export interface DonationRecord {
   event_bonus_name: string | null
   event_bonus_eligible: boolean | null
   event_bonus_reserved_at: string | null
+  submission_ip_hash: string | null
+  submission_device_id: string | null
 }
