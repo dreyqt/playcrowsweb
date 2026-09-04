@@ -1162,12 +1162,15 @@ const openReceipt = async () => {
               </thead>
               <tbody>
                 {filteredDonations.map(donation => (
-                  <tr key={donation.id} className="border-t border-[#292d34] text-sm">
+                  <tr
+                    key={donation.id}
+                    className={`border-t text-sm transition-colors ${donation.server === 'v2' ? 'border-[#8b5cf6]/35 bg-[#8b5cf6]/[0.055] hover:bg-[#8b5cf6]/[0.09]' : 'border-[#292d34] hover:bg-white/[0.015]'}`}
+                  >
                     <td className="px-3 py-4 align-middle font-mono text-xs text-[#c9aa68]">
                       {donation.reference_code}
                     </td>
                     <td className="px-3 py-4 align-middle">
-                      <span className="inline-flex rounded-full border border-[#c9aa68]/35 bg-[#c9aa68]/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-[#c9aa68]">
+                      <span className={`inline-flex rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-widest ${donation.server === 'v2' ? 'border-[#a78bfa]/50 bg-[#8b5cf6]/15 text-[#c4b5fd]' : 'border-[#c9aa68]/35 bg-[#c9aa68]/10 text-[#c9aa68]'}`}>
                         {donation.server?.toUpperCase() ?? 'V1'}
                       </span>
                     </td>
@@ -1205,9 +1208,14 @@ const openReceipt = async () => {
                     </td>
                     <td className="px-3 py-4 align-middle text-xs">{PAYMENT_LABELS[donation.payment_method]}</td>
                     <td className="px-3 py-4 align-middle">
-                      <span className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-[9px] font-bold ${STATUS_CLASSES[donation.status]}`}>
+                      <button
+                        type="button"
+                        onClick={() => openDonation(donation)}
+                        title="Open this order to update its status"
+                        className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-[9px] font-bold transition hover:brightness-125 focus:outline-none focus:ring-2 focus:ring-[#c9aa68]/40 ${STATUS_CLASSES[donation.status]}`}
+                      >
                         {STATUS_LABELS[donation.status]}
-                      </span>
+                      </button>
                     </td>
                     <td className="px-3 py-4 text-center align-middle">
                       <button
