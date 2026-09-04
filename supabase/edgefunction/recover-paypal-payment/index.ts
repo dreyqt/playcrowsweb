@@ -65,11 +65,27 @@ function parseCustomId(customId: unknown): { server: PlayCrowsServer; playerId: 
   if (typeof customId !== 'string') return null
   const parts = customId.split('|')
   if (parts.length < 4 || parts[0] !== 'PC') return null
-  const server = parts[1]?.toLowerCase()
-  if (server !== 'v1' && server !== 'v2') return null
-  const playerId = parts[2]?.trim(); const username = parts.slice(3).join('|').trim()
-  if (!playerId || !username) return null
-  return { server, playerId, username }
+
+  // Current layout: PC|PLAYER_ID|V1|CHARACTER
+  const currentServer = parts[2]?.toLowerCase()
+  if (currentServer === 'v1' || currentServer === 'v2') {
+    const playerId = parts[1]?.trim()
+    const username = parts.slice(3).join('|').trim()
+    if (!playerId || !username) return null
+    return { server: currentServer, playerId, username }
+  }
+
+  // Backward compatibility for payments created before the webhook-field fix:
+  // PC|V1|PLAYER_ID|CHARACTER
+  const legacyServer = parts[1]?.toLowerCase()
+  if (legacyServer === 'v1' || legacyServer === 'v2') {
+    const playerId = parts[2]?.trim()
+    const username = parts.slice(3).join('|').trim()
+    if (!playerId || !username) return null
+    return { server: legacyServer, playerId, username }
+  }
+
+  return null
 }
 function parseDescription(description: unknown) {
   if (typeof description !== 'string') return null

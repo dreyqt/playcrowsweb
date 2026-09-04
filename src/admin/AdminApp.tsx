@@ -1131,47 +1131,60 @@ const openReceipt = async () => {
 
         <div className="mt-6 overflow-hidden rounded-xl border border-[#292d34] bg-[#111318]">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1180px] table-fixed border-collapse text-left">
+            <table className="w-full min-w-[1320px] table-fixed border-collapse text-left">
+              <colgroup>
+                <col className="w-[140px]" />
+                <col className="w-[90px]" />
+                <col className="w-[145px]" />
+                <col className="w-[160px]" />
+                <col className="w-[140px]" />
+                <col className="w-[205px]" />
+                <col className="w-[55px]" />
+                <col className="w-[115px]" />
+                <col className="w-[90px]" />
+                <col className="w-[105px]" />
+                <col className="w-[95px]" />
+              </colgroup>
               <thead className="bg-[#171a20] text-[10px] uppercase tracking-widest text-[#8f8b84]">
                 <tr>
-                  <th className="w-[135px] px-4 py-3">Reference</th>
-                  <th className="w-[90px] px-3 py-3">Server</th>
-                  <th className="w-[150px] px-4 py-3">Submitted</th>
-                  <th className="w-[165px] px-4 py-3">Player</th>
-                  <th className="w-[110px] px-3 py-3">Category</th>
-                  <th className="w-[175px] px-3 py-3">Package</th>
-                  <th className="w-[50px] px-2 py-3 text-center">Qty</th>
-                  <th className="w-[105px] px-3 py-3">Total Paid</th>
-                  <th className="w-[85px] px-3 py-3">Method</th>
-                  <th className="w-[105px] px-3 py-3">Status</th>
-                  <th className="w-[90px] px-3 py-3 text-right">Action</th>
+                  <th className="px-3 py-3 align-middle">Reference</th>
+                  <th className="px-3 py-3 align-middle">Server</th>
+                  <th className="px-3 py-3 align-middle">Submitted</th>
+                  <th className="px-3 py-3 align-middle">Player</th>
+                  <th className="px-3 py-3 align-middle">Category</th>
+                  <th className="px-3 py-3 align-middle">Package</th>
+                  <th className="px-3 py-3 text-center align-middle">Qty</th>
+                  <th className="px-3 py-3 align-middle">Total Paid</th>
+                  <th className="px-3 py-3 align-middle">Method</th>
+                  <th className="px-3 py-3 align-middle">Status</th>
+                  <th className="px-3 py-3 text-center align-middle">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredDonations.map(donation => (
                   <tr key={donation.id} className="border-t border-[#292d34] text-sm">
-                    <td className="px-4 py-4 font-mono text-xs text-[#c9aa68]">
+                    <td className="px-3 py-4 align-middle font-mono text-xs text-[#c9aa68]">
                       {donation.reference_code}
                     </td>
-                    <td className="px-3 py-4">
+                    <td className="px-3 py-4 align-middle">
                       <span className="inline-flex rounded-full border border-[#c9aa68]/35 bg-[#c9aa68]/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-[#c9aa68]">
                         {donation.server?.toUpperCase() ?? 'V1'}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-xs text-[#aaa49a]">
+                    <td className="px-3 py-4 align-middle text-xs text-[#aaa49a]">
                       <div>{formatTableDate(donation.created_at).date}</div>
                       <div className="mt-1 text-[10px] text-[#77746e]">
                         {formatTableDate(donation.created_at).time}
                       </div>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-4 align-middle">
                       <div className="font-semibold text-[#eee9df]">{donation.username}</div>
                       <div className="mt-1 text-xs text-[#77746e]">{donation.player_id}</div>
                     </td>
-                    <td className="px-3 py-4">
+                    <td className="px-3 py-4 align-middle">
                       <PackageCategoryBadge packageId={donation.selected_package_id} />
                     </td>
-                    <td className="px-3 py-4">
+                    <td className="px-3 py-4 align-middle">
                       <div className="truncate font-semibold text-[#eee9df]">
                         {getPackageDisplayName(donation)}
                       </div>
@@ -1179,10 +1192,10 @@ const openReceipt = async () => {
                         {donation.selected_package_id ?? 'Before package tracking'}
                       </div>
                     </td>
-                    <td className="px-2 py-4 text-center font-semibold">
+                    <td className="px-3 py-4 text-center align-middle font-semibold">
                       {donation.package_quantity ?? 1}
                     </td>
-                    <td className="px-3 py-4 font-semibold">
+                    <td className="px-3 py-4 align-middle font-semibold">
                       <div>{formatMoney(donation.currency, donation.amount)}</div>
                       {donation.promo_code && Number(donation.discount_percent) > 0 && (
                         <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-[#c9aa68]/40 bg-[#c9aa68]/10 px-2 py-0.5 text-[9px] font-bold text-[#c9aa68]">
@@ -1190,13 +1203,13 @@ const openReceipt = async () => {
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-4 text-xs">{PAYMENT_LABELS[donation.payment_method]}</td>
-                    <td className="px-3 py-4">
+                    <td className="px-3 py-4 align-middle text-xs">{PAYMENT_LABELS[donation.payment_method]}</td>
+                    <td className="px-3 py-4 align-middle">
                       <span className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-[9px] font-bold ${STATUS_CLASSES[donation.status]}`}>
                         {STATUS_LABELS[donation.status]}
                       </span>
                     </td>
-                    <td className="px-3 py-4 text-right">
+                    <td className="px-3 py-4 text-center align-middle">
                       <button
                         type="button"
                         onClick={() => openDonation(donation)}

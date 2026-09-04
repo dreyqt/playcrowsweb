@@ -59,7 +59,9 @@ function roundMoney(amount: number) {
 }
 
 function buildCustomId(server: PlayCrowsServer, playerId: string, username: string) {
-  return `PC|${server.toUpperCase()}|${playerId.trim()}|${username.trim()}`.slice(0, 127)
+  // Keep Player ID in the legacy webhook's Username slot and Character in slot 4.
+  // Server is stored in slot 3 so the V1/V2 metadata does not shift the webhook fields.
+  return `PC|${playerId.trim()}|${server.toUpperCase()}|${username.trim()}`.slice(0, 127)
 }
 
 function getPayPalBaseUrl() {

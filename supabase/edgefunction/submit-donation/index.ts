@@ -318,7 +318,7 @@ function roundMoney(amount: number) {
 }
 
 function buildPayPalCustomId(server: PlayCrowsServer, playerId: string, username: string) {
-  return `PC|${server.toUpperCase()}|${playerId.trim()}|${username.trim()}`.slice(0, 127)
+  return `PC|${playerId.trim()}|${server.toUpperCase()}|${username.trim()}`.slice(0, 127)
 }
 
 function getPayPalBaseUrl() {
@@ -389,7 +389,12 @@ async function verifyPayPalOrder(options: {
     throw new Error('The PayPal capture could not be verified.')
   }
 
-  if (purchaseUnit?.custom_id !== buildPayPalCustomId(server, playerId, username)) {
+  const customId = String(purchaseUnit?.custom_id ?? '')
+  // Accept both layouts so checkouts created before this fix can still be submitted:
+  // old: PC|V1|PLAYER_ID|CHARACTER
+  // new: PC|PLAYER_ID|V1|CHARACTER (compatible with the PayPal Discord monitor)
+  const legacyDualServerCustomId = `PC|${server.toUpperCase()}|${playerId.trim()}|${username.trim()}`.slice(0, 127)
+  if (customId !== buildPayPalCustomId(server, playerId, username) && customId !== legacyDualServerCustomId) {
     throw new Error('The PayPal payment does not match this PlayCrows account.')
   }
 
