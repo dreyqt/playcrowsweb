@@ -14,6 +14,8 @@ export const LANGUAGES: { code: LanguageCode; short: string; label: string }[] =
 
 const en = {
   heroicBonusTitle: "Current Bonus Event · Heroic Skills",
+  heroicBonusExpand: "Expand",
+  heroicBonusMinimize: "Minimize",
   heroicBonusOneTime: "One-time per player: each reward can be claimed only once. Further purchases do not restart this bonus event.",
   heroicBonusFirstThreshold: "$300 in one transaction",
   heroicBonusFirstRule: "Purchase $300 in eligible packages in a single transaction to qualify to claim. Separate smaller payments do not count toward this first requirement.",
@@ -202,6 +204,8 @@ type TranslationTable = Record<TranslationKey, string>
 const ko: TranslationTable = {
   ...en,
   heroicBonusTitle: "진행 중인 보너스 이벤트 · 영웅 스킬",
+  heroicBonusExpand: "펼치기",
+  heroicBonusMinimize: "접기",
   heroicBonusOneTime: "플레이어당 1회 한정: 각 보상은 한 번만 수령할 수 있습니다. 추가 구매를 해도 이 보너스 이벤트는 초기화되지 않습니다.",
   heroicBonusFirstThreshold: "단일 결제로 $300 구매",
   heroicBonusFirstRule: "대상 패키지를 단일 결제로 $300 구매하면 보상 신청 자격이 주어집니다. 여러 소액 결제를 합산하여 첫 번째 조건을 충족할 수는 없습니다.",
