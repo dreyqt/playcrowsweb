@@ -43,3 +43,7 @@ where id = true;
 ```
 
 This closes the public claim page immediately without deleting submissions or proof images. Change `false` to `true` to reopen it.
+
+## Discord ID / Username characters
+
+Run `supabase/migrations/20260906_v2_beta_claim_allow_discord_special_chars.sql` after the original beta-claim migration. It allows punctuation and Unicode characters (for example `.`, `!`, `_`, `-`) while keeping the field between 2 and 64 characters and rejecting control characters.

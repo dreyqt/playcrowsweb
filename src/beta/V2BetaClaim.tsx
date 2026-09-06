@@ -33,19 +33,19 @@ https://account002.playcrows.com/register.php
 
 💻 V2 PC 다운로드
 🇺🇸 English
-http://download.playcrows.com/pv2/PlayV2-PC-en-3.zip
+http://download.playcrows.com/pv2/PlayV2-PC-en-4.zip
 🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayV2-PC-kr-3.zip
+http://download.playcrows.com/pv2/PlayV2-PC-kr-4.zip
 🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayV2-PC-tw-3.zip
+http://download.playcrows.com/pv2/PlayV2-PC-tw-4.zip
 
 📱 V2 Android 다운로드
 🇺🇸 English
-http://download.playcrows.com/pv2/PlayAZ-v2-en-3.apk
+http://download.playcrows.com/pv2/PlayAZ-v2-en-4.apk
 🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayAZ-v2-kr-3.apk
+http://download.playcrows.com/pv2/PlayAZ-v2-kr-4.apk
 🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayAZ-v2-tw-3.apk`,
+http://download.playcrows.com/pv2/PlayAZ-v2-tw-4.apk`,
   'zh-TW': `⚔️ PLAYCROWS V2 BETA 測試現已開放！⚔️
 
 PlayCrows 的全新篇章已經展開！🐦‍⬛🔥
@@ -69,19 +69,19 @@ https://account002.playcrows.com/register.php
 
 💻 V2 PC 下載
 🇺🇸 English
-http://download.playcrows.com/pv2/PlayV2-PC-en-3.zip
+http://download.playcrows.com/pv2/PlayV2-PC-en-4.zip
 🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayV2-PC-kr-3.zip
+http://download.playcrows.com/pv2/PlayV2-PC-kr-4.zip
 🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayV2-PC-tw-3.zip
+http://download.playcrows.com/pv2/PlayV2-PC-tw-4.zip
 
 📱 V2 Android 下載
 🇺🇸 English
-http://download.playcrows.com/pv2/PlayAZ-v2-en-3.apk
+http://download.playcrows.com/pv2/PlayAZ-v2-en-4.apk
 🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayAZ-v2-kr-3.apk
+http://download.playcrows.com/pv2/PlayAZ-v2-kr-4.apk
 🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayAZ-v2-tw-3.apk`,
+http://download.playcrows.com/pv2/PlayAZ-v2-tw-4.apk`,
   ru: `⚔️ БЕТА-ТЕСТ PLAYCROWS V2 УЖЕ ОТКРЫТ! ⚔️
 
 Началась новая глава PlayCrows! 🐦‍⬛🔥
@@ -105,19 +105,19 @@ https://account002.playcrows.com/register.php
 
 💻 СКАЧАТЬ V2 ДЛЯ ПК
 🇺🇸 English
-http://download.playcrows.com/pv2/PlayV2-PC-en-3.zip
+http://download.playcrows.com/pv2/PlayV2-PC-en-4.zip
 🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayV2-PC-kr-3.zip
+http://download.playcrows.com/pv2/PlayV2-PC-kr-4.zip
 🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayV2-PC-tw-3.zip
+http://download.playcrows.com/pv2/PlayV2-PC-tw-4.zip
 
 📱 СКАЧАТЬ V2 ДЛЯ ANDROID
 🇺🇸 English
-http://download.playcrows.com/pv2/PlayAZ-v2-en-3.apk
+http://download.playcrows.com/pv2/PlayAZ-v2-en-4.apk
 🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayAZ-v2-kr-3.apk
+http://download.playcrows.com/pv2/PlayAZ-v2-kr-4.apk
 🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayAZ-v2-tw-3.apk`,
+http://download.playcrows.com/pv2/PlayAZ-v2-tw-4.apk`,
 }
 
 type Copy = {
@@ -144,13 +144,13 @@ const TEXT: Record<Locale, Copy> = {
 const LANGUAGES: Array<{code:Locale;short:string}> = [{code:'en',short:'EN'},{code:'ko',short:'KO'},{code:'th',short:'TH'},{code:'pt',short:'PT'},{code:'zh-TW',short:'TW'},{code:'ru',short:'RU'}]
 const inputClass='mt-2 w-full rounded-xl border border-[#343840] bg-[#0d0f12] px-4 py-3 text-sm text-[#eee9df] outline-none transition focus:border-[#d3ad62]'
 
-const RESULT_TEXT:Record<Locale,{title:string;desc:string;discord:string;event:string;status:string;review:string;forReview:string;pending:string;processed:string;rejected:string;empty:string;refresh:string}>={
-  en:{title:'Claim Results',desc:'Discord ID, event, processing status, and rejection corrections are shown publicly.',discord:'Discord ID',event:'Event',status:'Status',review:'Review Note',forReview:'For Review',pending:'Pending',processed:'Processed',rejected:'Rejected',empty:'No claims have been submitted yet.',refresh:'Refresh'},
-  ko:{title:'신청 결과',desc:'Discord ID, 이벤트, 처리 상태 및 반려 수정 사항이 공개됩니다.',discord:'Discord ID',event:'이벤트',status:'상태',review:'검토 메모',forReview:'검토 대기',pending:'처리 대기',processed:'처리 완료',rejected:'반려됨',empty:'아직 제출된 신청이 없습니다.',refresh:'새로고침'},
-  th:{title:'ผลการส่งคำขอ',desc:'แสดง Discord ID กิจกรรม สถานะ และคำแนะนำสำหรับคำขอที่ถูกปฏิเสธ',discord:'Discord ID',event:'กิจกรรม',status:'สถานะ',review:'หมายเหตุการตรวจสอบ',forReview:'รอตรวจสอบ',pending:'รอดำเนินการ',processed:'ดำเนินการแล้ว',rejected:'ปฏิเสธ',empty:'ยังไม่มีคำขอ',refresh:'รีเฟรช'},
-  pt:{title:'Resultados das solicitações',desc:'Discord ID, evento, status e correções de solicitações rejeitadas são exibidos publicamente.',discord:'Discord ID',event:'Evento',status:'Status',review:'Nota da análise',forReview:'Em análise',pending:'Pendente',processed:'Processado',rejected:'Rejeitado',empty:'Nenhuma solicitação foi enviada.',refresh:'Atualizar'},
-  'zh-TW':{title:'申請結果',desc:'公開顯示 Discord ID、活動、處理狀態及退回修改原因。',discord:'Discord ID',event:'活動',status:'狀態',review:'審核備註',forReview:'待審核',pending:'待處理',processed:'已處理',rejected:'已退回',empty:'目前尚無申請。',refresh:'重新整理'},
-  ru:{title:'Результаты заявок',desc:'Публично отображаются Discord ID, событие, статус и причина отклонения.',discord:'Discord ID',event:'Событие',status:'Статус',review:'Комментарий',forReview:'На проверке',pending:'В ожидании обработки',processed:'Обработано',rejected:'Отклонено',empty:'Заявок пока нет.',refresh:'Обновить'},
+const RESULT_TEXT:Record<Locale,{title:string;desc:string;discord:string;event:string;status:string;review:string;forReview:string;pending:string;processed:string;rejected:string;empty:string;refresh:string;search:string;noMatch:string}>={
+  en:{title:'Claim Results',desc:'Discord ID, event, processing status, and rejection corrections are shown publicly.',discord:'Discord ID',event:'Event',status:'Status',review:'Review Note',forReview:'For Review',pending:'Pending',processed:'Processed',rejected:'Rejected',empty:'No claims have been submitted yet.',refresh:'Refresh',search:'Search Discord ID / Username',noMatch:'No matching Discord ID found.'},
+  ko:{title:'신청 결과',desc:'Discord ID, 이벤트, 처리 상태 및 반려 수정 사항이 공개됩니다.',discord:'Discord ID',event:'이벤트',status:'상태',review:'검토 메모',forReview:'검토 대기',pending:'처리 대기',processed:'처리 완료',rejected:'반려됨',empty:'아직 제출된 신청이 없습니다.',refresh:'새로고침',search:'Discord ID / 사용자명 검색',noMatch:'일치하는 Discord ID를 찾을 수 없습니다.'},
+  th:{title:'ผลการส่งคำขอ',desc:'แสดง Discord ID กิจกรรม สถานะ และคำแนะนำสำหรับคำขอที่ถูกปฏิเสธ',discord:'Discord ID',event:'กิจกรรม',status:'สถานะ',review:'หมายเหตุการตรวจสอบ',forReview:'รอตรวจสอบ',pending:'รอดำเนินการ',processed:'ดำเนินการแล้ว',rejected:'ปฏิเสธ',empty:'ยังไม่มีคำขอ',refresh:'รีเฟรช',search:'ค้นหา Discord ID / ชื่อผู้ใช้',noMatch:'ไม่พบ Discord ID ที่ตรงกัน'},
+  pt:{title:'Resultados das solicitações',desc:'Discord ID, evento, status e correções de solicitações rejeitadas são exibidos publicamente.',discord:'Discord ID',event:'Evento',status:'Status',review:'Nota da análise',forReview:'Em análise',pending:'Pendente',processed:'Processado',rejected:'Rejeitado',empty:'Nenhuma solicitação foi enviada.',refresh:'Atualizar',search:'Pesquisar Discord ID / usuário',noMatch:'Nenhum Discord ID correspondente encontrado.'},
+  'zh-TW':{title:'申請結果',desc:'公開顯示 Discord ID、活動、處理狀態及退回修改原因。',discord:'Discord ID',event:'活動',status:'狀態',review:'審核備註',forReview:'待審核',pending:'待處理',processed:'已處理',rejected:'已退回',empty:'目前尚無申請。',refresh:'重新整理',search:'搜尋 Discord ID／使用者名稱',noMatch:'找不到符合的 Discord ID。'},
+  ru:{title:'Результаты заявок',desc:'Публично отображаются Discord ID, событие, статус и причина отклонения.',discord:'Discord ID',event:'Событие',status:'Статус',review:'Комментарий',forReview:'На проверке',pending:'В ожидании обработки',processed:'Обработано',rejected:'Отклонено',empty:'Заявок пока нет.',refresh:'Обновить',search:'Поиск Discord ID / имени пользователя',noMatch:'Совпадающий Discord ID не найден.'},
 }
 
 const TAB_TEXT:Record<Locale,{claim:string;results:string}>={
@@ -158,11 +158,12 @@ const TAB_TEXT:Record<Locale,{claim:string;results:string}>={
 }
 
 function PublicResults({locale}:{locale:Locale}){
-  const copy=RESULT_TEXT[locale];const page=TEXT[locale];const[rows,setRows]=useState<PublicResult[]>([]);const[loading,setLoading]=useState(true);const[error,setError]=useState('')
+  const copy=RESULT_TEXT[locale];const page=TEXT[locale];const[rows,setRows]=useState<PublicResult[]>([]);const[loading,setLoading]=useState(true);const[error,setError]=useState('');const[search,setSearch]=useState('')
   const load=async()=>{setLoading(true);setError('');const{data,error}=await supabase.rpc('get_v2_beta_public_results');if(error)setError(error.message);else setRows((data??[]) as PublicResult[]);setLoading(false)}
   useEffect(()=>{void load()},[])
+  const filteredRows=useMemo(()=>{const query=search.trim().toLowerCase();return query?rows.filter(row=>row.discord_id.toLowerCase().includes(query)):rows},[rows,search])
   const eventLabel=(type:EventType)=>type==='share_fb'?(SITE_SHARE_LOCALES.includes(locale)?page.promotion:page.fb):type==='invite_discord'?page.invite:page.live
-  return <section className="mt-8 rounded-2xl border border-[#292d34] bg-[#111318] p-5 sm:p-6"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-black uppercase tracking-[.15em] text-[#d3ad62]">PlayCrows V2</div><h2 className="mt-2 text-xl font-black">{copy.title}</h2><p className="mt-2 text-xs leading-5 text-[#77746e]">{copy.desc}</p></div><button type="button" disabled={loading} onClick={()=>void load()} className="rounded-lg border border-[#d3ad62]/40 px-3 py-2 text-xs font-bold text-[#d3ad62] disabled:opacity-50">↻ {copy.refresh}</button></div>{error&&<div className="mt-4 rounded-lg border border-[#ef4444]/30 bg-[#ef4444]/8 px-3 py-2 text-xs text-[#ef4444]">{error}</div>}<div className="mt-5 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-xs"><thead className="text-[#77746e]"><tr><th className="pb-3">{copy.discord}</th><th className="pb-3">{copy.event}</th><th className="pb-3">{copy.review}</th><th className="pb-3 text-right">{copy.status}</th></tr></thead><tbody>{rows.map((row,index)=><tr key={`${row.discord_id}-${row.event_type}-${index}`} className="border-t border-[#292d34] align-top"><td className="py-3 font-mono font-bold text-[#eee9df]">{row.discord_id}</td><td className="py-3 text-[#aaa49a]">{eventLabel(row.event_type)}</td><td className="max-w-[260px] py-3 pr-3 text-[#aaa49a]">{row.public_status==='rejected'?(row.review_note||copy.rejected):'—'}</td><td className="py-3 text-right"><span className={`rounded-full border px-2.5 py-1 font-bold ${row.public_status==='processed'?'border-[#22c55e]/40 text-[#22c55e]':row.public_status==='rejected'?'border-[#ef4444]/40 text-[#ef4444]':row.public_status==='for_review'?'border-[#60a5fa]/40 text-[#60a5fa]':'border-[#d3ad62]/40 text-[#d3ad62]'}`}>{row.public_status==='processed'?copy.processed:row.public_status==='rejected'?copy.rejected:row.public_status==='for_review'?copy.forReview:copy.pending}</span></td></tr>)}{!loading&&!rows.length&&<tr><td colSpan={4} className="border-t border-[#292d34] py-8 text-center text-[#77746e]">{copy.empty}</td></tr>}</tbody></table></div></section>
+  return <section className="mt-8 rounded-2xl border border-[#292d34] bg-[#111318] p-5 sm:p-6"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-black uppercase tracking-[.15em] text-[#d3ad62]">PlayCrows V2</div><h2 className="mt-2 text-xl font-black">{copy.title}</h2><p className="mt-2 text-xs leading-5 text-[#77746e]">{copy.desc}</p></div><button type="button" disabled={loading} onClick={()=>void load()} className="rounded-lg border border-[#d3ad62]/40 px-3 py-2 text-xs font-bold text-[#d3ad62] disabled:opacity-50">↻ {copy.refresh}</button></div>{error&&<div className="mt-4 rounded-lg border border-[#ef4444]/30 bg-[#ef4444]/8 px-3 py-2 text-xs text-[#ef4444]">{error}</div>}<div className="mt-5"><label className="block text-[10px] font-black uppercase tracking-[.15em] text-[#77746e]">{copy.discord}<input type="search" value={search} onChange={e=>setSearch(e.target.value)} autoComplete="off" placeholder={copy.search} className={inputClass}/></label></div><div className="mt-5 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-xs"><thead className="text-[#77746e]"><tr><th className="pb-3">{copy.discord}</th><th className="pb-3">{copy.event}</th><th className="pb-3">{copy.review}</th><th className="pb-3 text-right">{copy.status}</th></tr></thead><tbody>{filteredRows.map((row,index)=><tr key={`${row.discord_id}-${row.event_type}-${index}`} className="border-t border-[#292d34] align-top"><td className="py-3 font-mono font-bold text-[#eee9df]">{row.discord_id}</td><td className="py-3 text-[#aaa49a]">{eventLabel(row.event_type)}</td><td className="max-w-[260px] py-3 pr-3 text-[#aaa49a]">{row.public_status==='rejected'?(row.review_note||copy.rejected):'—'}</td><td className="py-3 text-right"><span className={`rounded-full border px-2.5 py-1 font-bold ${row.public_status==='processed'?'border-[#22c55e]/40 text-[#22c55e]':row.public_status==='rejected'?'border-[#ef4444]/40 text-[#ef4444]':row.public_status==='for_review'?'border-[#60a5fa]/40 text-[#60a5fa]':'border-[#d3ad62]/40 text-[#d3ad62]'}`}>{row.public_status==='processed'?copy.processed:row.public_status==='rejected'?copy.rejected:row.public_status==='for_review'?copy.forReview:copy.pending}</span></td></tr>)}{!loading&&!rows.length&&<tr><td colSpan={4} className="border-t border-[#292d34] py-8 text-center text-[#77746e]">{copy.empty}</td></tr>}{!loading&&rows.length>0&&!filteredRows.length&&<tr><td colSpan={4} className="border-t border-[#292d34] py-8 text-center text-[#77746e]">{copy.noMatch}</td></tr>}</tbody></table></div></section>
 }
 
 export function V2BetaClaim(){
@@ -175,15 +176,15 @@ export function V2BetaClaim(){
   useEffect(()=>{void(async()=>{const{data,error}=await supabase.rpc('get_v2_beta_claim_status');if(error){setLoadError(true);setEnabled(false);return}const row=Array.isArray(data)?data[0]:data;setEnabled(Boolean(row?.enabled))})()},[])
   const eventCards=useMemo(()=>[{id:'share_fb' as const,icon:siteShare?'↗':'f',label:siteShare?t.promotion:t.fb},{id:'invite_discord' as const,icon:'◈',label:t.invite},{id:'share_livestream' as const,icon:'●',label:t.live}],[siteShare,t])
   const reset=()=>{setReference('');setEventType(null);setError('');setConfirmed(false);setScreenshot(null);setLinks(['','','','','']);setInviteLink('');setLiveLink('')}
-  const submit=async(e:FormEvent)=>{e.preventDefault();if(submitting||!eventType)return;setError('');const cleanLinks=links.map(v=>v.trim())
-    if(!playerId.trim()||!nickname.trim()||!/[A-Za-z0-9]/.test(discordId)||!/^[A-Za-z0-9._-]{2,64}$/.test(discordId.trim())||!confirmed)return setError(t.invalid)
+  const submit=async(e:FormEvent)=>{e.preventDefault();if(submitting||!eventType)return;setError('');const cleanLinks=links.map(v=>v.trim());const cleanDiscordId=discordId.trim()
+    if(!playerId.trim()||!nickname.trim()||cleanDiscordId.length<2||cleanDiscordId.length>64||/[\r\n\t]/.test(cleanDiscordId)||!confirmed)return setError(t.invalid)
     if(eventType==='share_fb'&&(cleanLinks.some(v=>!/^https?:\/\//i.test(v))||new Set(cleanLinks.map(v=>v.toLowerCase().replace(/\/$/,''))).size!==5))return setError(cleanLinks.some(v=>!v)?t.invalid:t.duplicateLinks)
     if(eventType==='invite_discord'&&(!/^https?:\/\/(discord\.gg|discord\.com\/invite)\//i.test(inviteLink.trim())||!screenshot))return setError(t.invalid)
     if(eventType==='share_livestream'&&!/^https?:\/\//i.test(liveLink.trim()))return setError(t.invalid)
     if(screenshot&&(!['image/jpeg','image/png','image/webp'].includes(screenshot.type)||screenshot.size<=0||screenshot.size>5*1024*1024))return setError(t.badFile)
     setSubmitting(true);let screenshotPath:string|null=null
     try{if(eventType==='invite_discord'&&screenshot){const ext=screenshot.type==='image/png'?'png':screenshot.type==='image/webp'?'webp':'jpg';screenshotPath=`${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}.${ext}`;const{error}=await supabase.storage.from('v2-beta-proofs').upload(screenshotPath,screenshot,{contentType:screenshot.type,upsert:false});if(error)throw new Error(error.message)}
-      const{data,error}=await supabase.rpc('submit_v2_beta_claim',{p_player_id:playerId.trim(),p_nickname:nickname.trim(),p_discord_id:discordId.trim(),p_event_type:eventType,p_locale:locale,p_proof_links:eventType==='share_fb'?cleanLinks:eventType==='invite_discord'?[inviteLink.trim()]:[liveLink.trim()],p_screenshot_path:screenshotPath});if(error)throw new Error(error.message);const row=Array.isArray(data)?data[0]:data;setReference(row?.reference_code??'')
+      const{data,error}=await supabase.rpc('submit_v2_beta_claim',{p_player_id:playerId.trim(),p_nickname:nickname.trim(),p_discord_id:cleanDiscordId,p_event_type:eventType,p_locale:locale,p_proof_links:eventType==='share_fb'?cleanLinks:eventType==='invite_discord'?[inviteLink.trim()]:[liveLink.trim()],p_screenshot_path:screenshotPath});if(error)throw new Error(error.message);const row=Array.isArray(data)?data[0]:data;setReference(row?.reference_code??'')
     }catch(err){if(screenshotPath)await supabase.storage.from('v2-beta-proofs').remove([screenshotPath]);setError(err instanceof Error?err.message:t.unavailable)}finally{setSubmitting(false)}}
   if(enabled===null)return <div className="flex min-h-screen items-center justify-center bg-[#0a0b0d] text-[#d3ad62]">Loading…</div>
   if(!enabled)return <div className="flex min-h-screen items-center justify-center bg-[#0a0b0d] p-4 text-[#eee9df]"><div className="max-w-lg rounded-2xl border border-[#292d34] bg-[#111318] p-8 text-center"><img src={CrowLogo} className="mx-auto h-16 w-16 rounded-full"/><h1 className="mt-5 text-2xl font-bold">{loadError?t.unavailable:t.closed}</h1><a href="/" className="mt-6 inline-block text-sm font-bold text-[#d3ad62]">← PlayCrows</a></div></div>
@@ -197,6 +198,6 @@ export function V2BetaClaim(){
   <div className="mt-5 space-y-3">{links.map((link,i)=><label key={i} className="block text-xs font-bold text-[#aaa49a]">{siteShare?t.siteProof:t.fbProof} #{i+1} *<input type="url" value={link} onChange={e=>setLinks(c=>c.map((v,idx)=>idx===i?e.target.value:v))} placeholder="https://…" className={inputClass}/></label>)}</div></>}
   {eventType==='invite_discord'&&<><p className="mt-4 text-sm leading-6 text-[#9a958d]">{t.inviteBody}</p><label className="mt-5 block text-xs font-bold text-[#aaa49a]">{t.inviteLink} *<input type="url" value={inviteLink} onChange={e=>setInviteLink(e.target.value)} placeholder="https://discord.gg/…" className={inputClass}/></label><label className="mt-4 block text-xs font-bold text-[#aaa49a]">{t.screenshot} *<span className="mt-2 flex min-h-24 cursor-pointer items-center justify-center rounded-xl border border-dashed border-[#565b65] bg-[#0d0f12] p-4 text-center text-[#aaa49a]"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setScreenshot(e.target.files?.[0]??null)}/>{screenshot?screenshot.name:t.fileHint}</span></label></>}
   {eventType==='share_livestream'&&<><p className="mt-4 text-sm leading-6 text-[#9a958d]">{t.liveBody}</p><label className="mt-5 block text-xs font-bold text-[#aaa49a]">{t.liveLink} *<input type="url" value={liveLink} onChange={e=>setLiveLink(e.target.value)} placeholder="https://…" className={inputClass}/></label></>}</section>
-  <section className="rounded-2xl border border-[#292d34] bg-[#111318] p-5 sm:p-6"><h2 className="text-lg font-bold">3. {t.player}</h2><div className="mt-4 grid gap-4 sm:grid-cols-2"><label className="text-xs font-bold text-[#aaa49a]">{t.playerId} *<input value={playerId} onChange={e=>setPlayerId(e.target.value)} className={inputClass}/></label><label className="text-xs font-bold text-[#aaa49a]">{t.nickname} *<input value={nickname} onChange={e=>setNickname(e.target.value)} className={inputClass}/></label><label className="text-xs font-bold text-[#aaa49a] sm:col-span-2">{t.discord} *<input value={discordId} onChange={e=>setDiscordId(e.target.value)} autoComplete="off" placeholder="username or 123456789012345678" className={inputClass}/></label></div></section>
+  <section className="rounded-2xl border border-[#292d34] bg-[#111318] p-5 sm:p-6"><h2 className="text-lg font-bold">3. {t.player}</h2><div className="mt-4 grid gap-4 sm:grid-cols-2"><label className="text-xs font-bold text-[#aaa49a]">{t.playerId} *<input value={playerId} onChange={e=>setPlayerId(e.target.value)} className={inputClass}/></label><label className="text-xs font-bold text-[#aaa49a]">{t.nickname} *<input value={nickname} onChange={e=>setNickname(e.target.value)} className={inputClass}/></label><label className="text-xs font-bold text-[#aaa49a] sm:col-span-2">{t.discord} *<input value={discordId} onChange={e=>setDiscordId(e.target.value)} autoComplete="off" maxLength={64} placeholder="Discord username / ID / display name" className={inputClass}/></label></div></section>
   <section className="rounded-2xl border border-[#292d34] bg-[#111318] p-5 sm:p-6"><label className="flex cursor-pointer items-start gap-3 text-sm leading-6 text-[#aaa49a]"><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)} className="mt-1 h-4 w-4 accent-[#d3ad62]"/><span>{t.confirm}</span></label>{error&&<div className="mt-4 rounded-lg border border-[#ef4444]/30 bg-[#ef4444]/8 px-4 py-3 text-sm text-[#ff8585]">{error}</div>}<button disabled={submitting} className="mt-5 w-full rounded-xl bg-[#d3ad62] px-5 py-3.5 text-sm font-black text-[#17120a] transition hover:bg-[#e4c77f] disabled:opacity-60">{submitting?t.submitting:t.submit}</button></section></>}</form>):<PublicResults key={`${locale}-${reference}`} locale={locale}/>}</main></div>
 }
