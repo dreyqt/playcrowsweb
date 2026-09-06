@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { getGiftPackages, type GiftPackageCategory } from '../giftPackageData'
 import type { PlayCrowsServer } from '../server'
 import { useI18n } from '../i18n'
+import { HeroicBonusNotice } from './HeroicBonusNotice'
 
 interface GiftPackagesProps {
   server: PlayCrowsServer
@@ -36,9 +37,7 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   'Shining Accessory Enhancement Scroll Chest (Bound)': 'shining_accessory_enhancement.png',
   'Wind Orb Chest (Attributed)': 'wind_orb_box.png',
   "Forgotten One's Remnant Selection Chest (Bound)": 'forgotten_ones_remnant_selection_chest.png',
-  'Elemental Extraction of   Fusion 11 times (attribution)': 'elemental_extraction_of_fusion.png',
   'Contibution Coin': 'contribution_coin.png',
-  'Time Recharger - Land of Prosperty (Bound)': 'time_recharger_land_of_prosperity.png',
   'NightCrows Stimulant of Growth (Bound)': 'nightcrows_stimulant_of_growth.png',
   'Elemental Extraction of Fusion 11 times (attribution)': 'elemental_extraction_of_fusion.png',
   'Elemental Extraction of   Fusion 11 times (attribution)': 'elemental_extraction_of_fusion.png',
@@ -120,7 +119,7 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
   const selectedCategory = useMemo<GiftPackageCategory | null>(() => {
     if (!selectedPackageId) return null
     return giftPackages.find(item => item.id === selectedPackageId)?.category ?? null
-  }, [selectedPackageId])
+  }, [selectedPackageId, giftPackages])
 
   const [activeCategory, setActiveCategory] = useState<GiftPackageCategory>(
     selectedCategory ?? 'currency'
@@ -135,7 +134,7 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
 
   const rewardModalPackage = useMemo(
     () => giftPackages.find(item => item.id === rewardModalPackageId) ?? null,
-    [rewardModalPackageId]
+    [rewardModalPackageId, giftPackages]
   )
 
   useEffect(() => {
@@ -168,6 +167,10 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
       <div className="gift-packages__header">
         <h2>{t('webShop')}</h2>
         <p>{t('webShopIntro')}</p>
+      </div>
+
+      <div className="mb-6">
+        <HeroicBonusNotice septemberSelected={activeCategory === 'september-supply'} />
       </div>
 
       <nav className="gift-package-tabs" aria-label={t('webShop')}>

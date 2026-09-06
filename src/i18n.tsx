@@ -13,6 +13,15 @@ export const LANGUAGES: { code: LanguageCode; short: string; label: string }[] =
 ]
 
 const en = {
+  heroicBonusTitle: "Current Bonus Event · Heroic Skills",
+  heroicBonusOneTime: "One-time per player: each reward can be claimed only once. Further purchases do not restart this bonus event.",
+  heroicBonusFirstThreshold: "$300 in one transaction",
+  heroicBonusFirstRule: "Purchase $300 in eligible packages in a single transaction to qualify to claim. Separate smaller payments do not count toward this first requirement.",
+  heroicBonusSecondThreshold: "Another $200 · $500 total",
+  heroicBonusSecondRule: "The same player must first complete the $300 purchase above. Only then can an additional $200 purchase in eligible giftpacks qualify for this reward. A $200 purchase made before the qualifying $300 transaction does not count.",
+  heroicBonusSummary: "First, purchase $300 in eligible giftpacks in one transaction to qualify to claim New Heroic Passive Skills. Only after completing that purchase can the same player purchase another $200 to qualify for Heroic Skill Enhancement II & III.",
+  heroicBonusExclusion: "September packages are excluded from both requirements because they have a separate bonus to claim.",
+  heroicBonusSeptemberSelected: "September packages do not count toward this Heroic Skills event. Their separate package bonuses still apply.",
   developmentTeam: 'by PlayCrows Development Team',
   donationSubmitted: 'Donation Form Submitted',
   donationSubmittedDesc: 'Your submission is pending review. Save the reference code below in case you need to contact PlayCrows support.',
@@ -192,6 +201,15 @@ type TranslationTable = Record<TranslationKey, string>
 
 const ko: TranslationTable = {
   ...en,
+  heroicBonusTitle: "진행 중인 보너스 이벤트 · 영웅 스킬",
+  heroicBonusOneTime: "플레이어당 1회 한정: 각 보상은 한 번만 수령할 수 있습니다. 추가 구매를 해도 이 보너스 이벤트는 초기화되지 않습니다.",
+  heroicBonusFirstThreshold: "단일 결제로 $300 구매",
+  heroicBonusFirstRule: "대상 패키지를 단일 결제로 $300 구매하면 보상 신청 자격이 주어집니다. 여러 소액 결제를 합산하여 첫 번째 조건을 충족할 수는 없습니다.",
+  heroicBonusSecondThreshold: "추가 $200 · 총 $500",
+  heroicBonusSecondRule: "동일한 플레이어가 먼저 위의 $300 구매를 완료해야 합니다. 그 이후 대상 패키지를 추가로 $200 구매해야 이 보상의 신청 자격이 주어집니다. 조건에 맞는 $300 결제 이전의 $200 구매는 인정되지 않습니다.",
+  heroicBonusSummary: "먼저 대상 패키지를 단일 결제로 $300 구매하면 New Heroic Passive Skills 신청 자격이 주어집니다. 이 구매를 완료한 후에만 동일한 플레이어가 추가로 $200 구매하여 Heroic Skill Enhancement II & III 신청 자격을 얻을 수 있습니다.",
+  heroicBonusExclusion: "9월 패키지는 별도의 보상이 있으므로 두 조건의 구매 금액에 모두 포함되지 않습니다.",
+  heroicBonusSeptemberSelected: "9월 패키지는 이 영웅 스킬 이벤트에 포함되지 않습니다. 해당 패키지의 별도 보너스는 유지됩니다.",
   developmentTeam: 'PlayCrows 개발팀', donationSubmitted: '후원 신청이 제출되었습니다', donationSubmittedDesc: '신청이 검토 대기 중입니다. PlayCrows 지원팀에 문의할 경우를 대비해 아래 참조 코드를 보관해 주세요.', referenceCode: '참조 코드', submitAnother: '다른 신청 제출', webShop: 'WEB 상점', supportAmount: '후원 금액', cumulativeRewards: '누적 보상', changePackageHint: '다른 패키지를 선택하려면 패키지 변경을 이용하세요', choosePackageHint: '패키지를 선택하세요', chooseSupportHint: '통화와 패키지 수량을 선택하세요', selectPackageFirst: '먼저 패키지를 선택하세요', initialPackage: '선택한 패키지', packageSelectionDesc: '아래에서 결제 통화와 수량을 선택하세요.', changePackage: '패키지 변경', voluntaryFooter: '2026 PlayCrows 개발팀 - 모든 후원은 자발적인 지원입니다.',
   currency: '재화', supportPackages: '지원 패키지', augustSupplyPackages: '8월 보급 패키지', augustSupplyPackage: '8월 보급 패키지', augustSupplyPackagesDesc: '8월 한정 보급 번들로 보너스 재화와 강화 재료가 포함됩니다.', septemberSupplyPackages: '9월 보급 패키지', septemberSupplyPackage: '9월 보급 패키지', septemberSupplyPackagesDesc: '9월 한정 보급 번들로 보너스 재화와 강화 재료가 포함됩니다.', currencyDesc: 'WEB 상점에서 이용 가능한 다이아 패키지입니다.', supportPackagesDesc: '직접 후원을 위한 아이템 번들입니다.', webShopIntro: '아래 카테고리를 선택해 원하는 패키지를 빠르게 확인하세요.', supportPackage: '지원 패키지', selected: '선택됨', select: '선택', packageContinueNotice: '계속하려면 패키지를 선택하세요. 귀속 아이템은 거래하거나 이전할 수 없습니다.',
   cumulativeIntro: '누적 후원 단계별 보상을 확인하세요. 단계를 선택하면 전체 보상 목록을 볼 수 있습니다.', claimCumulative: '누적 보상 수령', milestones: '단계', startingTier: '시작 단계', highestTier: '최고 단계', cumulativeMilestone: '누적 후원 단계', reward: '보상', rewards: '보상', cumulativeNotice: '누적 보상은 단계별로 표시됩니다. 자격 또는 지급 여부 확인이 필요하면 PlayCrows 지원팀에 문의하세요.',

@@ -647,7 +647,8 @@ const unblockSelectedSubmission = async () => {
 }
 
 const openReceipt = async () => {
-  if (!selected) {
+  if (!selected?.receipt_path) {
+    setSaveMessage('No receipt is attached to this submission.')
     return
   }
 

@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { CheckIcon } from './icons'
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`bg-[#171a20] border border-[#292d34] rounded-2xl ${className}`}>{children}</div>

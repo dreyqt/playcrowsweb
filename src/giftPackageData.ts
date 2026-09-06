@@ -144,7 +144,7 @@ export const v1GiftPackages: GiftPackage[] = [
     ],
   },
   {
-    id: 'support-alchemy-pack', isNew: true, category: 'support', title: 'ALCHEMY PACK', amount: 20,
+    id: 'support-alchemy-pack', category: 'support', title: 'ALCHEMY PACK', amount: 20,
     rewards: [
       { name: 'Mileage', quantity: 20_000 },
       { name: 'Contribution Coin', quantity: 20_000 },
@@ -160,7 +160,7 @@ export const v1GiftPackages: GiftPackage[] = [
     ],
   },
   {
-    id: 'support-nc-gears-starter', isNew: true, category: 'support', title: 'NC GEARS STARTER', amount: 100,
+    id: 'support-nc-gears-starter', category: 'support', title: 'NC GEARS STARTER', amount: 100,
     rewards: [
       { name: 'Mileage', quantity: 80_000 },
       { name: 'Contibution Coin', quantity: 50_000 },
@@ -181,7 +181,7 @@ export const v1GiftPackages: GiftPackage[] = [
     ],
   },
   {
-    id: 'support-4th-job-advance', isNew: true, category: 'support', title: '4TH JOB ADVANCE PACK', amount: 200,
+    id: 'support-4th-job-advance', category: 'support', title: '4TH JOB ADVANCE PACK', amount: 200,
     rewards: [
       { name: 'Mileage', quantity: 100_000 },
       { name: 'Contribution Coin', quantity: 100_000 },
@@ -194,6 +194,46 @@ export const v1GiftPackages: GiftPackage[] = [
       { name: 'Time Recharger - Forest of Training (Bound)', quantity: 50 },
       { name: 'Time Recharger - Irletta Temple (Bound)', quantity: 50 },
       { name: 'Time Recharger - Sancona Ruins (Bound)', quantity: 50 },
+    ],
+  },
+  {
+    id: 'support-change-character-name', isNew: true, category: 'support', title: 'CHANGE CHARACTER NAME', amount: 200,
+    rewards: [
+      { name: "Diamond", quantity: 400_000 },
+      { name: "Contribution Coin", quantity: 300_000 },
+      { name: "Character Name Change Ticket (Bound)", quantity: 1 },
+      { name: "Shining Accessory Enhancement Scroll Chest (Bound)", quantity: 1_000 },
+      { name: "Shining Weapon Enhancement Scroll Chest (Bound)", quantity: 1_000 },
+      { name: "Shining Armor Enhancement Scroll Chest (Bound)", quantity: 1_000 },
+      { name: "Frozen Tear (Bound)", quantity: 2_000 },
+      { name: "Metal Fragment (Bound)", quantity: 15_000 },
+      { name: "Ancient's Master Alloy (Bound)", quantity: 1_000 },
+    ],
+  },
+  {
+    id: 'support-intermediate-codex', isNew: true, category: 'support', title: 'INTERMEDIATE CODEX', amount: 100,
+    rewards: [
+      { name: "Diamond", quantity: 150_000 },
+      { name: "Contribution Coin", quantity: 150_000 },
+      { name: "Intermediate’s Codex (Bound)", quantity: 1_000 },
+      { name: "Shining Accessory Enhancement Scroll Chest (Bound)", quantity: 400 },
+      { name: "Shining Weapon Enhancement Scroll Chest (Bound)", quantity: 400 },
+      { name: "Shining Armor Enhancement Scroll Chest (Bound)", quantity: 400 },
+      { name: "Frozen Tear (Bound)", quantity: 700 },
+      { name: "Metal Fragment (Bound)", quantity: 6_000 },
+    ],
+  },
+  {
+    id: 'support-blessing-exp', isNew: true, category: 'support', title: 'BLESSING EXP', amount: 100,
+    rewards: [
+      { name: "Diamonds", quantity: 150_000 },
+      { name: "Contribution Coin", quantity: 50_000 },
+      { name: "Night Crows Blessings Stimulant of Growth (Bound)", quantity: 5 },
+      { name: "Shining Accessory Enhancement Scroll Chest (Bound)", quantity: 500 },
+      { name: "Shining Weapon Enhancement Scroll Chest (Bound)", quantity: 500 },
+      { name: "Shining Armor Enhancement Scroll Chest (Bound)", quantity: 500 },
+      { name: "Frozen Tear (Bound)", quantity: 700 },
+      { name: "Metal Fragment (Bound)", quantity: 6_000 },
     ],
   },
   {

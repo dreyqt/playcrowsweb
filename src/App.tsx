@@ -480,6 +480,7 @@ function PublicApp() {
                         data={form}
                         packageAmount={selectedPackage?.amount ?? 0}
                         packageTitle={selectedPackage?.title ?? ''}
+                        packageCategory={selectedPackage?.category}
                         onUpdate={update}
                         onNext={next}
                       />

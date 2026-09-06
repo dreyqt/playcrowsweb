@@ -36,7 +36,6 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   'Die of Oceans': 'die_of_oceans.png',
   'Die of Thunderbolts': 'die_of_thunderbolts.png',
   'Element Extraction of Harmony': 'element_extraction_of_harmony.png',
-  'Elemental Extraction of Fusion 11 times': 'element_extraction_of_fusion.png',
   'Seal of Advancement': 'seal_of_advancement.png',
   'Higher Seal of Advancement': 'higher_seal_advancement.png',
   'Metal Fragment': 'metal_fragment.png',

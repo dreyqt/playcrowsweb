@@ -3,11 +3,14 @@ import { CURRENCY_META } from '../../constants'
 import { convertAmount } from '../../utils'
 import { useI18n } from '../../i18n'
 import { Btn, Card } from '../ui'
+import { HeroicBonusNotice } from '../HeroicBonusNotice'
+import type { GiftPackageCategory } from '../../giftPackageData'
 
-export function StepAmount({ data, packageAmount, packageTitle, onUpdate, onNext }: {
+export function StepAmount({ data, packageAmount, packageTitle, packageCategory, onUpdate, onNext }: {
   data: FormData
   packageAmount: number
   packageTitle: string
+  packageCategory?: GiftPackageCategory
   onUpdate: (partial: Partial<FormData>) => void
   onNext: () => void
 }) {
@@ -69,6 +72,8 @@ export function StepAmount({ data, packageAmount, packageTitle, onUpdate, onNext
           {data.currency !== 'USD' && <div className="mt-1 text-xs text-[#8f8b84]">{t('usdEquivalent')}: ${totalUsd.toLocaleString()}</div>}
         </div>
       </Card>
+
+      <HeroicBonusNotice compact septemberSelected={packageCategory === 'september-supply'} />
 
       <Btn onClick={onNext} disabled={!valid}>{t('continue')}</Btn>
     </div>
