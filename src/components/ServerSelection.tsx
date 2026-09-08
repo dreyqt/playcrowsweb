@@ -9,7 +9,7 @@ export function ServerSelection({ onSelect }: { onSelect: (server: PlayCrowsServ
 
   return (
     <div className="min-h-screen bg-[#08090b] text-[#eee9df]">
-      <header className="border-b border-[#171a20] bg-[#0a0b0d]/95 backdrop-blur">
+      <header className="relative z-[100] border-b border-[#171a20] bg-[#0a0b0d]/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4">
           <div className="flex items-center gap-3">
             <img src={CrowLogo} alt="PlayCrows logo" className="h-10 w-10 rounded-full object-cover ring-1 ring-[#c9aa68]/30" />
