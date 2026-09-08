@@ -1,4 +1,5 @@
 import type { FormData } from '../../types'
+import type { PlayCrowsServer } from '../../server'
 import { displayAmount } from '../../utils'
 import { useI18n } from '../../i18n'
 import {
@@ -27,7 +28,8 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle, promoCode, onSubmit, onBack, isSubmitting, submitError }: {
+export function StepComplete({ server, data, selectedPackageAmount, selectedPackageTitle, promoCode, onSubmit, onBack, isSubmitting, submitError }: {
+  server: PlayCrowsServer
   data: FormData
   selectedPackageAmount: number | null
   selectedPackageTitle: string | null
@@ -39,7 +41,7 @@ export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle
 }) {
   const { t } = useI18n()
   const paymentLabel = data.paymentMethod ? PAYMENT_LABELS[data.paymentMethod] : t('notSelected')
-  const promoApplied = promoCode === EARLY_PROMO_CODE && isEarlyPromoActive() && data.paymentMethod !== 'paypal' && selectedPackageAmount !== null
+  const promoApplied = promoCode === EARLY_PROMO_CODE && (isEarlyPromoActive(server) || data.paypalPaymentStatus === 'COMPLETED') && selectedPackageAmount !== null
   const packageQuantity = Math.max(1, Math.floor(Number(data.packageQuantity) || 1))
   const originalPackageAmount = selectedPackageAmount === null ? null : getPackageAmountInCurrency(selectedPackageAmount, data.currency, packageQuantity)
   const discountedPackageAmount = selectedPackageAmount === null ? null : getDiscountedPackageAmount(selectedPackageAmount, data.currency, packageQuantity)
@@ -87,7 +89,6 @@ export function StepComplete({ data, selectedPackageAmount, selectedPackageTitle
         <div className="text-sm font-bold text-[#c9aa68]">{t('whatNext')}</div>
         <p className="mt-2 text-xs leading-5 text-[#a8b2c5]">
           {t('whatNextDesc')}
-          {promoApplied && <> {t('cumulativeCreditDesc')}</>}
         </p>
       </div>
 

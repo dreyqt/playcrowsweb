@@ -295,7 +295,15 @@ const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
 
 // Server catalogs are intentionally separate. V2 begins mirrored from V1, but
 // either catalog can now be changed independently without affecting the other.
-const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = { ...V1_GIFT_PACKAGES }
+const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
+  'currency-5': { title: 'Diamond Package', amount: 5 },
+  'currency-10': { title: 'Diamond Package', amount: 10 },
+  'currency-50': { title: 'Diamond Package', amount: 50 },
+  'currency-100': { title: 'Diamond Package', amount: 100 },
+  'currency-200': { title: 'Diamond Package', amount: 200 },
+  'currency-500': { title: 'Diamond Package', amount: 500 },
+  'currency-1000': { title: 'Diamond Package', amount: 1000 },
+}
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
 
@@ -303,10 +311,10 @@ function parseServer(value: unknown): PlayCrowsServer | null {
   return value === 'v1' || value === 'v2' ? value : null
 }
 
-const EARLY_PROMO_CODE = 'WEEKEND10'
+const EARLY_PROMO_CODE = 'V2EARLY10'
 const EARLY_PROMO_DISCOUNT_PERCENT = 10
 const EARLY_PROMO_END_TIMESTAMP = Date.parse(
-  '2026-08-30T15:59:00.000Z'
+  '2026-09-09T04:00:00.000Z'
 )
 
 
@@ -364,8 +372,9 @@ async function verifyPayPalOrder(options: {
   playerId: string
   username: string
   expectedAmountUsd: number
+  promoCode: string | null
 }) {
-  const { server, orderId, captureId, playerId, username, expectedAmountUsd } = options
+  const { server, orderId, captureId, playerId, username, expectedAmountUsd, promoCode } = options
   const accessToken = await getPayPalAccessToken(server)
 
   const response = await fetch(
@@ -390,6 +399,13 @@ async function verifyPayPalOrder(options: {
 
   if (!capture || capture.status !== 'COMPLETED') {
     throw new Error('The PayPal capture could not be verified.')
+  }
+
+  if (promoCode === EARLY_PROMO_CODE) {
+    const captureTime = Date.parse(String(capture.create_time ?? capture.update_time ?? ''))
+    if (!Number.isFinite(captureTime) || captureTime >= EARLY_PROMO_END_TIMESTAMP) {
+      throw new Error('The V2EARLY10 promotion had already ended when this PayPal payment was completed.')
+    }
   }
 
   const customId = String(purchaseUnit?.custom_id ?? '')
@@ -578,16 +594,15 @@ export default {
       let discountPercent = 0
 
       if (promoCode) {
-        if (paymentMethod === 'paypal') {
-          return errorResponse('Coupon codes are not applicable to PayPal payments.')
-        }
-
-        if (promoCode !== EARLY_PROMO_CODE) {
+        if (server !== 'v2' || promoCode !== EARLY_PROMO_CODE) {
           return errorResponse('Invalid redeem code.')
         }
 
-        if (Date.now() >= EARLY_PROMO_END_TIMESTAMP) {
-          return errorResponse('The WEEKEND10 promotion has expired.')
+        // Manual-payment submissions must arrive before the deadline. PayPal is
+        // allowed to finish the form afterward only when the verified capture
+        // itself was completed before the deadline (checked below).
+        if (Date.now() >= EARLY_PROMO_END_TIMESTAMP && paymentMethod !== 'paypal') {
+          return errorResponse('The V2EARLY10 promotion has expired.')
         }
 
         finalAmount = roundMoney(
@@ -700,6 +715,7 @@ export default {
             playerId,
             username,
             expectedAmountUsd: expectedPayPalAmountUsd,
+            promoCode: appliedPromoCode,
           })
           paypalPayerEmail = verification.payerEmail
         } catch (error) {

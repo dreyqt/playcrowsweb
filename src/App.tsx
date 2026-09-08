@@ -60,14 +60,13 @@ function PublicApp() {
 
   const update = (partial: Partial<FormData>) => {
     /*
-     * Changing the amount or currency invalidates an already-applied
+     * Changing the amount or quantity invalidates an already-applied
      * promo code. The player can apply the code again after finishing
      * their new selection.
      */
     if (
       'amount' in partial ||
-      'packageQuantity' in partial ||
-      'currency' in partial
+      'packageQuantity' in partial
     ) {
       setAppliedPromoCode(null)
     }
@@ -142,7 +141,7 @@ function PublicApp() {
   const applyPromoCode = (code: string): PromoApplyResult => {
     const normalizedCode = normalizePromoCode(code)
 
-    if (!isEarlyPromoActive()) {
+    if (!selectedServer || !isEarlyPromoActive(selectedServer)) {
       setAppliedPromoCode(null)
 
       return {
@@ -161,17 +160,9 @@ function PublicApp() {
       }
     }
 
-    if (form.paymentMethod === 'paypal') {
-      setAppliedPromoCode(null)
-
-      return {
-        success: false,
-        message: 'Coupon codes are not applicable to PayPal payments.',
-      }
-    }
-
     if (
       !isPackageEligibleForPromo(
+        selectedServer!,
         form,
         selectedPackage?.amount ?? null
       )
@@ -201,15 +192,11 @@ function PublicApp() {
   const submitForm = async () => {
     if (isSubmitting) return
 
-    if (appliedPromoCode && form.paymentMethod === 'paypal') {
-      setAppliedPromoCode(null)
-      setSubmitError('Coupon codes are not applicable to PayPal payments.')
-      return
-    }
-
     if (
       appliedPromoCode &&
-      !isEarlyPromoActive()
+      selectedServer &&
+      !isEarlyPromoActive(selectedServer) &&
+      !(form.paymentMethod === 'paypal' && form.paypalPaymentStatus === 'COMPLETED')
     ) {
       setAppliedPromoCode(null)
       setSubmitError(
@@ -314,7 +301,7 @@ function PublicApp() {
               {PLAYCROWS_SERVERS[selectedServer].name}
             </button>
             <a
-              href="/events"
+              href={`/events?server=${selectedServer}`}
               className="rounded-lg border border-[#c9aa68]/35 bg-[#c9aa68]/5 px-3 py-2 text-xs font-bold text-[#c9aa68] no-underline transition-colors hover:bg-[#c9aa68]/10"
             >
               Events
@@ -376,7 +363,7 @@ function PublicApp() {
             {step === 1 && (
               <>
                 <nav
-                  className="mb-8 mt-8 grid grid-cols-1 gap-1 rounded-xl border border-[#292d34] bg-[#0f1115] p-1 sm:grid-cols-3"
+                  className={`mb-8 mt-8 grid grid-cols-1 gap-1 rounded-xl border border-[#292d34] bg-[#0f1115] p-1 ${selectedServer === 'v2' ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}
                   aria-label="Support information"
                 >
                   <button
@@ -431,13 +418,15 @@ function PublicApp() {
                     )}
                   </button>
 
-                  <button
-                    type="button"
-                    className={tabClass('cumulative')}
-                    onClick={() => setActiveTab('cumulative')}
-                  >
-                    {t('cumulativeRewards')}
-                  </button>
+                  {selectedServer === 'v1' && (
+                    <button
+                      type="button"
+                      className={tabClass('cumulative')}
+                      onClick={() => setActiveTab('cumulative')}
+                    >
+                      {t('cumulativeRewards')}
+                    </button>
+                  )}
                 </nav>
 
                 {activeTab === 'packages' &&
@@ -487,7 +476,7 @@ function PublicApp() {
                     </section>
                   )}
 
-                {activeTab === 'cumulative' && (
+                {selectedServer === 'v1' && activeTab === 'cumulative' && (
                   <CumulativeRewards />
                 )}
               </>
@@ -528,6 +517,7 @@ function PublicApp() {
 
             {((step === 4 && form.paymentMethod === 'paypal') || step === 5) && (
               <StepComplete
+                server={selectedServer}
                 data={form}
                 selectedPackageAmount={selectedPackage?.amount ?? null}
                 selectedPackageTitle={selectedPackage?.title ?? null}

@@ -45,13 +45,25 @@ const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
 
 // Keep server catalogs separate even while V2 initially mirrors V1.
 // V2 package pricing can now be changed without changing V1 checkout behavior.
-const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = { ...V1_GIFT_PACKAGES }
+const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
+  'currency-5': { title: 'Diamond Package', amount: 5 },
+  'currency-10': { title: 'Diamond Package', amount: 10 },
+  'currency-50': { title: 'Diamond Package', amount: 50 },
+  'currency-100': { title: 'Diamond Package', amount: 100 },
+  'currency-200': { title: 'Diamond Package', amount: 200 },
+  'currency-500': { title: 'Diamond Package', amount: 500 },
+  'currency-1000': { title: 'Diamond Package', amount: 1000 },
+}
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
 
 function parseServer(value: unknown): PlayCrowsServer | null {
   return value === 'v1' || value === 'v2' ? value : null
 }
+
+const EARLY_PROMO_CODE = 'V2EARLY10'
+const EARLY_PROMO_DISCOUNT_PERCENT = 10
+const EARLY_PROMO_END_TIMESTAMP = Date.parse('2026-09-09T04:00:00.000Z')
 
 function jsonResponse(body: unknown, status = 200) {
   return Response.json(body, { status, headers: CORS_HEADERS })
@@ -107,12 +119,16 @@ async function getPayPalAccessToken(server: PlayCrowsServer) {
   return String(payload.access_token)
 }
 
-function calculateAmount(packageDefinition: GiftPackageDefinition, quantity: number, promoCode: string) {
-  if (promoCode) {
-    throw new Error('Coupon codes are not applicable to PayPal payments.')
+function calculateAmount(server: PlayCrowsServer, packageDefinition: GiftPackageDefinition, quantity: number, promoCode: string) {
+  const originalAmount = roundMoney(packageDefinition.amount * quantity)
+  if (!promoCode) return originalAmount
+  if (server !== 'v2' || promoCode !== EARLY_PROMO_CODE) {
+    throw new Error('Invalid redeem code.')
   }
-
-  return roundMoney(packageDefinition.amount * quantity)
+  if (Date.now() >= EARLY_PROMO_END_TIMESTAMP) {
+    throw new Error('The V2EARLY10 promotion has expired.')
+  }
+  return roundMoney(originalAmount * (1 - EARLY_PROMO_DISCOUNT_PERCENT / 100))
 }
 
 export default {
@@ -152,7 +168,7 @@ export default {
       if (!playerId || !username) return jsonResponse({ error: 'Player information is incomplete.' }, 400)
       if (playerId.length > 100 || username.length > 100) return jsonResponse({ error: 'Player information is too long.' }, 400)
 
-      const amount = calculateAmount(packageDefinition, packageQuantity, promoCode)
+      const amount = calculateAmount(server, packageDefinition, packageQuantity, promoCode)
       const accessToken = await getPayPalAccessToken(server)
       const requestId = `pc-create-${crypto.randomUUID()}`
 
@@ -204,7 +220,19 @@ export default {
       const server = parseServer(body.server)
       if (!server) return jsonResponse({ error: 'Please select a valid PlayCrows server.' }, 400)
       const orderId = String(body.orderId ?? '').trim()
+      const promoCode = String(body.promoCode ?? '').trim().toUpperCase()
       if (!/^[A-Z0-9]+$/i.test(orderId)) return jsonResponse({ error: 'Invalid PayPal order ID.' }, 400)
+
+      // Do not capture a discounted checkout after the advertised deadline.
+      // This check happens before PayPal is asked to charge the buyer.
+      if (promoCode) {
+        if (server !== 'v2' || promoCode !== EARLY_PROMO_CODE) {
+          return jsonResponse({ error: 'Invalid redeem code.' }, 400)
+        }
+        if (Date.now() >= EARLY_PROMO_END_TIMESTAMP) {
+          return jsonResponse({ error: 'The V2EARLY10 promotion has expired. Please create a new order at the regular price.' }, 409)
+        }
+      }
 
       const accessToken = await getPayPalAccessToken(server)
       const response = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {

@@ -1,14 +1,17 @@
 import type { Currency, FormData } from './types'
+import type { PlayCrowsServer } from './server'
 import { CURRENCY_META } from './constants'
 
-export const EARLY_PROMO_CODE = 'WEEKEND10'
+/** V2 early top-up launch coupon. */
+export const EARLY_PROMO_CODE = 'V2EARLY10'
 export const EARLY_PROMO_DISCOUNT_PERCENT = 10
 
 /*
- * August 30, 2026 at 11:59 PM GMT+8.
- * The matching UTC time is 3:59 PM.
+ * September 9, 2026 at 12:00 PM Singapore / GMT+8.
+ * UTC equivalent: September 9, 2026 at 04:00.
  */
-export const EARLY_PROMO_END_ISO = '2026-08-30T15:59:00.000Z'
+export const EARLY_PROMO_END_ISO = '2026-09-09T04:00:00.000Z'
+export const EARLY_PROMO_SERVER: PlayCrowsServer = 'v2'
 
 export interface PromoApplyResult {
   success: boolean
@@ -19,15 +22,16 @@ export function normalizePromoCode(code: string) {
   return code.trim().toUpperCase()
 }
 
-export function isEarlyPromoActive(now = new Date()) {
-  return now.getTime() < new Date(EARLY_PROMO_END_ISO).getTime()
+export function isEarlyPromoActive(server: PlayCrowsServer, now = new Date()) {
+  return server === EARLY_PROMO_SERVER && now.getTime() < new Date(EARLY_PROMO_END_ISO).getTime()
 }
 
 export function isPackageEligibleForPromo(
+  server: PlayCrowsServer,
   data: FormData,
   selectedPackageAmount: number | null
 ) {
-  if (selectedPackageAmount === null) {
+  if (server !== EARLY_PROMO_SERVER || selectedPackageAmount === null) {
     return false
   }
 

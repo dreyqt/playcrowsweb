@@ -133,7 +133,7 @@ function PayPalCheckout({
           onApprove: async (approvalData: { orderID?: string }) => {
             if (!approvalData.orderID) throw new Error('PayPal did not return an order ID.')
             setMessage('Confirming your PayPal payment…')
-            const result = await capturePayPalOrder(server, approvalData.orderID)
+            const result = await capturePayPalOrder(server, approvalData.orderID, promoCode)
             if (cancelled) return
             setStatus('completed')
             setMessage(`Payment completed · ${result.captureId}`)
@@ -309,8 +309,7 @@ export function StepPayment({
   const amtDisplay = displayAmount(data)
   const promoApplied =
     appliedPromoCode === EARLY_PROMO_CODE &&
-    isEarlyPromoActive() &&
-    data.paymentMethod !== 'paypal'
+    (isEarlyPromoActive(server) || data.paypalPaymentStatus === 'COMPLETED')
 
   const packageQuantity = Math.max(1, Math.floor(Number(data.packageQuantity) || 1))
 
@@ -461,6 +460,7 @@ export function StepPayment({
       </Card>
 
       {/* Redeem Code */}
+      {server === 'v2' && (
       <Card className="p-5">
         <div className="flex flex-col gap-4">
           <div>
@@ -545,13 +545,14 @@ export function StepPayment({
             )
           )}
 
-          {!isEarlyPromoActive() && (
+          {!isEarlyPromoActive(server) && (
             <div className="text-xs text-[#ef4444]">
               {t('earlyPromotionEnded')}
             </div>
           )}
         </div>
       </Card>
+      )}
 
       {/* Payment Methods */}
       <div className="flex flex-col gap-3">
@@ -563,13 +564,6 @@ export function StepPayment({
               type="button"
               key={method.id}
               onClick={() => {
-                if (method.id === 'paypal' && appliedPromoCode) {
-                  onRemovePromoCode()
-                  setRedeemCode('')
-                  setPromoMessage('Coupon codes are not applicable to PayPal payments.')
-                  setPromoMessageType('error')
-                }
-
                 onUpdate({
                   paymentMethod: method.id,
                   ...(method.id === 'paypal' ? { currency: 'USD' as const } : {}),

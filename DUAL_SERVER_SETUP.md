@@ -57,10 +57,9 @@ To use different donation channels per server, add Supabase secrets:
 Frontend catalogs are now available separately as `v1GiftPackages` and
 `v2GiftPackages` in `src/giftPackageData.ts`.
 
-The V2 catalog initially mirrors the current V1 catalog so both flows are fully
-usable immediately. Replace/edit the V2 catalog when V2-specific package lists
-are provided.
+The V2 catalog is now launch-specific and contains Diamond Packages only.
+V1 continues to use its existing package categories.
 
-The two server-side catalogs in both checkout Edge Functions are also separate
+The server-side catalogs in the checkout/submission/recovery Edge Functions are also separate
 (`V1_GIFT_PACKAGES` and `V2_GIFT_PACKAGES`). Keep frontend and server-side
 pricing synchronized whenever a server's package list changes.

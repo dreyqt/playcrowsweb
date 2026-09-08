@@ -1,4 +1,5 @@
 import type { LanguageCode } from '../i18n'
+import type { PlayCrowsServer } from '../server'
 
 export type EventStatus = 'draft' | 'active' | 'ended'
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected'
@@ -54,6 +55,7 @@ export type EventTranslation = {
 
 export type PlayCrowsEvent = {
   id: string
+  server: PlayCrowsServer
   slug: string
   event_number: string
   title: string

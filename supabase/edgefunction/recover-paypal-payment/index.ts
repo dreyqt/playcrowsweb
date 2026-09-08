@@ -36,7 +36,15 @@ const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'september-supply-1000': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 1000 },
 }
 
-const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = { ...V1_GIFT_PACKAGES }
+const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
+  'currency-5': { title: 'Diamond Package', amount: 5 },
+  'currency-10': { title: 'Diamond Package', amount: 10 },
+  'currency-50': { title: 'Diamond Package', amount: 50 },
+  'currency-100': { title: 'Diamond Package', amount: 100 },
+  'currency-200': { title: 'Diamond Package', amount: 200 },
+  'currency-500': { title: 'Diamond Package', amount: 500 },
+  'currency-1000': { title: 'Diamond Package', amount: 1000 },
+}
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
 
@@ -99,8 +107,17 @@ function parseDescription(description: unknown) {
 function inferPackage(server: PlayCrowsServer, title: string, quantity: number, totalPaid: number) {
   if (!Number.isInteger(quantity) || quantity < 1) return null
   const unitPaid = Math.round((totalPaid / quantity) * 100) / 100
-  const matches = Object.entries(GIFT_PACKAGES_BY_SERVER[server]).filter(([, item]) => item.title.toLowerCase() === title.toLowerCase() && Math.abs(item.amount - unitPaid) < 0.001)
-  return matches.length === 1 ? { id: matches[0][0], ...matches[0][1] } : null
+  const catalog = Object.entries(GIFT_PACKAGES_BY_SERVER[server]).filter(([, item]) => item.title.toLowerCase() === title.toLowerCase())
+  const regular = catalog.filter(([, item]) => Math.abs(item.amount - unitPaid) < 0.001)
+  if (regular.length === 1) return { id: regular[0][0], ...regular[0][1], promoCode: null as string | null, discountPercent: 0 }
+  const discounted = catalog.filter(([, item]) => Math.abs(Math.round(item.amount * 0.9 * 100) / 100 - unitPaid) < 0.001)
+  if (discounted.length === 1) return {
+    id: discounted[0][0],
+    ...discounted[0][1],
+    promoCode: server === 'v2' ? 'V2EARLY10' : 'WEEKEND10',
+    discountPercent: 10,
+  }
+  return null
 }
 async function resolveOrder(inputId: string, server: PlayCrowsServer) {
   const orderAttempt = await paypalGet(server, `/v2/checkout/orders/${encodeURIComponent(inputId)}`)
@@ -161,7 +178,7 @@ export default {
         selected_package_amount: recoveredPackage.amount, selected_package_id: recoveredPackage.id, selected_package_title: recoveredPackage.title,
         package_quantity: description.quantity, additional_notes: 'Recovered from a completed PayPal checkout after the customer closed the Donation Center before final submission.',
         payment_method: 'paypal', paypal_order_id: String(order.id), paypal_capture_id: String(capture.id), paypal_payment_status: 'COMPLETED',
-        paypal_payer_email: payerEmail, paypal_transaction_id: String(capture.id), payment_verified_at: verifiedAt, promo_code: null, discount_percent: 0,
+        paypal_payer_email: payerEmail, paypal_transaction_id: String(capture.id), payment_verified_at: verifiedAt, promo_code: recoveredPackage.promoCode, discount_percent: recoveredPackage.discountPercent,
         status: 'pending', admin_notes: `Recovered from PayPal by ${user.email ?? user.id}. Original PayPal ID entered: ${inputId}.`,
       }).select('id, reference_code, created_at, server, player_id, username, selected_package_id, selected_package_title, package_quantity, amount, currency, paypal_order_id, paypal_capture_id, payment_verified_at, event_bonus_name, event_bonus_eligible').single()
       if (insertError || !donation) {

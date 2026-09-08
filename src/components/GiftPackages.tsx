@@ -3,6 +3,7 @@ import { getGiftPackages, type GiftPackageCategory } from '../giftPackageData'
 import type { PlayCrowsServer } from '../server'
 import { useI18n } from '../i18n'
 import { HeroicBonusNotice } from './HeroicBonusNotice'
+import { EARLY_PROMO_CODE, EARLY_PROMO_DISCOUNT_PERCENT, isEarlyPromoActive } from '../promo'
 
 interface GiftPackagesProps {
   server: PlayCrowsServer
@@ -17,8 +18,12 @@ interface GiftPackagesProps {
  */
 const REWARD_ICON_ALIASES: Record<string, string> = {
   'Black Wing Special Supply': 'black_wings_special_supply.png',
+  'Black Wings Special Supply (Attributed)': 'black_wings_special_supply.png',
+  'Time Recharger Selection Chest (Bound)': 'time_recharger_selection_chest.png',
   'Sunset Splendid Weapon Style Summon x11 (Bound)': 'sunset_weapon_summon.png',
+  "Sunset's Splendid Weapon Style Summon x11 (Bound)": 'sunset_weapon_summon.png',
   'Sunset Splendid Mount Summon x11 (Bound)': 'sunset_mount_summon.png',
+  "Sunset's Splendid Mount Summon x11 (Bound)": 'sunset_mount_summon.png',
   'Time Recharger - Masarta Special Dungeon': 'time_recharger_masarta_special_dungeon.png',
   'Element Extraction of Harmony (Bound)': 'element_extraction_of_harmony.png',
   'Source of Wisdom (Bound)': 'source_wisdom.png',
@@ -116,21 +121,31 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
     'august-supply': { title: t('augustSupplyPackages'), description: t('augustSupplyPackagesDesc') },
     'september-supply': { title: t('septemberSupplyPackages'), description: t('septemberSupplyPackagesDesc') },
   }
+  const availableCategories = useMemo(
+    () => (Object.keys(sections) as GiftPackageCategory[]).filter(category =>
+      giftPackages.some(item => item.category === category)
+    ),
+    [giftPackages]
+  )
   const selectedCategory = useMemo<GiftPackageCategory | null>(() => {
     if (!selectedPackageId) return null
     return giftPackages.find(item => item.id === selectedPackageId)?.category ?? null
   }, [selectedPackageId, giftPackages])
 
   const [activeCategory, setActiveCategory] = useState<GiftPackageCategory>(
-    selectedCategory ?? 'currency'
+    selectedCategory ?? availableCategories[0] ?? 'currency'
   )
   const [rewardModalPackageId, setRewardModalPackageId] = useState<string | null>(null)
 
   useEffect(() => {
     if (selectedCategory) {
       setActiveCategory(selectedCategory)
+      return
     }
-  }, [selectedCategory])
+    if (!availableCategories.includes(activeCategory)) {
+      setActiveCategory(availableCategories[0] ?? 'currency')
+    }
+  }, [selectedCategory, availableCategories, activeCategory])
 
   const rewardModalPackage = useMemo(
     () => giftPackages.find(item => item.id === rewardModalPackageId) ?? null,
@@ -169,25 +184,43 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
         <p>{t('webShopIntro')}</p>
       </div>
 
-      <div className="mb-6">
-        <HeroicBonusNotice septemberSelected={activeCategory === 'september-supply'} />
-      </div>
+      {server === 'v2' && isEarlyPromoActive(server) ? (
+        <div className="mb-6 rounded-xl border border-[#a78bfa]/45 bg-[#8b5cf6]/10 p-4 shadow-[0_0_30px_rgba(139,92,246,0.08)]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#c4b5fd]">V2 EARLY TOP-UP</div>
+              <div className="mt-1 text-lg font-black text-[#f2eee6]">{EARLY_PROMO_DISCOUNT_PERCENT}% OFF all V2 Diamond Packages</div>
+              <p className="mt-1 text-xs leading-5 text-[#9f99b0]">Valid until September 9, 2026 · 12:00 PM GMT+8 Singapore Time.</p>
+            </div>
+            <div className="rounded-lg border border-[#a78bfa]/40 bg-black/20 px-4 py-3 text-center">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-[#8f889d]">Coupon Code</div>
+              <div className="mt-1 font-mono text-base font-black tracking-wider text-[#c4b5fd]">{EARLY_PROMO_CODE}</div>
+            </div>
+          </div>
+        </div>
+      ) : server === 'v1' ? (
+        <div className="mb-6">
+          <HeroicBonusNotice septemberSelected={activeCategory === 'september-supply'} />
+        </div>
+      ) : null}
 
-      <nav className="gift-package-tabs" aria-label={t('webShop')}>
-        {(Object.keys(sections) as GiftPackageCategory[]).map(category => (
-          <button
-            key={category}
-            type="button"
-            className={`gift-package-tabs__button ${
-              activeCategory === category ? 'gift-package-tabs__button--active' : ''
-            }`}
-            onClick={() => setActiveCategory(category)}
-            aria-pressed={activeCategory === category}
-          >
-            {sections[category].title}
-          </button>
-        ))}
-      </nav>
+      {availableCategories.length > 1 && (
+        <nav className="gift-package-tabs" aria-label={t('webShop')}>
+          {availableCategories.map(category => (
+            <button
+              key={category}
+              type="button"
+              className={`gift-package-tabs__button ${
+                activeCategory === category ? 'gift-package-tabs__button--active' : ''
+              }`}
+              onClick={() => setActiveCategory(category)}
+              aria-pressed={activeCategory === category}
+            >
+              {sections[category].title}
+            </button>
+          ))}
+        </nav>
+      )}
 
       <div className="gift-package-category">
         <div className="mb-4">
