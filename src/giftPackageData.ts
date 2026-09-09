@@ -379,7 +379,6 @@ export const v2GiftPackages: GiftPackage[] = [
     amount: 5,
     rewards: [
       { name: 'Diamonds', quantity: 10_000 },
-      { name: 'Time Recharger Selection Chest (Bound)', quantity: 2 },
     ],
   },
   {
@@ -390,7 +389,6 @@ export const v2GiftPackages: GiftPackage[] = [
     rewards: [
       { name: 'Diamonds', quantity: 5_000 },
       { name: 'Black Wings Special Supply (Attributed)', quantity: 1 },
-      { name: 'Time Recharger Selection Chest (Bound)', quantity: 5 },
     ],
   },
   {
@@ -403,7 +401,6 @@ export const v2GiftPackages: GiftPackage[] = [
       { name: 'Gold Chest (Bound)', quantity: 500 },
       { name: "Sunset's Splendid Mount Summon x11 (Bound)", quantity: 50 },
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 50 },
-      { name: 'Time Recharger Selection Chest (Bound)', quantity: 25 },
     ],
   },
   {
@@ -416,7 +413,6 @@ export const v2GiftPackages: GiftPackage[] = [
       { name: 'Gold Chest (Bound)', quantity: 1_000 },
       { name: "Sunset's Splendid Mount Summon x11 (Bound)", quantity: 100 },
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 100 },
-      { name: 'Time Recharger Selection Chest (Bound)', quantity: 50 },
     ],
   },
   {
@@ -429,7 +425,6 @@ export const v2GiftPackages: GiftPackage[] = [
       { name: 'Gold Chest (Bound)', quantity: 3_000 },
       { name: "Sunset's Splendid Mount Summon x11 (Bound)", quantity: 200 },
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 200 },
-      { name: 'Time Recharger Selection Chest (Bound)', quantity: 100 },
       { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 10 },
     ],
   },
@@ -443,7 +438,6 @@ export const v2GiftPackages: GiftPackage[] = [
       { name: 'Gold Chest (Bound)', quantity: 5_000 },
       { name: "Sunset's Splendid Mount Summon x11 (Bound)", quantity: 500 },
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 500 },
-      { name: 'Time Recharger Selection Chest (Bound)', quantity: 250 },
       { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 30 },
       { name: 'Element Extraction of Harmony (Bound)', quantity: 1_000 },
     ],
@@ -458,7 +452,6 @@ export const v2GiftPackages: GiftPackage[] = [
       { name: 'Gold Chest (Bound)', quantity: 10_000 },
       { name: "Sunset's Splendid Mount Summon x11 (Bound)", quantity: 1_000 },
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 1_000 },
-      { name: 'Time Recharger Selection Chest (Bound)', quantity: 500 },
       { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 100 },
       { name: 'Element Extraction of Harmony (Bound)', quantity: 2_000 },
     ],
