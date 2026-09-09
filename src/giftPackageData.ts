@@ -421,7 +421,7 @@ export const v2GiftPackages: GiftPackage[] = [
     title: 'Diamond Package',
     amount: 200,
     rewards: [
-      { name: 'Diamonds', quantity: 1,000_000 },
+      { name: 'Diamonds', quantity: 1_000_000 },
       { name: 'Gold Chest (Bound)', quantity: 3_000 },
       { name: "Sunset's Splendid Mount Summon x11 (Bound)", quantity: 200 },
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 200 },
