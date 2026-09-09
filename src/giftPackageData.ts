@@ -378,7 +378,7 @@ export const v2GiftPackages: GiftPackage[] = [
     title: 'Diamond Package',
     amount: 5,
     rewards: [
-      { name: 'Diamonds', quantity: 10_000 },
+      { name: 'Diamonds', quantity: 20_000 },
     ],
   },
   {
@@ -387,7 +387,7 @@ export const v2GiftPackages: GiftPackage[] = [
     title: 'Diamond Package',
     amount: 10,
     rewards: [
-      { name: 'Diamonds', quantity: 5_000 },
+      { name: 'Diamonds', quantity: 10_000 },
       { name: 'Black Wings Special Supply (Attributed)', quantity: 1 },
     ],
   },
@@ -397,7 +397,7 @@ export const v2GiftPackages: GiftPackage[] = [
     title: 'Diamond Package',
     amount: 50,
     rewards: [
-      { name: 'Diamonds', quantity: 105_000 },
+      { name: 'Diamonds', quantity: 210_000 },
       { name: 'Gold Chest (Bound)', quantity: 500 },
       { name: "Sunset's Splendid Mount Summon x11 (Bound)", quantity: 50 },
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 50 },
@@ -409,7 +409,7 @@ export const v2GiftPackages: GiftPackage[] = [
     title: 'Diamond Package',
     amount: 100,
     rewards: [
-      { name: 'Diamonds', quantity: 225_000 },
+      { name: 'Diamonds', quantity: 450_000 },
       { name: 'Gold Chest (Bound)', quantity: 1_000 },
       { name: "Sunset's Splendid Mount Summon x11 (Bound)", quantity: 100 },
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 100 },
@@ -421,7 +421,7 @@ export const v2GiftPackages: GiftPackage[] = [
     title: 'Diamond Package',
     amount: 200,
     rewards: [
-      { name: 'Diamonds', quantity: 500_000 },
+      { name: 'Diamonds', quantity: 1,000_000 },
       { name: 'Gold Chest (Bound)', quantity: 3_000 },
       { name: "Sunset's Splendid Mount Summon x11 (Bound)", quantity: 200 },
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 200 },
@@ -434,7 +434,7 @@ export const v2GiftPackages: GiftPackage[] = [
     title: 'Diamond Package',
     amount: 500,
     rewards: [
-      { name: 'Diamonds', quantity: 1_500_000 },
+      { name: 'Diamonds', quantity: 3_000_000 },
       { name: 'Gold Chest (Bound)', quantity: 5_000 },
       { name: "Sunset's Splendid Mount Summon x11 (Bound)", quantity: 500 },
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 500 },
@@ -448,7 +448,7 @@ export const v2GiftPackages: GiftPackage[] = [
     title: 'Diamond Package',
     amount: 1000,
     rewards: [
-      { name: 'Diamonds', quantity: 4_000_000 },
+      { name: 'Diamonds', quantity: 8_000_000 },
       { name: 'Gold Chest (Bound)', quantity: 10_000 },
       { name: "Sunset's Splendid Mount Summon x11 (Bound)", quantity: 1_000 },
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 1_000 },
