@@ -5,8 +5,11 @@ import { useI18n } from '../../i18n'
 import { Btn, Card } from '../ui'
 import { HeroicBonusNotice } from '../HeroicBonusNotice'
 import type { GiftPackageCategory } from '../../giftPackageData'
+import type { PlayCrowsServer } from '../../server'
+import { V2Event001BonusNotice } from '../V2Event001BonusNotice'
 
-export function StepAmount({ data, packageAmount, packageTitle, packageCategory, onUpdate, onNext }: {
+export function StepAmount({ server, data, packageAmount, packageTitle, packageCategory, onUpdate, onNext }: {
+  server: PlayCrowsServer
   data: FormData
   packageAmount: number
   packageTitle: string
@@ -73,7 +76,11 @@ export function StepAmount({ data, packageAmount, packageTitle, packageCategory,
         </div>
       </Card>
 
-      <HeroicBonusNotice compact septemberSelected={packageCategory === 'september-supply'} />
+      {server === 'v1' ? (
+        <HeroicBonusNotice compact septemberSelected={packageCategory === 'september-supply'} />
+      ) : (
+        <V2Event001BonusNotice />
+      )}
 
       <Btn onClick={onNext} disabled={!valid}>{t('continue')}</Btn>
     </div>

@@ -466,6 +466,7 @@ function PublicApp() {
                       </div>
 
                       <StepAmount
+                        server={selectedServer}
                         data={form}
                         packageAmount={selectedPackage?.amount ?? 0}
                         packageTitle={selectedPackage?.title ?? ''}
