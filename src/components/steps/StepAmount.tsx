@@ -6,7 +6,7 @@ import { Btn, Card } from '../ui'
 import { HeroicBonusNotice } from '../HeroicBonusNotice'
 import type { GiftPackageCategory } from '../../giftPackageData'
 import type { PlayCrowsServer } from '../../server'
-import { V2Event001BonusNotice } from '../V2Event001BonusNotice'
+import { V2EventBonusNotice } from '../V2EventBonusNotice'
 
 export function StepAmount({ server, data, packageAmount, packageTitle, packageCategory, onUpdate, onNext }: {
   server: PlayCrowsServer
@@ -79,7 +79,7 @@ export function StepAmount({ server, data, packageAmount, packageTitle, packageC
       {server === 'v1' ? (
         <HeroicBonusNotice compact septemberSelected={packageCategory === 'september-supply'} />
       ) : (
-        <V2Event001BonusNotice />
+        <V2EventBonusNotice />
       )}
 
       <Btn onClick={onNext} disabled={!valid}>{t('continue')}</Btn>
