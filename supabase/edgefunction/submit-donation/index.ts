@@ -303,6 +303,10 @@ const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'currency-200': { title: 'Diamond Package', amount: 200 },
   'currency-500': { title: 'Diamond Package', amount: 500 },
   'currency-1000': { title: 'Diamond Package', amount: 1000 },
+  'support-skill-bundle': { title: 'SKILL BUNDLE', amount: 15 },
+  'support-guild-bundle': { title: 'GUILD BUNDLE', amount: 20 },
+  'support-job-advance': { title: 'JOB ADVANCE PACKAGE', amount: 25 },
+  'support-nc-gears-starter': { title: 'NC GEARS STARTER', amount: 100 },
 }
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER

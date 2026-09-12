@@ -363,7 +363,7 @@ function PublicApp() {
             {step === 1 && (
               <>
                 <nav
-                  className={`mb-8 mt-8 grid grid-cols-1 gap-1 rounded-xl border border-[#292d34] bg-[#0f1115] p-1 ${selectedServer === 'v2' ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}
+                  className="mb-8 mt-8 grid grid-cols-1 gap-1 rounded-xl border border-[#292d34] bg-[#0f1115] p-1 sm:grid-cols-3"
                   aria-label="Support information"
                 >
                   <button
@@ -418,15 +418,13 @@ function PublicApp() {
                     )}
                   </button>
 
-                  {selectedServer === 'v1' && (
-                    <button
-                      type="button"
-                      className={tabClass('cumulative')}
-                      onClick={() => setActiveTab('cumulative')}
-                    >
-                      {t('cumulativeRewards')}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className={tabClass('cumulative')}
+                    onClick={() => setActiveTab('cumulative')}
+                  >
+                    {t('cumulativeRewards')}
+                  </button>
                 </nav>
 
                 {activeTab === 'packages' &&
@@ -477,8 +475,8 @@ function PublicApp() {
                     </section>
                   )}
 
-                {selectedServer === 'v1' && activeTab === 'cumulative' && (
-                  <CumulativeRewards />
+                {activeTab === 'cumulative' && (
+                  <CumulativeRewards server={selectedServer} />
                 )}
               </>
             )}

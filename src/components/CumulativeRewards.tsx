@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { cumulativeRewards } from '../cumulativeRewards'
 import { useI18n } from '../i18n'
+import type { PlayCrowsServer } from '../server'
 
 function formatAmount(amount: number) {
   return `$${amount.toLocaleString()}`
@@ -142,8 +143,11 @@ function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: s
   )
 }
 
-export function CumulativeRewards() {
+export function CumulativeRewards({ server }: { server: PlayCrowsServer }) {
   const { t } = useI18n()
+  const claimUrl = server === 'v2'
+    ? 'https://account002.playcrows.com/bonus.php'
+    : 'https://account.playcrows.com/bonus.php'
   const [expandedAmount, setExpandedAmount] = useState<number | null>(
     cumulativeRewards[0]?.amount ?? null
   )
@@ -160,7 +164,7 @@ export function CumulativeRewards() {
         </p>
 
         <a
-          href="https://account.playcrows.com/bonus.php"
+          href={claimUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-4 py-2 text-sm font-bold text-[#c9aa68] transition-all hover:border-[#c9aa68] hover:bg-[#c9aa68]/20"

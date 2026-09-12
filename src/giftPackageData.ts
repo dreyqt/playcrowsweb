@@ -370,7 +370,7 @@ export const v1GiftPackages: GiftPackage[] = [
 
 ]
 
-// V2 launch catalog — Diamond Packages only.
+// V2 catalog — Diamond Packages plus selected Support Packages.
 export const v2GiftPackages: GiftPackage[] = [
   {
     id: 'currency-5',
@@ -454,6 +454,52 @@ export const v2GiftPackages: GiftPackage[] = [
       { name: "Sunset's Splendid Weapon Style Summon x11 (Bound)", quantity: 1_000 },
       { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 100 },
       { name: 'Element Extraction of Harmony (Bound)', quantity: 2_000 },
+    ],
+  },
+  {
+    id: 'support-skill-bundle', category: 'support', title: 'SKILL BUNDLE', amount: 15,
+    rewards: [
+      { name: 'Source of Wisdom (Bound)', quantity: 10 },
+      { name: 'Source of Growth (Bound)', quantity: 400 },
+      { name: 'Gold Chest (Bound)', quantity: 200 },
+    ],
+  },
+  {
+    id: 'support-guild-bundle', category: 'support', title: 'GUILD BUNDLE', amount: 20,
+    rewards: [
+      { name: 'Treasure Guild Coin Chest (Bound)', quantity: 50 },
+      { name: 'Sturdy Bundle of Yarn Box (Attributed)', quantity: 20 },
+      { name: 'Moonlight Protection Talisman (Bound)', quantity: 10 },
+      { name: 'Sun Battle Talisman (Bound)', quantity: 10 },
+    ],
+  },
+  {
+    id: 'support-job-advance', category: 'support', title: 'JOB ADVANCE PACKAGE', amount: 25,
+    rewards: [
+      { name: 'High Seal of Advancement (Bound)', quantity: 75 },
+      { name: 'Seal of Advancement (Bound)', quantity: 1_200 },
+      { name: 'Gold Chest (Bound)', quantity: 200 },
+      { name: 'Torn Invoices (Attribution)', quantity: 100 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 100 },
+      { name: "Star's Memory (Bound)", quantity: 450 },
+    ],
+  },
+  {
+    id: 'support-nc-gears-starter', category: 'support', title: 'NC GEARS STARTER', amount: 100,
+    rewards: [
+      { name: 'Mileage', quantity: 50_000 },
+      { name: 'Contribution Coin', quantity: 20_000 },
+      { name: '+10 Night Crows Claw Talisman (Bound)', quantity: 1 },
+      { name: '+10 Night Crows Feather Brooch (Bound)', quantity: 1 },
+      { name: '+10 Night Crows Beak Circlet (Bound)', quantity: 1 },
+      { name: '+10 nighthawk Taileather Whistle (attributed)', quantity: 1 },
+      { name: '+10 nighthawk Mask (Attributed)', quantity: 1 },
+      { name: '+10 Night Crows Flight Feather Jewel (Bound)', quantity: 1 },
+      { name: 'Brilliant Accessory Refinement Stone (Bound)', quantity: 1_000 },
+      { name: 'Moonlight Protection Talisman (Bound)', quantity: 100 },
+      { name: 'Sun Battle Talisman (Bound)', quantity: 100 },
+      { name: 'Gold Chest (Bound)', quantity: 2_000 },
+      { name: 'Time Recharger - Selection Chest (Bound)', quantity: 100 },
     ],
   },
 ]

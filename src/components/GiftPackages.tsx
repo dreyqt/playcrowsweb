@@ -20,6 +20,7 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   'Black Wing Special Supply': 'black_wings_special_supply.png',
   'Black Wings Special Supply (Attributed)': 'black_wings_special_supply.png',
   'Time Recharger Selection Chest (Bound)': 'time_recharger_selection_chest.png',
+  'Time Recharger - Selection Chest (Bound)': 'time_recharger_selection_chest.png',
   'Sunset Splendid Weapon Style Summon x11 (Bound)': 'sunset_weapon_summon.png',
   "Sunset's Splendid Weapon Style Summon x11 (Bound)": 'sunset_weapon_summon.png',
   'Sunset Splendid Mount Summon x11 (Bound)': 'sunset_mount_summon.png',

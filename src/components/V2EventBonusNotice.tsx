@@ -20,6 +20,17 @@ const EVENT002_REWARDS = [
   'Night Crows Stimulant of Growth (Bound) ×20',
 ]
 
+const EVENT003_REWARDS = [
+  'Mileage ×20,000',
+  'High Seal of Advancement (Bound) ×3',
+  'Seal of Advancement (Bound) ×75',
+  'Spell Rune Crystal I (Bound) ×500',
+  'Spell Starlight Crystal I (Bound) ×500',
+  'Enchantment Frost Crystal I (Attributed) ×500',
+  'Moonlight Protection Talisman (Bound) ×10',
+  'Sun Battle Talisman (Bound) ×10',
+]
+
 function RewardBundle({ title, rewards }: { title: string; rewards: string[] }) {
   return (
     <div className="rounded-lg border border-[#8b5cf6]/20 bg-[#111318] p-4">
@@ -84,6 +95,7 @@ export function V2EventBonusNotice() {
           <div className="mt-3 grid gap-3 xl:grid-cols-2">
             <RewardBundle title={t('v2EventBonusBundle')} rewards={EVENT001_REWARDS} />
             <RewardBundle title={t('v2EventBonusBundle002')} rewards={EVENT002_REWARDS} />
+            <RewardBundle title={t('v2EventBonusBundle003')} rewards={EVENT003_REWARDS} />
           </div>
 
           <p className="mt-3 text-sm leading-relaxed text-[#aaa49a]">{t('v2EventBonusNote')}</p>
