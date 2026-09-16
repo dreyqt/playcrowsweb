@@ -31,6 +31,15 @@ const EVENT003_REWARDS = [
   'Sun Battle Talisman (Bound) ×10',
 ]
 
+const EVENT004_REWARDS = [
+  'Party Dungeon Raid Ticket (Bound) ×3',
+  '[C] Crafting Material x40 Selection Chest (Bound) ×10',
+  'Shining Accessory Enhancement Scroll Chest (Bound) ×50',
+  'Shining Weapon Enhancement Scroll Chest (Bound) ×50',
+  'Shining Armor Enhancement Scroll Chest (Bound) ×50',
+  'Draught of Vigilance (Bound) ×30',
+]
+
 function RewardBundle({ title, rewards }: { title: string; rewards: string[] }) {
   return (
     <div className="rounded-lg border border-[#8b5cf6]/20 bg-[#111318] p-4">
@@ -96,6 +105,7 @@ export function V2EventBonusNotice() {
             <RewardBundle title={t('v2EventBonusBundle')} rewards={EVENT001_REWARDS} />
             <RewardBundle title={t('v2EventBonusBundle002')} rewards={EVENT002_REWARDS} />
             <RewardBundle title={t('v2EventBonusBundle003')} rewards={EVENT003_REWARDS} />
+            <RewardBundle title={t('v2EventBonusBundle004')} rewards={EVENT004_REWARDS} />
           </div>
 
           <p className="mt-3 text-sm leading-relaxed text-[#aaa49a]">{t('v2EventBonusNote')}</p>
