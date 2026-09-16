@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { cumulativeRewards } from '../cumulativeRewards'
+import { cumulativeRewards, cumulativeRewardsV1 } from '../cumulativeRewards'
 import { useI18n } from '../i18n'
 import type { PlayCrowsServer } from '../server'
 
@@ -64,6 +64,8 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   'crusade Loot Chest': 'crusader_spoils_chest.png',
   'Tiaraka of Flushing': 'taraka.png',
   "Guardian's Scepter": 'guardian_scepter.png',
+  "Gaspard's Savage Greatsword": 'gaspars_savage_greatsword.png',
+  "zenesia's Ruling Segum": 'ruling_segum_of_zenesia.png',
 }
 
 function splitRewardText(reward: string) {
@@ -145,11 +147,12 @@ function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: s
 
 export function CumulativeRewards({ server }: { server: PlayCrowsServer }) {
   const { t } = useI18n()
+  const rewardTiers = server === 'v1' ? cumulativeRewardsV1 : cumulativeRewards
   const claimUrl = server === 'v2'
     ? 'https://account002.playcrows.com/bonus.php'
     : 'https://account.playcrows.com/bonus.php'
   const [expandedAmount, setExpandedAmount] = useState<number | null>(
-    cumulativeRewards[0]?.amount ?? null
+    rewardTiers[0]?.amount ?? null
   )
 
   return (
@@ -179,7 +182,7 @@ export function CumulativeRewards({ server }: { server: PlayCrowsServer }) {
             {t('milestones')}
           </div>
           <div className="mt-1 text-xl font-bold text-[#c9aa68]">
-            {cumulativeRewards.length}
+            {rewardTiers.length}
           </div>
         </div>
 
@@ -188,7 +191,7 @@ export function CumulativeRewards({ server }: { server: PlayCrowsServer }) {
             {t('startingTier')}
           </div>
           <div className="mt-1 text-xl font-bold text-[#eee9df]">
-            {formatAmount(cumulativeRewards[0]?.amount ?? 0)}
+            {formatAmount(rewardTiers[0]?.amount ?? 0)}
           </div>
         </div>
 
@@ -197,13 +200,13 @@ export function CumulativeRewards({ server }: { server: PlayCrowsServer }) {
             {t('highestTier')}
           </div>
           <div className="mt-1 text-xl font-bold text-[#eee9df]">
-            {formatAmount(cumulativeRewards[cumulativeRewards.length - 1]?.amount ?? 0)}
+            {formatAmount(rewardTiers[rewardTiers.length - 1]?.amount ?? 0)}
           </div>
         </div>
       </div>
 
       <div className="flex flex-col gap-3">
-        {cumulativeRewards.map(tier => {
+        {rewardTiers.map(tier => {
           const expanded = expandedAmount === tier.amount
 
           return (
