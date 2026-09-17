@@ -2,16 +2,15 @@ import type { Currency, FormData } from './types'
 import type { PlayCrowsServer } from './server'
 import { CURRENCY_META } from './constants'
 
-/** V2 early top-up launch coupon. */
-export const EARLY_PROMO_CODE = 'V2EARLY10'
+/** Weekend 10% coupon for both V1 and V2 Web Shops. */
+export const EARLY_PROMO_CODE = 'WEEKEND10'
 export const EARLY_PROMO_DISCOUNT_PERCENT = 10
 
 /*
- * September 9, 2026 at 12:00 PM Singapore / GMT+8.
- * UTC equivalent: September 9, 2026 at 04:00.
+ * Sunday, September 20, 2026 at 11:59:59 PM Singapore / GMT+8.
+ * UTC equivalent: September 20, 2026 at 15:59:59.999.
  */
-export const EARLY_PROMO_END_ISO = '2026-09-09T04:00:00.000Z'
-export const EARLY_PROMO_SERVER: PlayCrowsServer = 'v2'
+export const EARLY_PROMO_END_ISO = '2026-09-20T15:59:59.999Z'
 
 export interface PromoApplyResult {
   success: boolean
@@ -23,7 +22,7 @@ export function normalizePromoCode(code: string) {
 }
 
 export function isEarlyPromoActive(server: PlayCrowsServer, now = new Date()) {
-  return server === EARLY_PROMO_SERVER && now.getTime() < new Date(EARLY_PROMO_END_ISO).getTime()
+  return (server === 'v1' || server === 'v2') && now.getTime() < new Date(EARLY_PROMO_END_ISO).getTime()
 }
 
 export function isPackageEligibleForPromo(
@@ -31,7 +30,7 @@ export function isPackageEligibleForPromo(
   data: FormData,
   selectedPackageAmount: number | null
 ) {
-  if (server !== EARLY_PROMO_SERVER || selectedPackageAmount === null) {
+  if ((server !== 'v1' && server !== 'v2') || selectedPackageAmount === null) {
     return false
   }
 

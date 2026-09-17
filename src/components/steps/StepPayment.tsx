@@ -460,7 +460,7 @@ export function StepPayment({
       </Card>
 
       {/* Redeem Code */}
-      {server === 'v2' && (
+      {(server === 'v1' || server === 'v2') && (
       <Card className="p-5">
         <div className="flex flex-col gap-4">
           <div>

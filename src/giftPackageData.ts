@@ -502,6 +502,33 @@ export const v2GiftPackages: GiftPackage[] = [
       { name: 'Time Recharger - Selection Chest (Bound)', quantity: 100 },
     ],
   },
+  {
+    id: 'support-4th-job-advance', isNew: true, category: 'support', title: '4TH JOB ADVANCE PACK', amount: 200,
+    rewards: [
+      { name: 'Mileage', quantity: 100_000 },
+      { name: 'Contribution Coin', quantity: 100_000 },
+      { name: 'superlative predicate (attribution)', quantity: 1 },
+      { name: 'Torn Invoices (Attribution)', quantity: 1_000 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 1_000 },
+      { name: "Star's Memory (Bound)", quantity: 1_350 },
+      { name: 'Gold Chest (Bound)', quantity: 10_000 },
+      { name: 'Time Recharger Selection Chest (Bound)', quantity: 200 },
+    ],
+  },
+  {
+    id: 'support-change-character-name', isNew: true, category: 'support', title: 'CHANGE CHARACTER NAME', amount: 200,
+    rewards: [
+      { name: 'Diamond', quantity: 400_000 },
+      { name: 'Contribution Coin', quantity: 300_000 },
+      { name: 'Character Name Change Ticket (Bound)', quantity: 1 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 1_000 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 1_000 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 1_000 },
+      { name: 'Frozen Tear (Bound)', quantity: 2_000 },
+      { name: 'Metal Fragment (Bound)', quantity: 15_000 },
+      { name: "Ancient's Master Alloy (Bound)", quantity: 1_000 },
+    ],
+  },
 ]
 
 export const giftPackagesByServer: Record<PlayCrowsServer, GiftPackage[]> = {

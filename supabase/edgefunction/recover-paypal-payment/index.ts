@@ -48,6 +48,8 @@ const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'support-guild-bundle': { title: 'GUILD BUNDLE', amount: 20 },
   'support-job-advance': { title: 'JOB ADVANCE PACKAGE', amount: 25 },
   'support-nc-gears-starter': { title: 'NC GEARS STARTER', amount: 100 },
+  'support-4th-job-advance': { title: '4TH JOB ADVANCE PACK', amount: 200 },
+  'support-change-character-name': { title: 'CHANGE CHARACTER NAME', amount: 200 },
 }
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
@@ -118,7 +120,7 @@ function inferPackage(server: PlayCrowsServer, title: string, quantity: number, 
   if (discounted.length === 1) return {
     id: discounted[0][0],
     ...discounted[0][1],
-    promoCode: server === 'v2' ? 'V2EARLY10' : 'WEEKEND10',
+    promoCode: 'WEEKEND10',
     discountPercent: 10,
   }
   return null

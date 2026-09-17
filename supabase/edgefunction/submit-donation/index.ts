@@ -307,6 +307,8 @@ const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'support-guild-bundle': { title: 'GUILD BUNDLE', amount: 20 },
   'support-job-advance': { title: 'JOB ADVANCE PACKAGE', amount: 25 },
   'support-nc-gears-starter': { title: 'NC GEARS STARTER', amount: 100 },
+  'support-4th-job-advance': { title: '4TH JOB ADVANCE PACK', amount: 200 },
+  'support-change-character-name': { title: 'CHANGE CHARACTER NAME', amount: 200 },
 }
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
@@ -315,10 +317,10 @@ function parseServer(value: unknown): PlayCrowsServer | null {
   return value === 'v1' || value === 'v2' ? value : null
 }
 
-const EARLY_PROMO_CODE = 'V2EARLY10'
+const EARLY_PROMO_CODE = 'WEEKEND10'
 const EARLY_PROMO_DISCOUNT_PERCENT = 10
 const EARLY_PROMO_END_TIMESTAMP = Date.parse(
-  '2026-09-09T04:00:00.000Z'
+  '2026-09-20T15:59:59.999Z'
 )
 
 
@@ -408,7 +410,7 @@ async function verifyPayPalOrder(options: {
   if (promoCode === EARLY_PROMO_CODE) {
     const captureTime = Date.parse(String(capture.create_time ?? capture.update_time ?? ''))
     if (!Number.isFinite(captureTime) || captureTime >= EARLY_PROMO_END_TIMESTAMP) {
-      throw new Error('The V2EARLY10 promotion had already ended when this PayPal payment was completed.')
+      throw new Error('The WEEKEND10 promotion had already ended when this PayPal payment was completed.')
     }
   }
 
@@ -598,7 +600,7 @@ export default {
       let discountPercent = 0
 
       if (promoCode) {
-        if (server !== 'v2' || promoCode !== EARLY_PROMO_CODE) {
+        if (promoCode !== EARLY_PROMO_CODE) {
           return errorResponse('Invalid redeem code.')
         }
 
@@ -606,7 +608,7 @@ export default {
         // allowed to finish the form afterward only when the verified capture
         // itself was completed before the deadline (checked below).
         if (Date.now() >= EARLY_PROMO_END_TIMESTAMP && paymentMethod !== 'paypal') {
-          return errorResponse('The V2EARLY10 promotion has expired.')
+          return errorResponse('The WEEKEND10 promotion has expired.')
         }
 
         finalAmount = roundMoney(

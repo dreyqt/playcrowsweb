@@ -57,6 +57,8 @@ const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'support-guild-bundle': { title: 'GUILD BUNDLE', amount: 20 },
   'support-job-advance': { title: 'JOB ADVANCE PACKAGE', amount: 25 },
   'support-nc-gears-starter': { title: 'NC GEARS STARTER', amount: 100 },
+  'support-4th-job-advance': { title: '4TH JOB ADVANCE PACK', amount: 200 },
+  'support-change-character-name': { title: 'CHANGE CHARACTER NAME', amount: 200 },
 }
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
@@ -65,9 +67,9 @@ function parseServer(value: unknown): PlayCrowsServer | null {
   return value === 'v1' || value === 'v2' ? value : null
 }
 
-const EARLY_PROMO_CODE = 'V2EARLY10'
+const EARLY_PROMO_CODE = 'WEEKEND10'
 const EARLY_PROMO_DISCOUNT_PERCENT = 10
-const EARLY_PROMO_END_TIMESTAMP = Date.parse('2026-09-09T04:00:00.000Z')
+const EARLY_PROMO_END_TIMESTAMP = Date.parse('2026-09-20T15:59:59.999Z')
 
 function jsonResponse(body: unknown, status = 200) {
   return Response.json(body, { status, headers: CORS_HEADERS })
@@ -126,11 +128,11 @@ async function getPayPalAccessToken(server: PlayCrowsServer) {
 function calculateAmount(server: PlayCrowsServer, packageDefinition: GiftPackageDefinition, quantity: number, promoCode: string) {
   const originalAmount = roundMoney(packageDefinition.amount * quantity)
   if (!promoCode) return originalAmount
-  if (server !== 'v2' || promoCode !== EARLY_PROMO_CODE) {
+  if (promoCode !== EARLY_PROMO_CODE) {
     throw new Error('Invalid redeem code.')
   }
   if (Date.now() >= EARLY_PROMO_END_TIMESTAMP) {
-    throw new Error('The V2EARLY10 promotion has expired.')
+    throw new Error('The WEEKEND10 promotion has expired.')
   }
   return roundMoney(originalAmount * (1 - EARLY_PROMO_DISCOUNT_PERCENT / 100))
 }
@@ -230,11 +232,11 @@ export default {
       // Do not capture a discounted checkout after the advertised deadline.
       // This check happens before PayPal is asked to charge the buyer.
       if (promoCode) {
-        if (server !== 'v2' || promoCode !== EARLY_PROMO_CODE) {
+        if (promoCode !== EARLY_PROMO_CODE) {
           return jsonResponse({ error: 'Invalid redeem code.' }, 400)
         }
         if (Date.now() >= EARLY_PROMO_END_TIMESTAMP) {
-          return jsonResponse({ error: 'The V2EARLY10 promotion has expired. Please create a new order at the regular price.' }, 409)
+          return jsonResponse({ error: 'The WEEKEND10 promotion has expired. Please create a new order at the regular price.' }, 409)
         }
       }
 

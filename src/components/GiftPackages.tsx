@@ -185,25 +185,27 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
         <p>{t('webShopIntro')}</p>
       </div>
 
-      {server === 'v2' && isEarlyPromoActive(server) ? (
-        <div className="mb-6 rounded-xl border border-[#a78bfa]/45 bg-[#8b5cf6]/10 p-4 shadow-[0_0_30px_rgba(139,92,246,0.08)]">
+      {isEarlyPromoActive(server) && (
+        <div className={`mb-6 rounded-xl border p-4 ${server === 'v2' ? 'border-[#a78bfa]/45 bg-[#8b5cf6]/10 shadow-[0_0_30px_rgba(139,92,246,0.08)]' : 'border-[#c9aa68]/45 bg-[#c9aa68]/10 shadow-[0_0_30px_rgba(201,170,104,0.08)]'}`}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#c4b5fd]">V2 EARLY TOP-UP</div>
-              <div className="mt-1 text-lg font-black text-[#f2eee6]">{EARLY_PROMO_DISCOUNT_PERCENT}% OFF all V2 Diamond Packages</div>
-              <p className="mt-1 text-xs leading-5 text-[#9f99b0]">Valid until September 9, 2026 · 12:00 PM GMT+8 Singapore Time.</p>
+              <div className={`text-[10px] font-black uppercase tracking-[0.18em] ${server === 'v2' ? 'text-[#c4b5fd]' : 'text-[#e7c36a]'}`}>WEEKEND SALE · {server.toUpperCase()}</div>
+              <div className="mt-1 text-lg font-black text-[#f2eee6]">{EARLY_PROMO_DISCOUNT_PERCENT}% OFF all Web Shop Packages</div>
+              <p className="mt-1 text-xs leading-5 text-[#9f99b0]">Valid until September 20, 2026 · 11:59 PM GMT+8 Singapore Time.</p>
             </div>
-            <div className="rounded-lg border border-[#a78bfa]/40 bg-black/20 px-4 py-3 text-center">
+            <div className={`rounded-lg border bg-black/20 px-4 py-3 text-center ${server === 'v2' ? 'border-[#a78bfa]/40' : 'border-[#c9aa68]/40'}`}>
               <div className="text-[9px] font-bold uppercase tracking-widest text-[#8f889d]">Coupon Code</div>
-              <div className="mt-1 font-mono text-base font-black tracking-wider text-[#c4b5fd]">{EARLY_PROMO_CODE}</div>
+              <div className={`mt-1 font-mono text-base font-black tracking-wider ${server === 'v2' ? 'text-[#c4b5fd]' : 'text-[#e7c36a]'}`}>{EARLY_PROMO_CODE}</div>
             </div>
           </div>
         </div>
-      ) : server === 'v1' ? (
+      )}
+
+      {server === 'v1' && (
         <div className="mb-6">
           <HeroicBonusNotice septemberSelected={activeCategory === 'september-supply'} />
         </div>
-      ) : null}
+      )}
 
       {availableCategories.length > 1 && (
         <nav className="gift-package-tabs" aria-label={t('webShop')}>
