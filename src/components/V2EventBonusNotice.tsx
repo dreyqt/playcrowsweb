@@ -40,6 +40,22 @@ const EVENT004_REWARDS = [
   'Draught of Vigilance (Bound) ×30',
 ]
 
+const EVENT005_REWARDS = [
+  'Draught of Vigilance (Bound) ×200',
+  'Superior Draught of Fury (Bound) ×20',
+  'Superior Draught of Overcoming (Bound) ×20',
+  'Superior Draught of Antagonism (Bound) ×20',
+  'sealed Hero Weapon Selection Box (Attribution) ×1',
+  'sealed Hero Accessory Selection Box (Attribution) ×1',
+  'sealed Hero Armor Selection Box (Attribution) ×6',
+  'sealed Hero Bracelet selection box (attribution) ×1',
+  'sealed Hero Epaulettes Selection Box (Attribution) ×1',
+  'sealed Hero Trinket Selection Box (Attribution) ×5',
+  'sturdy bundle of yarn box (attributed) ×10',
+  'torn of invoices (attribution) ×50',
+  'torn seniority letter (attribution) ×50',
+]
+
 function RewardBundle({ title, rewards }: { title: string; rewards: string[] }) {
   return (
     <div className="rounded-lg border border-[#8b5cf6]/20 bg-[#111318] p-4">
@@ -106,6 +122,7 @@ export function V2EventBonusNotice() {
             <RewardBundle title={t('v2EventBonusBundle002')} rewards={EVENT002_REWARDS} />
             <RewardBundle title={t('v2EventBonusBundle003')} rewards={EVENT003_REWARDS} />
             <RewardBundle title={t('v2EventBonusBundle004')} rewards={EVENT004_REWARDS} />
+            <RewardBundle title={t('v2EventBonusBundle005')} rewards={EVENT005_REWARDS} />
           </div>
 
           <p className="mt-3 text-sm leading-relaxed text-[#aaa49a]">{t('v2EventBonusNote')}</p>

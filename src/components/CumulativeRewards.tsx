@@ -65,7 +65,10 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   'Tiaraka of Flushing': 'taraka.png',
   "Guardian's Scepter": 'guardian_scepter.png',
   "Gaspard's Savage Greatsword": 'gaspars_savage_greatsword.png',
+  "Gaspar’s Savage Greatsword": 'gaspars_savage_greatsword.png',
+  "Clemen’s Freedom Dagger": 'clemens_freedom_dagger.png',
   "zenesia's Ruling Segum": 'ruling_segum_of_zenesia.png',
+  "Ruling Segum of Zenesia": 'ruling_segum_of_zenesia.png',
 }
 
 function splitRewardText(reward: string) {
