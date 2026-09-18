@@ -699,7 +699,7 @@ export const cumulativeRewardsV1: CumulativeRewardTier[] = [
       "[R] Arcane Scroll Selection Chest (Bound) ×15000",
       "Guardian's Scepter (Attribution) ×500000",
       "crusade Loot Chest (Attributed) ×600",
-      "golden Gloves Insignia(Attributed) ×27",
+      "golden Gloves Insignia (Attributed) ×27",
       "golden Breastplate Insignia (Attributed) ×27",
       "golden Cloak Insignia (Attributed) ×27",
       "golden Necklace Insignia (Attributed) ×40",
