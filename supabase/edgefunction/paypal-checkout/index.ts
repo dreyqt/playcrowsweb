@@ -59,6 +59,10 @@ const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'support-nc-gears-starter': { title: 'NC GEARS STARTER', amount: 100 },
   'support-4th-job-advance': { title: '4TH JOB ADVANCE PACK', amount: 200 },
   'support-change-character-name': { title: 'CHANGE CHARACTER NAME', amount: 200 },
+  'september-supply-50': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 50 },
+  'september-supply-100': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 100 },
+  'september-supply-500': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 500 },
+  'september-supply-1000': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 1000 },
 }
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
