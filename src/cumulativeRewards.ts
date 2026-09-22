@@ -626,21 +626,6 @@ export const cumulativeRewards: CumulativeRewardTier[] = [
 export const cumulativeRewardsV1: CumulativeRewardTier[] = [
   ...cumulativeRewards,
   {
-    amount: 21000,
-    rewards: [
-      "total War Supply Crates (Attributed) ×5000",
-      "Frozen Tear (Bound) ×40000",
-      "Metal Fragment (Bound) ×120000",
-      "[UC] Crafting Material Selection Chest (Bound) ×9000",
-      "[R] Arcane Scroll Selection Chest (Bound) ×12000",
-      "Guardian's Scepter (Attribution) ×400000",
-      "crusade Loot Chest (Attributed) ×500",
-      "golden Gloves Insignia(Attributed) ×15",
-      "golden Breastplate Insignia (Attributed) ×15",
-      "golden Cloak Insignia (Attributed) ×15",
-    ],
-  },
-  {
     amount: 22000,
     rewards: [
       "total War Supply Crates (Attributed) ×5000",
@@ -653,23 +638,6 @@ export const cumulativeRewardsV1: CumulativeRewardTier[] = [
       "golden Necklace Insignia (Attributed) ×20",
       "golden Ring Insignia (Attributed) ×40",
       "Lionheart's Sacred Insignia (Bound) ×1",
-    ],
-  },
-  {
-    amount: 23000,
-    rewards: [
-      "total War Supply Crates (Attributed) ×10000",
-      "Gaspar’s Savage Greatsword (Bound) ×5",
-      "Theophil’s Creed Spear (Bound) ×5",
-      "Ludwig’s Straight Sword of Justice (Bound) ×5",
-      "Brandt’s Domination Twin Sword (Bound) ×5",
-      "Clemen’s Freedom Dagger (Bound) ×5",
-      "Alyn’s Illusion Longbow (Bound) ×5",
-      "Ruling Segum of Zenesia (Bound) ×5",
-      "Johannes' Motive Scepter (Bound) ×5",
-      "Eleanor’s Ambition Staff (Bound) ×5",
-      "Guardian's Scepter (Attribution) ×350000",
-      "crusade Loot Chest (Attributed) ×400",
     ],
   },
   {
@@ -689,7 +657,7 @@ export const cumulativeRewardsV1: CumulativeRewardTier[] = [
     ],
   },
   {
-    amount: 29000,
+    amount: 28000,
     rewards: [
       "total War Supply Crates (Attributed) ×20000",
       "Frozen Tear (Bound) ×80000",
