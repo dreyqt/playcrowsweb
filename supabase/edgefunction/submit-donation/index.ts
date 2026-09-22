@@ -36,6 +36,13 @@ const FILE_EXTENSIONS: Record<string, string> = {
 
 const DEFAULT_ADMIN_DASHBOARD_URL = 'https://playcrowsweb.vercel.app/admin'
 
+type DonationEventBonusSelection = {
+  eventNumber: string
+  title: string
+  quantity: number
+  rewards: string[]
+}
+
 function formatDiscordMoney(currency: string, amount: number) {
   try {
     return new Intl.NumberFormat('en-US', {
@@ -77,6 +84,7 @@ async function sendDiscordDonationNotification(options: {
   packageQuantity: number
   paymentMethod: string
   additionalNotes: string
+  eventBonusSelections: DonationEventBonusSelection[]
   receipt: File | null
   receiptExtension: string | null
 }) {
@@ -95,6 +103,7 @@ async function sendDiscordDonationNotification(options: {
     packageQuantity,
     paymentMethod,
     additionalNotes,
+    eventBonusSelections,
     receipt,
     receiptExtension,
   } = options
@@ -169,6 +178,16 @@ async function sendDiscordDonationNotification(options: {
       text: `PlayCrows ${server.toUpperCase()} Donation Center • Click the title to open Admin Dashboard`,
     },
     timestamp: donation.createdAt,
+  }
+
+  if (eventBonusSelections.length > 0) {
+    ;(embed.fields as Array<Record<string, unknown>>).push({
+      name: '🎁 $100 Event Bonus Selections',
+      value: eventBonusSelections
+        .map(selection => `**EVENT${selection.eventNumber} ×${selection.quantity}** — ${selection.title}`)
+        .join('\n') + '\nFull reward item lists are saved in the Admin Dashboard.',
+      inline: false,
+    })
   }
 
   if (isImageReceipt && receiptFilename) {
@@ -457,6 +476,34 @@ function getText(formData: FormData, field: string): string {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+function normalizeEventNumber(value: unknown) {
+  const raw = String(value ?? '').trim()
+  if (!/^\d+$/.test(raw)) return null
+  const number = Number(raw)
+  if (!Number.isInteger(number) || number <= 0) return null
+  return String(number).padStart(3, '0')
+}
+
+function parseEventBonusSelectionCounts(raw: string): Record<string, number> | null {
+  if (!raw) return {}
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+
+    const normalized: Record<string, number> = {}
+    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+      const eventNumber = normalizeEventNumber(key)
+      const quantity = Number(value)
+      if (!eventNumber || !Number.isInteger(quantity) || quantity < 0) return null
+      if (quantity > 0) normalized[eventNumber] = quantity
+    }
+    return normalized
+  } catch {
+    return null
+  }
+}
+
 function errorResponse(message: string, status = 400) {
   return Response.json(
     { success: false, error: message },
@@ -505,6 +552,7 @@ export default {
       const selectedPackageText = getText(formData, 'selectedPackageAmount')
       const packageQuantityText = getText(formData, 'packageQuantity')
       const additionalNotes = getText(formData, 'additionalNotes')
+      const eventBonusSelectionsText = getText(formData, 'eventBonusSelections')
       const paymentMethod = getText(formData, 'paymentMethod').toLowerCase()
       const paypalOrderId = getText(formData, 'paypalOrderId')
       const paypalCaptureId = getText(formData, 'paypalCaptureId')
@@ -596,6 +644,79 @@ export default {
       const expectedAmountUsd = roundMoney(
         selectedPackage.amount * packageQuantity
       )
+
+      const submittedEventBonusSelections = parseEventBonusSelectionCounts(eventBonusSelectionsText)
+      if (!submittedEventBonusSelections) {
+        return errorResponse('The selected event bonus rewards are invalid.')
+      }
+
+      const eventBonusEntitlement = Math.floor(expectedAmountUsd / 100)
+      const eventBonusSelectionTotal = Object.values(submittedEventBonusSelections)
+        .reduce((total, quantity) => total + quantity, 0)
+      const maxEventNumber = server === 'v1' ? 7 : 6
+
+      if (eventBonusSelectionTotal !== eventBonusEntitlement) {
+        return errorResponse(
+          eventBonusEntitlement > 0
+            ? `This purchase requires exactly ${eventBonusEntitlement} event bonus reward selection${eventBonusEntitlement === 1 ? '' : 's'}.`
+            : 'This purchase is not eligible for an event bonus reward selection.'
+        )
+      }
+
+      for (const eventNumber of Object.keys(submittedEventBonusSelections)) {
+        const numericEvent = Number(eventNumber)
+        if (!Number.isInteger(numericEvent) || numericEvent < 1 || numericEvent > maxEventNumber) {
+          return errorResponse(`EVENT${eventNumber} is not a valid ${server.toUpperCase()} donation bonus option.`)
+        }
+      }
+
+      let eventBonusSelections: DonationEventBonusSelection[] = []
+
+      if (eventBonusEntitlement > 0) {
+        const { data: eventRows, error: eventRowsError } = await context.supabaseAdmin
+          .from('events')
+          .select('event_number, title, rewards, updated_at, created_at')
+          .eq('server', server)
+          .order('updated_at', { ascending: false })
+          .order('created_at', { ascending: false })
+
+        if (eventRowsError) {
+          console.error('Event bonus catalog validation error:', eventRowsError)
+          return errorResponse('Unable to validate the event bonus rewards right now. Please try again.', 500)
+        }
+
+        const catalog = new Map<string, { title: string; rewards: string[] }>()
+        for (const row of eventRows ?? []) {
+          const eventNumber = normalizeEventNumber(row.event_number)
+          if (!eventNumber || catalog.has(eventNumber)) continue
+          const numericEvent = Number(eventNumber)
+          if (numericEvent < 1 || numericEvent > maxEventNumber) continue
+          catalog.set(eventNumber, {
+            title: typeof row.title === 'string' && row.title.trim() ? row.title.trim() : `EVENT${eventNumber}`,
+            rewards: Array.isArray(row.rewards)
+              ? row.rewards.filter((reward: unknown): reward is string => typeof reward === 'string' && reward.trim().length > 0)
+              : [],
+          })
+        }
+
+        eventBonusSelections = Object.entries(submittedEventBonusSelections)
+          .sort(([a], [b]) => Number(a) - Number(b))
+          .map(([eventNumber, quantity]) => {
+            const event = catalog.get(eventNumber)
+            if (!event) return null
+            return {
+              eventNumber,
+              title: event.title,
+              quantity,
+              rewards: event.rewards,
+            }
+          })
+          .filter((selection): selection is DonationEventBonusSelection => selection !== null)
+
+        if (eventBonusSelections.length !== Object.keys(submittedEventBonusSelections).length) {
+          return errorResponse('One or more selected event bonus rewards are no longer available. Please review your selections and submit again.')
+        }
+      }
 
       if (Math.abs(submittedAmount - expectedAmountUsd) > 0.001) {
         return errorResponse(
@@ -787,6 +908,13 @@ export default {
           selected_package_title: selectedPackage.title,
           package_quantity: packageQuantity,
           additional_notes: additionalNotes || null,
+          event_bonus_selections: eventBonusSelections.map(selection => ({
+            event_number: selection.eventNumber,
+            title: selection.title,
+            quantity: selection.quantity,
+            rewards: selection.rewards,
+          })),
+          event_bonus_selection_count: eventBonusEntitlement,
           payment_method: paymentMethod,
           paddle_checkout_id: paymentMethod === 'paddle' ? paddleCheckoutId : null,
           paddle_transaction_id: paymentMethod === 'paddle' ? paddleTransactionId : null,
@@ -860,6 +988,7 @@ export default {
             packageQuantity,
             paymentMethod,
             additionalNotes,
+            eventBonusSelections,
             receipt: receiptFile,
             receiptExtension: extension,
           })

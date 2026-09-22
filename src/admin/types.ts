@@ -1,5 +1,12 @@
 export type DonationStatus = 'pending' | 'approved' | 'rejected'
 
+export interface DonationEventBonusSelection {
+  event_number: string
+  title: string
+  quantity: number
+  rewards: string[]
+}
+
 export interface DonationRecord {
   id: string
   server: 'v1' | 'v2'
@@ -16,6 +23,8 @@ export interface DonationRecord {
   selected_package_title: string | null
   package_quantity: number | null
   additional_notes: string | null
+  event_bonus_selections: DonationEventBonusSelection[] | null
+  event_bonus_selection_count: number | null
   payment_method: 'paypal' | 'paddle' | 'gcash' | 'wise' | 'bybit'
   receipt_path: string | null
   receipt_original_name: string | null
