@@ -32,20 +32,12 @@ PlayCrows V2 베타 테스트가 정식으로 시작되었습니다!
 https://account002.playcrows.com/register.php
 
 💻 V2 PC 다운로드
-🇺🇸 English
-http://download.playcrows.com/pv2/PlayV2-PC-en-4.zip
-🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayV2-PC-kr-4.zip
-🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayV2-PC-tw-4.zip
+🌐 다국어 클라이언트
+http://download.playcrows.com/pv2/PlayV2-PC-all-5.zip
 
 📱 V2 Android 다운로드
-🇺🇸 English
-http://download.playcrows.com/pv2/PlayAZ-v2-en-4.apk
-🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayAZ-v2-kr-4.apk
-🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayAZ-v2-tw-4.apk`,
+🌐 다국어 클라이언트
+http://download.playcrows.com/pv2/PlayAZ-v2-all-5.apk`,
   'zh-TW': `⚔️ PLAYCROWS V2 BETA 測試現已開放！⚔️
 
 PlayCrows 的全新篇章已經展開！🐦‍⬛🔥
@@ -68,20 +60,12 @@ PlayCrows V2 Beta 測試現已正式開放！
 https://account002.playcrows.com/register.php
 
 💻 V2 PC 下載
-🇺🇸 English
-http://download.playcrows.com/pv2/PlayV2-PC-en-4.zip
-🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayV2-PC-kr-4.zip
-🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayV2-PC-tw-4.zip
+🌐 多語言客戶端
+http://download.playcrows.com/pv2/PlayV2-PC-all-5.zip
 
 📱 V2 Android 下載
-🇺🇸 English
-http://download.playcrows.com/pv2/PlayAZ-v2-en-4.apk
-🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayAZ-v2-kr-4.apk
-🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayAZ-v2-tw-4.apk`,
+🌐 多語言客戶端
+http://download.playcrows.com/pv2/PlayAZ-v2-all-5.apk`,
   ru: `⚔️ БЕТА-ТЕСТ PLAYCROWS V2 УЖЕ ОТКРЫТ! ⚔️
 
 Началась новая глава PlayCrows! 🐦‍⬛🔥
@@ -104,20 +88,12 @@ http://download.playcrows.com/pv2/PlayAZ-v2-tw-4.apk`,
 https://account002.playcrows.com/register.php
 
 💻 СКАЧАТЬ V2 ДЛЯ ПК
-🇺🇸 English
-http://download.playcrows.com/pv2/PlayV2-PC-en-4.zip
-🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayV2-PC-kr-4.zip
-🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayV2-PC-tw-4.zip
+🌐 Многоязычный клиент
+http://download.playcrows.com/pv2/PlayV2-PC-all-5.zip
 
 📱 СКАЧАТЬ V2 ДЛЯ ANDROID
-🇺🇸 English
-http://download.playcrows.com/pv2/PlayAZ-v2-en-4.apk
-🇰🇷 Korean
-http://download.playcrows.com/pv2/PlayAZ-v2-kr-4.apk
-🇹🇼 Taiwan
-http://download.playcrows.com/pv2/PlayAZ-v2-tw-4.apk`,
+🌐 Многоязычный клиент
+http://download.playcrows.com/pv2/PlayAZ-v2-all-5.apk`,
 }
 
 type Copy = {

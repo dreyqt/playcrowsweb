@@ -32,15 +32,93 @@ const dateLabel = (value: string | null) => {
   return Number.isNaN(date.getTime()) ? null : date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
+const LATEST_CLIENT_DOWNLOADS: Record<PlayCrowsServer, { pc: string; android: string }> = {
+  v1: {
+    pc: 'http://download.playcrows.com/pv1/PlayV1-PC-all-11.zip',
+    android: 'http://download.playcrows.com/pv1/PlayAZ-v1-all-11.apk',
+  },
+  v2: {
+    pc: 'http://download.playcrows.com/pv2/PlayV2-PC-all-5.zip',
+    android: 'http://download.playcrows.com/pv2/PlayAZ-v2-all-5.apk',
+  },
+}
+
+const MULTI_LANGUAGE_CLIENT_LABEL: Record<LanguageCode, string> = {
+  en: '🌐 Multi-language Client',
+  ko: '🌐 다국어 클라이언트',
+  th: '🌐 ไคลเอนต์หลายภาษา',
+  pt: '🌐 Cliente multilíngue',
+  'zh-TW': '🌐 多語言客戶端',
+  ru: '🌐 Многоязычный клиент',
+}
+
+const LEGACY_LANGUAGE_LINE = /^(?:🇺🇸\s*)?English$|^(?:🇰🇷\s*)?Korean$|^(?:🇹🇼\s*)?Taiwan(?:ese)?$/i
+
+function normalizeDownloadText(text: string, server: PlayCrowsServer, language: LanguageCode): string {
+  const latest = LATEST_CLIENT_DOWNLOADS[server]
+  const pcPattern = server === 'v1'
+    ? /https?:\/\/download\.playcrows\.com\/pv1\/PlayV1-PC-[A-Za-z0-9._-]+\.zip/gi
+    : /https?:\/\/download\.playcrows\.com\/pv2\/PlayV2-PC-[A-Za-z0-9._-]+\.zip/gi
+  const androidPattern = server === 'v1'
+    ? /https?:\/\/download\.playcrows\.com\/pv1\/PlayAZ-v1-[A-Za-z0-9._-]+\.apk/gi
+    : /https?:\/\/download\.playcrows\.com\/pv2\/PlayAZ-v2-[A-Za-z0-9._-]+\.apk/gi
+
+  const replaced = text.replace(pcPattern, latest.pc).replace(androidPattern, latest.android)
+  const lines = replaced.split('\n')
+  const seen = new Set<string>()
+  const output: string[] = []
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const current = lines[i]
+    const next = lines[i + 1]?.trim()
+    if (LEGACY_LANGUAGE_LINE.test(current.trim()) && (next === latest.pc || next === latest.android)) {
+      if (!seen.has(next)) {
+        output.push(MULTI_LANGUAGE_CLIENT_LABEL[language])
+        output.push(lines[i + 1])
+        seen.add(next)
+      }
+      i += 1
+      continue
+    }
+    output.push(current)
+  }
+
+  return output.join('\n')
+}
+
+function normalizeEventDownloadLinks(event: PlayCrowsEvent, language: LanguageCode): PlayCrowsEvent {
+  const normalize = (value: string | null | undefined) => value == null ? value : normalizeDownloadText(value, event.server, language)
+  return {
+    ...event,
+    title: normalize(event.title) ?? event.title,
+    short_description: normalize(event.short_description),
+    description: normalize(event.description),
+    mechanics: (event.mechanics ?? []).map(item => normalizeDownloadText(item, event.server, language)),
+    rewards: (event.rewards ?? []).map(item => normalizeDownloadText(item, event.server, language)),
+    form_fields: (event.form_fields ?? []).map(field => ({
+      ...field,
+      label: normalizeDownloadText(field.label, event.server, language),
+      placeholder: field.placeholder ? normalizeDownloadText(field.placeholder, event.server, language) : field.placeholder,
+      helpText: field.helpText ? normalizeDownloadText(field.helpText, event.server, language) : field.helpText,
+    })),
+    action_links: (event.action_links ?? []).map(link => ({
+      ...link,
+      label: normalizeDownloadText(link.label, event.server, language),
+      url: link.url ? normalizeDownloadText(link.url, event.server, language) : link.url,
+      content: link.content ? normalizeDownloadText(link.content, event.server, language) : link.content,
+    })),
+  }
+}
+
 function localizeEvent(event: PlayCrowsEvent, language: LanguageCode): PlayCrowsEvent {
-  if (language === 'en') return event
+  if (language === 'en') return normalizeEventDownloadLinks(event, language)
   const tr = event.translations?.[language]
-  if (!tr) return event
+  if (!tr) return normalizeEventDownloadLinks(event, language)
   // Locale claim configuration is intentionally independent. If an older translation has
   // not been upgraded yet, fall back to English until the admin saves that locale once.
   const actionLinks = tr.action_links !== undefined ? tr.action_links : event.action_links
   const formFields = tr.form_fields !== undefined ? tr.form_fields : event.form_fields
-  return {
+  return normalizeEventDownloadLinks({
     ...event,
     title: tr.title?.trim() || event.title,
     short_description: tr.short_description?.trim() || event.short_description,
@@ -51,7 +129,7 @@ function localizeEvent(event: PlayCrowsEvent, language: LanguageCode): PlayCrows
     form_fields: formFields ?? [],
     require_character_name: tr.require_character_name ?? event.require_character_name,
     require_player_id: tr.require_player_id ?? event.require_player_id,
-  }
+  }, language)
 }
 
 function RichText({ text }: { text: string }) {
