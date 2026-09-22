@@ -237,6 +237,48 @@ export const v1GiftPackages: GiftPackage[] = [
     ],
   },
   {
+    id: 'support-class-change-50', isNew: true, category: 'support', title: 'CLASS CHANGE', amount: 50,
+    rewards: [
+      { name: 'Class Change Coinage (Attribution)', quantity: 1_000 },
+      { name: 'Character Style Change Ticket (Bound)', quantity: 1 },
+      { name: 'Torn Invoices (Attribution)', quantity: 200 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 200 },
+      { name: "Star's Memory (Bound)", quantity: 900 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 100 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 100 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 100 },
+    ],
+  },
+  {
+    id: 'support-class-change-200', isNew: true, category: 'support', title: 'CLASS CHANGE', amount: 200,
+    rewards: [
+      { name: 'Class Change Coinage (Attribution)', quantity: 4_500 },
+      { name: 'Character Style Change Ticket (Bound)', quantity: 1 },
+      { name: 'Torn Invoices (Attribution)', quantity: 1_000 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 1_000 },
+      { name: "Star's Memory (Bound)", quantity: 4_500 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 500 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 500 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 500 },
+    ],
+  },
+  {
+    id: 'support-class-change-500', isNew: true, category: 'support', title: 'CLASS CHANGE', amount: 500,
+    rewards: [
+      { name: 'Class Change Coinage (Attribution)', quantity: 12_000 },
+      { name: 'Character Style Change Ticket (Bound)', quantity: 1 },
+      { name: 'Torn Invoices (Attribution)', quantity: 3_000 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 3_000 },
+      { name: "Star's Memory (Bound)", quantity: 11_500 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 1_500 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 1_500 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 1_500 },
+      { name: 'Brilliant Weapon Refinement Stone (Bound)', quantity: 400 },
+      { name: 'Brilliant Accessory Refinement Stone (Bound)', quantity: 800 },
+      { name: 'Brilliant Armor Refinement Stone (Bound)', quantity: 1_200 },
+    ],
+  },
+  {
     id: 'august-supply-50', category: 'august-supply', title: 'AUGUST SUPPLY PACKAGE', amount: 50,
     rewards: [
       { name: 'Diamonds', quantity: 150_000 },
@@ -530,6 +572,48 @@ export const v2GiftPackages: GiftPackage[] = [
     ],
   },
 
+  {
+    id: 'support-class-change-50', isNew: true, category: 'support', title: 'CLASS CHANGE', amount: 50,
+    rewards: [
+      { name: 'Class Change Coinage (Attribution)', quantity: 1_000 },
+      { name: 'Character Style Change Ticket (Bound)', quantity: 1 },
+      { name: 'Torn Invoices (Attribution)', quantity: 200 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 200 },
+      { name: "Star's Memory (Bound)", quantity: 900 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 100 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 100 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 100 },
+    ],
+  },
+  {
+    id: 'support-class-change-200', isNew: true, category: 'support', title: 'CLASS CHANGE', amount: 200,
+    rewards: [
+      { name: 'Class Change Coinage (Attribution)', quantity: 4_500 },
+      { name: 'Character Style Change Ticket (Bound)', quantity: 1 },
+      { name: 'Torn Invoices (Attribution)', quantity: 1_000 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 1_000 },
+      { name: "Star's Memory (Bound)", quantity: 4_500 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 500 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 500 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 500 },
+    ],
+  },
+  {
+    id: 'support-class-change-500', isNew: true, category: 'support', title: 'CLASS CHANGE', amount: 500,
+    rewards: [
+      { name: 'Class Change Coinage (Attribution)', quantity: 12_000 },
+      { name: 'Character Style Change Ticket (Bound)', quantity: 1 },
+      { name: 'Torn Invoices (Attribution)', quantity: 3_000 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 3_000 },
+      { name: "Star's Memory (Bound)", quantity: 11_500 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 1_500 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 1_500 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 1_500 },
+      { name: 'Brilliant Weapon Refinement Stone (Bound)', quantity: 400 },
+      { name: 'Brilliant Accessory Refinement Stone (Bound)', quantity: 800 },
+      { name: 'Brilliant Armor Refinement Stone (Bound)', quantity: 1_200 },
+    ],
+  },
   {
     id: 'september-supply-50', category: 'september-supply', title: 'SEPTEMBER SUPPLY PACKAGE', amount: 50,
     rewards: [
