@@ -73,6 +73,7 @@ export async function submitDonation({
   if (selectedPackageId) body.append('selectedPackageId', selectedPackageId)
   if (selectedPackageTitle) body.append('selectedPackageTitle', selectedPackageTitle)
   if (data.additionalNotes.trim()) body.append('additionalNotes', data.additionalNotes.trim())
+  body.append('eventBonusSelections', JSON.stringify(data.eventBonusSelections ?? {}))
   if (promoCode) body.append('promoCode', promoCode)
   if (data.paymentMethod !== 'paypal' && !data.receiptFile) {
     throw new Error('Please upload your payment receipt before submitting.')

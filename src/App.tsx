@@ -38,6 +38,7 @@ const INITIAL: FormData = {
   receiptFile: null,
   receiptPreview: null,
   additionalNotes: '',
+  eventBonusSelections: {},
   paypalOrderId: null,
   paypalCaptureId: null,
   paypalPaymentStatus: null,
@@ -71,9 +72,13 @@ function PublicApp() {
       setAppliedPromoCode(null)
     }
 
+    const resetsEventBonusSelections =
+      'amount' in partial || 'packageQuantity' in partial
+
     setForm(current => ({
       ...current,
       ...partial,
+      ...(resetsEventBonusSelections ? { eventBonusSelections: {} } : {}),
     }))
   }
 
@@ -521,6 +526,7 @@ function PublicApp() {
                 selectedPackageAmount={selectedPackage?.amount ?? null}
                 selectedPackageTitle={selectedPackage?.title ?? null}
                 promoCode={appliedPromoCode}
+                onUpdate={update}
                 onSubmit={submitForm}
                 onBack={back}
                 isSubmitting={isSubmitting}

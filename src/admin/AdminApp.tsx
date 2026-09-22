@@ -287,11 +287,19 @@ function getPackageDisplayName(donation: DonationRecord) {
   return donation.selected_package_title ?? 'Legacy Donation'
 }
 
+function getEventBonusSelectionSummary(donation: DonationRecord) {
+  return (donation.event_bonus_selections ?? [])
+    .filter(selection => Number(selection.quantity) > 0)
+    .map(selection => `EVENT${selection.event_number} ×${selection.quantity}`)
+    .join(', ')
+}
+
 function getDefaultItemsDelivered(donation: DonationRecord) {
   const title = donation.selected_package_title?.trim() || getPackageDisplayName(donation)
   const quantity = Math.max(1, donation.package_quantity ?? 1)
+  const eventBonusSummary = getEventBonusSelectionSummary(donation)
 
-  return `${title} ×${quantity}`
+  return `${title} ×${quantity}${eventBonusSummary ? ` + Event Bonus: ${eventBonusSummary}` : ''}`
 }
 
 function getSeptemberEventBonusName(packageId: string | null | undefined) {
@@ -523,7 +531,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, submission_ip_hash, submission_device_id'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -574,7 +582,11 @@ export function AdminApp() {
         donation.username.toLowerCase().includes(query) ||
         donation.payment_method.toLowerCase().includes(query) ||
         donation.selected_package_id?.toLowerCase().includes(query) ||
-        donation.selected_package_title?.toLowerCase().includes(query)
+        donation.selected_package_title?.toLowerCase().includes(query) ||
+        (donation.event_bonus_selections ?? []).some(selection =>
+          selection.title.toLowerCase().includes(query) ||
+          `event${selection.event_number}`.includes(query)
+        )
 
       return statusMatches && serverMatches && searchMatches
     })
@@ -778,6 +790,7 @@ const openReceipt = async () => {
         ['Payment Verified', selected.payment_verified_at ? formatDate(selected.payment_verified_at) : 'No'],
         ['Package', getPackageDisplayName(selected)],
         ['Quantity', String(selected.package_quantity ?? 1)],
+        ['Event Bonus Rewards', getEventBonusSelectionSummary(selected) || 'None'],
         ['Fulfillment Status', 'DELIVERED'],
         ['Delivered At', selected.fulfilled_at ? formatDate(selected.fulfilled_at) : 'Not recorded'],
         ['Processed By', selected.fulfilled_by ?? 'Admin'],
@@ -851,7 +864,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, submission_ip_hash, submission_device_id'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
       )
       .single()
 
@@ -1355,6 +1368,29 @@ const openReceipt = async () => {
                   <DetailRow label="Total Paid" value={formatMoney(selected.currency, selected.amount)} />
                   <DetailRow label="Package ID" value={selected.selected_package_id ?? 'Legacy record'} />
                   <DetailRow label="Additional Notes" value={selected.additional_notes ?? 'None'} />
+                  {(selected.event_bonus_selections ?? []).length > 0 && (
+                    <div className="border-b border-[#292d34] py-3">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-[#77746e]">$100 Event Bonus Rewards</div>
+                      <div className="mt-3 space-y-3">
+                        {(selected.event_bonus_selections ?? []).map(selection => (
+                          <div key={selection.event_number} className="rounded-lg border border-[#c9aa68]/30 bg-[#c9aa68]/5 p-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="text-xs font-black text-[#c9aa68]">EVENT{selection.event_number} ×{selection.quantity}</div>
+                              <div className="text-[10px] text-[#8c887f]">{selection.title}</div>
+                            </div>
+                            <ul className="mt-2 space-y-1 text-[11px] leading-4 text-[#aaa49a]">
+                              {(selection.rewards ?? []).map((reward, index) => (
+                                <li key={`${selection.event_number}-${index}`} className="flex gap-2">
+                                  <span className="text-[#c9aa68]">◆</span>
+                                  <span>{reward}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <DetailRow label="Payment Method" value={PAYMENT_LABELS[selected.payment_method]} />
                   {selected.payment_method === 'paypal' && <>
                     <DetailRow label="PayPal Order ID" value={selected.paypal_order_id ?? 'Not recorded'} />
