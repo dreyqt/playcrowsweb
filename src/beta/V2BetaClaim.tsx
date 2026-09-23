@@ -33,11 +33,11 @@ https://account002.playcrows.com/register.php
 
 💻 V2 PC 다운로드
 🌐 다국어 클라이언트
-http://download.playcrows.com/pv2/PlayV2-PC-all-5.zip
+http://download.playcrows.com/pv2/PlayV2-PC-all-7.zip
 
 📱 V2 Android 다운로드
 🌐 다국어 클라이언트
-http://download.playcrows.com/pv2/PlayAZ-v2-all-5.apk`,
+http://download.playcrows.com/pv2/PlayAZ-v2-all-7.apk`,
   'zh-TW': `⚔️ PLAYCROWS V2 BETA 測試現已開放！⚔️
 
 PlayCrows 的全新篇章已經展開！🐦‍⬛🔥
@@ -61,11 +61,11 @@ https://account002.playcrows.com/register.php
 
 💻 V2 PC 下載
 🌐 多語言客戶端
-http://download.playcrows.com/pv2/PlayV2-PC-all-5.zip
+http://download.playcrows.com/pv2/PlayV2-PC-all-7.zip
 
 📱 V2 Android 下載
 🌐 多語言客戶端
-http://download.playcrows.com/pv2/PlayAZ-v2-all-5.apk`,
+http://download.playcrows.com/pv2/PlayAZ-v2-all-7.apk`,
   ru: `⚔️ БЕТА-ТЕСТ PLAYCROWS V2 УЖЕ ОТКРЫТ! ⚔️
 
 Началась новая глава PlayCrows! 🐦‍⬛🔥
@@ -89,11 +89,11 @@ https://account002.playcrows.com/register.php
 
 💻 СКАЧАТЬ V2 ДЛЯ ПК
 🌐 Многоязычный клиент
-http://download.playcrows.com/pv2/PlayV2-PC-all-5.zip
+http://download.playcrows.com/pv2/PlayV2-PC-all-7.zip
 
 📱 СКАЧАТЬ V2 ДЛЯ ANDROID
 🌐 Многоязычный клиент
-http://download.playcrows.com/pv2/PlayAZ-v2-all-5.apk`,
+http://download.playcrows.com/pv2/PlayAZ-v2-all-7.apk`,
 }
 
 type Copy = {
