@@ -35,7 +35,7 @@ const dateLabel = (value: string | null) => {
 const LATEST_CLIENT_DOWNLOADS: Record<PlayCrowsServer, { pc: string; android: string }> = {
   v1: {
     pc: 'http://download.playcrows.com/pv1/PlayV1-PC-all-11.zip',
-    android: 'http://download.playcrows.com/pv1/PlayAZ-v1-all-11.apk',
+    android: 'http://download.playcrows.com/pv1/PlayAZ-v1-all-12.apk',
   },
   v2: {
     pc: 'http://download.playcrows.com/pv2/PlayV2-PC-all-7.zip',
