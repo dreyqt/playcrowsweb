@@ -59,6 +59,15 @@ test('WEEKEND10 remains active for both shops through the entire September 27 Si
   assert.equal(isEarlyPromoActive('invalid', new Date(LAST_VALID_TIME)), false)
 })
 
+test('weekend sale banner label is derived from the exclusive Singapore cutoff', () => {
+  const { EARLY_PROMO_END_DISPLAY } = loadSource('src/promo.ts', ['EARLY_PROMO_END_DISPLAY'])
+  assert.equal(EARLY_PROMO_END_DISPLAY, 'September 27, 2026 · 11:59 PM GMT+8 Singapore Time')
+
+  const component = readFileSync(new URL('../src/components/GiftPackages.tsx', import.meta.url), 'utf8')
+  assert.match(component, /Valid until \{EARLY_PROMO_END_DISPLAY\}\./)
+  assert.doesNotMatch(component, /Valid until September \d{1,2}, 2026/)
+})
+
 test('frontend, checkout, submission and recovery use the same exclusive deadline', () => {
   const frontend = loadSource('src/promo.ts', ['EARLY_PROMO_END_ISO'])
   assert.equal(Date.parse(frontend.EARLY_PROMO_END_ISO), Date.parse(EXPIRED_TIME))

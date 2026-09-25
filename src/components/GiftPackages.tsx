@@ -3,7 +3,7 @@ import { getGiftPackages, type GiftPackageCategory } from '../giftPackageData'
 import type { PlayCrowsServer } from '../server'
 import { useI18n } from '../i18n'
 import { HeroicBonusNotice } from './HeroicBonusNotice'
-import { EARLY_PROMO_CODE, EARLY_PROMO_DISCOUNT_PERCENT, isEarlyPromoActive } from '../promo'
+import { EARLY_PROMO_CODE, EARLY_PROMO_DISCOUNT_PERCENT, EARLY_PROMO_END_DISPLAY, isEarlyPromoActive } from '../promo'
 
 interface GiftPackagesProps {
   server: PlayCrowsServer
@@ -191,7 +191,7 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
             <div>
               <div className={`text-[10px] font-black uppercase tracking-[0.18em] ${server === 'v2' ? 'text-[#c4b5fd]' : 'text-[#e7c36a]'}`}>WEEKEND SALE · {server.toUpperCase()}</div>
               <div className="mt-1 text-lg font-black text-[#f2eee6]">{EARLY_PROMO_DISCOUNT_PERCENT}% OFF all Web Shop Packages</div>
-              <p className="mt-1 text-xs leading-5 text-[#9f99b0]">Valid until September 20, 2026 · 11:59 PM GMT+8 Singapore Time.</p>
+              <p className="mt-1 text-xs leading-5 text-[#9f99b0]">Valid until {EARLY_PROMO_END_DISPLAY}.</p>
             </div>
             <div className={`rounded-lg border bg-black/20 px-4 py-3 text-center ${server === 'v2' ? 'border-[#a78bfa]/40' : 'border-[#c9aa68]/40'}`}>
               <div className="text-[9px] font-bold uppercase tracking-widest text-[#8f889d]">Coupon Code</div>

@@ -13,6 +13,27 @@ export const EARLY_PROMO_DISCOUNT_PERCENT = 10
  */
 export const EARLY_PROMO_END_ISO = '2026-09-27T16:00:00.000Z'
 
+/** Human-readable last valid minute, derived from the exclusive promo cutoff. */
+export const EARLY_PROMO_END_DISPLAY = formatExclusiveEndForSingapore(EARLY_PROMO_END_ISO)
+
+function formatExclusiveEndForSingapore(exclusiveEndIso: string) {
+  const lastValidInstant = new Date(new Date(exclusiveEndIso).getTime() - 1)
+  const date = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Singapore',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(lastValidInstant)
+  const time = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Singapore',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(lastValidInstant)
+
+  return `${date} · ${time} GMT+8 Singapore Time`
+}
+
 export interface PromoApplyResult {
   success: boolean
   message: string
