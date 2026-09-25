@@ -38,6 +38,31 @@ export function getEventBonusSelectionTotal(selections: EventBonusSelectionCount
   }, 0)
 }
 
+/** Shared by the bonus step and final review so incomplete choices cannot be submitted. */
+export function isEventBonusSelectionValid(
+  server: PlayCrowsServer,
+  entitlement: number,
+  selections: EventBonusSelectionCounts,
+  options: EventBonusOption[]
+) {
+  if (!Number.isInteger(entitlement) || entitlement < 0) return false
+  const entries = Object.entries(selections)
+  if (entitlement === 0) return entries.length === 0
+
+  const validEvents = new Set(options.map(option => option.eventNumber))
+  for (let event = 1; event <= EVENT_BONUS_OPTION_COUNT[server]; event++) {
+    if (!validEvents.has(String(event).padStart(3, '0'))) return false
+  }
+
+  return entries.every(([eventNumber, count]) =>
+    /^\d{3}$/.test(eventNumber) &&
+    Number(eventNumber) >= 1 &&
+    Number(eventNumber) <= EVENT_BONUS_OPTION_COUNT[server] &&
+    validEvents.has(eventNumber) &&
+    Number.isInteger(count) && count > 0
+  ) && getEventBonusSelectionTotal(selections) === entitlement
+}
+
 function rowsToOptions(
   rows: Array<{ event_number?: unknown; title?: unknown; rewards?: unknown }>,
   server: PlayCrowsServer

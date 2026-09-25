@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormData } from './types'
 import {
   StepProgress,
@@ -6,6 +6,7 @@ import {
   StepPlayerInfo,
   StepPayment,
   StepReceipt,
+  StepBonus,
   StepComplete,
 } from './components/steps'
 import { GiftPackages } from './components/GiftPackages'
@@ -25,6 +26,8 @@ import { LanguageSelector } from './components/LanguageSelector'
 import { ServerSelection } from './components/ServerSelection'
 import type { PlayCrowsServer } from './server'
 import { PLAYCROWS_SERVERS } from './server'
+import { getEventBonusEntitlement, isEventBonusSelectionValid, type EventBonusOption } from './eventBonus'
+import { useBonusI18n } from './bonusI18n'
 
 type InformationTab = 'packages' | 'support' | 'cumulative'
 
@@ -46,6 +49,7 @@ const INITIAL: FormData = {
 
 function PublicApp() {
   const { t } = useI18n()
+  const { t: bonusText } = useBonusI18n()
   const [selectedServer, setSelectedServer] = useState<PlayCrowsServer | null>(null)
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
@@ -58,6 +62,13 @@ function PublicApp() {
     useState<InformationTab>('packages')
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
   const [form, setForm] = useState<FormData>(INITIAL)
+  const [eventBonusOptions, setEventBonusOptions] = useState<EventBonusOption[]>([])
+  const mainRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    mainRef.current?.focus({ preventScroll: true })
+  }, [step, selectedServer, submitted])
 
   const update = (partial: Partial<FormData>) => {
     /*
@@ -90,13 +101,13 @@ function PublicApp() {
 
     setSubmitError('')
     setActiveTab('support')
-    setStep(current => current + 1)
+    setStep(current => current === 3 && form.paymentMethod === 'paypal' ? 5 : Math.min(6, current + 1))
   }
 
   const back = () => {
     setSubmitError('')
     setActiveTab('support')
-    setStep(current => Math.max(1, current - 1))
+    setStep(current => current === 5 && form.paymentMethod === 'paypal' ? 3 : Math.max(1, current - 1))
   }
 
   const reset = () => {
@@ -105,6 +116,7 @@ function PublicApp() {
     }
 
     setForm(INITIAL)
+    setEventBonusOptions([])
     setStep(1)
     setSubmitted(false)
     setSubmissionReference('')
@@ -195,7 +207,17 @@ function PublicApp() {
   }
 
   const submitForm = async () => {
-    if (isSubmitting) return
+    if (isSubmitting || step !== 6 || !selectedServer) return
+
+    if (!isEventBonusSelectionValid(
+      selectedServer,
+      getEventBonusEntitlement(selectedPackage?.amount ?? null, form.packageQuantity),
+      form.eventBonusSelections,
+      eventBonusOptions
+    )) {
+      setSubmitError(bonusText('selectionInvalid'))
+      return
+    }
 
     if (
       appliedPromoCode &&
@@ -239,6 +261,7 @@ function PublicApp() {
   const changeServer = () => {
     if (form.receiptPreview) URL.revokeObjectURL(form.receiptPreview)
     setForm(INITIAL)
+    setEventBonusOptions([])
     setStep(1)
     setSubmitted(false)
     setSubmissionReference('')
@@ -317,6 +340,8 @@ function PublicApp() {
       </header>
 
       <main
+        ref={mainRef}
+        tabIndex={-1}
         className={`mx-auto px-4 py-10 transition-[max-width] duration-200 ${
           step === 1 && activeTab === 'packages' && !hasSelectedPackage
             ? 'max-w-5xl'
@@ -363,7 +388,7 @@ function PublicApp() {
               </div>
               <button type="button" onClick={changeServer} className="text-xs font-bold text-[#8f8b84] hover:text-[#c9aa68]">Change</button>
             </div>
-            <StepProgress current={step} />
+            <StepProgress current={step} paymentMethod={form.paymentMethod} />
 
             {step === 1 && (
               <>
@@ -519,14 +544,26 @@ function PublicApp() {
               />
             )}
 
-            {((step === 4 && form.paymentMethod === 'paypal') || step === 5) && (
+            {step === 5 && (
+              <StepBonus
+                server={selectedServer}
+                data={form}
+                selectedPackageAmount={selectedPackage?.amount ?? null}
+                onUpdate={update}
+                onOptionsLoaded={setEventBonusOptions}
+                onNext={next}
+                onBack={back}
+              />
+            )}
+
+            {step === 6 && (
               <StepComplete
                 server={selectedServer}
                 data={form}
                 selectedPackageAmount={selectedPackage?.amount ?? null}
                 selectedPackageTitle={selectedPackage?.title ?? null}
                 promoCode={appliedPromoCode}
-                onUpdate={update}
+                eventBonusOptions={eventBonusOptions}
                 onSubmit={submitForm}
                 onBack={back}
                 isSubmitting={isSubmitting}

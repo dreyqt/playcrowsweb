@@ -87,7 +87,7 @@ function normalizeDownloadText(text: string, server: PlayCrowsServer, language: 
 }
 
 function normalizeEventDownloadLinks(event: PlayCrowsEvent, language: LanguageCode): PlayCrowsEvent {
-  const normalize = (value: string | null | undefined) => value == null ? value : normalizeDownloadText(value, event.server, language)
+  const normalize = (value: string | null) => value == null ? value : normalizeDownloadText(value, event.server, language)
   return {
     ...event,
     title: normalize(event.title) ?? event.title,

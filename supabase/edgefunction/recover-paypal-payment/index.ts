@@ -64,6 +64,12 @@ const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
 
+const EARLY_PROMO_CODE = 'WEEKEND10'
+const EARLY_PROMO_DISCOUNT_PERCENT = 10
+// Exclusive cutoff: September 28, 2026 at 00:00 Singapore / GMT+8.
+// Keep synchronized with src/promo.ts, paypal-checkout and submit-donation.
+const EARLY_PROMO_END_TIMESTAMP = Date.parse('2026-09-27T16:00:00.000Z')
+
 function jsonResponse(body: unknown, status = 200) { return Response.json(body, { status, headers: CORS_HEADERS }) }
 function getPayPalBaseUrl() { return Deno.env.get('PAYPAL_ENV')?.toLowerCase() === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com' }
 function getPayPalCredentials(server: PlayCrowsServer) {
@@ -126,12 +132,12 @@ function inferPackage(server: PlayCrowsServer, title: string, quantity: number, 
   const catalog = Object.entries(GIFT_PACKAGES_BY_SERVER[server]).filter(([, item]) => item.title.toLowerCase() === title.toLowerCase())
   const regular = catalog.filter(([, item]) => Math.abs(item.amount - unitPaid) < 0.001)
   if (regular.length === 1) return { id: regular[0][0], ...regular[0][1], promoCode: null as string | null, discountPercent: 0 }
-  const discounted = catalog.filter(([, item]) => Math.abs(Math.round(item.amount * 0.9 * 100) / 100 - unitPaid) < 0.001)
+  const discounted = catalog.filter(([, item]) => Math.abs(Math.round(item.amount * (1 - EARLY_PROMO_DISCOUNT_PERCENT / 100) * 100) / 100 - unitPaid) < 0.001)
   if (discounted.length === 1) return {
     id: discounted[0][0],
     ...discounted[0][1],
-    promoCode: 'WEEKEND10',
-    discountPercent: 10,
+    promoCode: EARLY_PROMO_CODE,
+    discountPercent: EARLY_PROMO_DISCOUNT_PERCENT,
   }
   return null
 }
@@ -185,6 +191,14 @@ export default {
       if (currency !== 'USD' || !Number.isFinite(totalPaid) || totalPaid <= 0) return jsonResponse({ error: 'The PayPal capture amount/currency could not be verified.' }, 422)
       const recoveredPackage = inferPackage(server, description.title, description.quantity, totalPaid)
       if (!recoveredPackage) return jsonResponse({ error: `The paid amount (${currency} ${totalPaid.toFixed(2)}) and PayPal description (${description.title} ×${description.quantity}) do not map uniquely to the current package catalog.` }, 422)
+      // A payment captured during the promotion can be recovered after it ends.
+      // Use PayPal's capture timestamp rather than the recovery request time.
+      if (recoveredPackage.promoCode === EARLY_PROMO_CODE) {
+        const captureTime = Date.parse(String(capture.create_time ?? capture.update_time ?? ''))
+        if (!Number.isFinite(captureTime) || captureTime >= EARLY_PROMO_END_TIMESTAMP) {
+          return jsonResponse({ error: 'The WEEKEND10 promotion had already ended when this PayPal payment was completed.' }, 422)
+        }
+      }
       const { data: existing } = await adminClient.from('donations').select('id, reference_code').or(`paypal_order_id.eq.${order.id},paypal_capture_id.eq.${capture.id},paypal_transaction_id.eq.${capture.id}`).limit(1).maybeSingle()
       if (existing) return jsonResponse({ error: `This PayPal payment is already recorded as ${existing.reference_code}.`, duplicate: true, donationId: existing.id, referenceCode: existing.reference_code }, 409)
       const verifiedAt = capture.update_time || capture.create_time || new Date().toISOString()

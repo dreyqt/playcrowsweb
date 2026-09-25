@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
 import type { FormData } from '../../types'
 import type { PlayCrowsServer } from '../../server'
 import { displayAmount } from '../../utils'
 import { useI18n } from '../../i18n'
+import { useBonusI18n } from '../../bonusI18n'
 import {
-  EVENT_BONUS_OPTION_COUNT,
-  fetchEventBonusOptions,
+  isEventBonusSelectionValid,
   getEventBonusEntitlement,
-  getEventBonusSelectionTotal,
   summarizeEventBonusSelections,
   type EventBonusOption,
 } from '../../eventBonus'
@@ -37,159 +35,27 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function EventBonusSelectionCard({
-  option,
-  quantity,
-  canAdd,
-  disabled,
-  onDecrease,
-  onIncrease,
-}: {
-  option: EventBonusOption
-  quantity: number
-  canAdd: boolean
-  disabled: boolean
-  onDecrease: () => void
-  onIncrease: () => void
-}) {
-  const selected = quantity > 0
-
-  return (
-    <div className={`rounded-xl border p-4 transition-colors ${selected ? 'border-[#c9aa68]/60 bg-[#c9aa68]/8' : 'border-[#292d34] bg-[#0d0f13]'}`}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#c9aa68]">
-            EVENT{option.eventNumber}
-          </div>
-          <div className="mt-1 text-sm font-bold text-[#eee9df]">{option.title}</div>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            aria-label={`Remove one EVENT${option.eventNumber} bonus`}
-            disabled={disabled || quantity <= 0}
-            onClick={onDecrease}
-            className="h-9 w-9 rounded-lg border border-[#3b414b] bg-[#111318] text-lg font-bold text-[#eee9df] disabled:cursor-not-allowed disabled:opacity-35"
-          >
-            −
-          </button>
-          <div className={`min-w-10 rounded-lg border px-3 py-2 text-center text-sm font-black ${selected ? 'border-[#c9aa68]/50 bg-[#c9aa68]/10 text-[#c9aa68]' : 'border-[#3b414b] text-[#77746e]'}`}>
-            {quantity}
-          </div>
-          <button
-            type="button"
-            aria-label={`Add one EVENT${option.eventNumber} bonus`}
-            disabled={disabled || !canAdd}
-            onClick={onIncrease}
-            className="h-9 w-9 rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 text-lg font-bold text-[#c9aa68] disabled:cursor-not-allowed disabled:opacity-35"
-          >
-            +
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-4 border-t border-[#292d34] pt-3">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-[#77746e]">Reward Bundle</div>
-        <ul className="mt-2 grid gap-1.5 text-xs leading-5 text-[#aaa49a] sm:grid-cols-2">
-          {option.rewards.map((reward, index) => (
-            <li key={`${option.eventNumber}-${index}`} className="flex gap-2">
-              <span className="text-[#c9aa68]" aria-hidden="true">◆</span>
-              <span>{reward}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  )
-}
-
-export function StepComplete({ server, data, selectedPackageAmount, selectedPackageTitle, promoCode, onUpdate, onSubmit, onBack, isSubmitting, submitError }: {
+export function StepComplete({ server, data, selectedPackageAmount, selectedPackageTitle, promoCode, eventBonusOptions, onSubmit, onBack, isSubmitting, submitError }: {
   server: PlayCrowsServer
   data: FormData
   selectedPackageAmount: number | null
   selectedPackageTitle: string | null
   promoCode: string | null
-  onUpdate: (partial: Partial<FormData>) => void
+  eventBonusOptions: EventBonusOption[]
   onSubmit: () => Promise<void> | void
   onBack: () => void
   isSubmitting: boolean
   submitError: string
 }) {
   const { t } = useI18n()
+  const { t: bonusText } = useBonusI18n()
   const paymentLabel = data.paymentMethod ? PAYMENT_LABELS[data.paymentMethod] : t('notSelected')
   const promoApplied = promoCode === EARLY_PROMO_CODE && (isEarlyPromoActive(server) || data.paypalPaymentStatus === 'COMPLETED') && selectedPackageAmount !== null
   const packageQuantity = Math.max(1, Math.floor(Number(data.packageQuantity) || 1))
   const originalPackageAmount = selectedPackageAmount === null ? null : getPackageAmountInCurrency(selectedPackageAmount, data.currency, packageQuantity)
   const discountedPackageAmount = selectedPackageAmount === null ? null : getDiscountedPackageAmount(selectedPackageAmount, data.currency, packageQuantity)
   const eventBonusEntitlement = getEventBonusEntitlement(selectedPackageAmount, packageQuantity)
-  const selectedBonusCount = getEventBonusSelectionTotal(data.eventBonusSelections)
-  const [eventBonusOptions, setEventBonusOptions] = useState<EventBonusOption[]>([])
-  const [eventBonusLoading, setEventBonusLoading] = useState(false)
-  const [eventBonusError, setEventBonusError] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-
-    if (eventBonusEntitlement <= 0) {
-      setEventBonusOptions([])
-      setEventBonusLoading(false)
-      setEventBonusError('')
-      return () => {
-        cancelled = true
-      }
-    }
-
-    setEventBonusLoading(true)
-    setEventBonusError('')
-
-    void fetchEventBonusOptions(server)
-      .then(options => {
-        if (cancelled) return
-        setEventBonusOptions(options)
-        setEventBonusLoading(false)
-      })
-      .catch(error => {
-        if (cancelled) return
-        setEventBonusOptions([])
-        setEventBonusLoading(false)
-        setEventBonusError(error instanceof Error ? error.message : 'Unable to load event reward options.')
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [server, eventBonusEntitlement])
-
-  const eventBonusCatalogComplete = eventBonusEntitlement <= 0 || eventBonusOptions.length >= EVENT_BONUS_OPTION_COUNT[server]
-  const validEventNumbers = useMemo(
-    () => new Set(eventBonusOptions.map(option => option.eventNumber)),
-    [eventBonusOptions]
-  )
-  const selectionsReferenceOnlyValidEvents = Object.entries(data.eventBonusSelections ?? {}).every(
-    ([eventNumber, quantity]) => Number(quantity) <= 0 || validEventNumbers.has(eventNumber)
-  )
-  const eventBonusSelectionValid = eventBonusEntitlement <= 0 || (
-    !eventBonusLoading &&
-    !eventBonusError &&
-    eventBonusCatalogComplete &&
-    selectedBonusCount === eventBonusEntitlement &&
-    selectionsReferenceOnlyValidEvents
-  )
-
-  const adjustEventBonus = (eventNumber: string, delta: number) => {
-    if (isSubmitting) return
-    const current = Math.max(0, Math.floor(Number(data.eventBonusSelections?.[eventNumber]) || 0))
-    if (delta > 0 && selectedBonusCount >= eventBonusEntitlement) return
-
-    const nextCount = Math.max(0, current + delta)
-    const nextSelections = { ...(data.eventBonusSelections ?? {}) }
-
-    if (nextCount > 0) nextSelections[eventNumber] = nextCount
-    else delete nextSelections[eventNumber]
-
-    onUpdate({ eventBonusSelections: nextSelections })
-  }
+  const eventBonusSelectionValid = isEventBonusSelectionValid(server, eventBonusEntitlement, data.eventBonusSelections, eventBonusOptions)
 
   const canSubmit = !isSubmitting &&
     Boolean(data.paymentMethod) &&
@@ -205,67 +71,15 @@ export function StepComplete({ server, data, selectedPackageAmount, selectedPack
         <p className="text-sm leading-6 text-[#77746e]">{t('reviewSubmissionDesc')}</p>
       </div>
 
-      {eventBonusEntitlement > 0 && (
-        <Card className="overflow-hidden">
-          <div className="border-b border-[#292d34] px-5 py-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#c9aa68]">$100 Purchase Bonus</div>
-                <div className="mt-1 text-lg font-bold text-[#eee9df]">Choose Your Event Reward Bonuses</div>
-              </div>
-              <div className={`rounded-full border px-3 py-1.5 text-xs font-black ${selectedBonusCount === eventBonusEntitlement ? 'border-[#22c55e]/45 bg-[#22c55e]/10 text-[#22c55e]' : 'border-[#c9aa68]/45 bg-[#c9aa68]/10 text-[#c9aa68]'}`}>
-                {selectedBonusCount} / {eventBonusEntitlement} selected
-              </div>
-            </div>
-            <p className="mt-3 text-xs leading-5 text-[#aaa49a]">
-              Every $100 of package value gives 1 event reward selection. Your ${((selectedPackageAmount ?? 0) * packageQuantity).toLocaleString()} purchase gives you <strong className="text-[#eee9df]">{eventBonusEntitlement}</strong> selection{eventBonusEntitlement === 1 ? '' : 's'}. You may choose the same event reward more than once.
-            </p>
-          </div>
-
-          <div className="space-y-3 p-4 sm:p-5">
-            {eventBonusLoading && (
-              <div className="rounded-xl border border-[#292d34] bg-[#0d0f13] px-4 py-5 text-center text-sm text-[#77746e]">
-                Loading event reward bundles…
-              </div>
-            )}
-
-            {eventBonusError && (
-              <div role="alert" className="rounded-xl border border-[#ef4444]/35 bg-[#ef4444]/5 px-4 py-3 text-xs leading-5 text-[#ef8b8b]">
-                Unable to load the event bonus catalog: {eventBonusError}
-              </div>
-            )}
-
-            {!eventBonusLoading && !eventBonusError && !eventBonusCatalogComplete && (
-              <div role="alert" className="rounded-xl border border-[#f59e0b]/35 bg-[#f59e0b]/5 px-4 py-3 text-xs leading-5 text-[#f6c66f]">
-                The webshop expected {EVENT_BONUS_OPTION_COUNT[server]} event reward options for PlayCrows {server.toUpperCase()}, but only {eventBonusOptions.length} are currently available. Please contact staff before submitting.
-              </div>
-            )}
-
-            {!eventBonusLoading && eventBonusOptions.map(option => (
-              <EventBonusSelectionCard
-                key={option.eventNumber}
-                option={option}
-                quantity={Math.max(0, Math.floor(Number(data.eventBonusSelections?.[option.eventNumber]) || 0))}
-                canAdd={selectedBonusCount < eventBonusEntitlement}
-                disabled={isSubmitting}
-                onDecrease={() => adjustEventBonus(option.eventNumber, -1)}
-                onIncrease={() => adjustEventBonus(option.eventNumber, 1)}
-              />
-            ))}
-
-            {!eventBonusLoading && !eventBonusError && eventBonusCatalogComplete && selectedBonusCount !== eventBonusEntitlement && (
-              <div className="rounded-xl border border-[#c9aa68]/30 bg-[#c9aa68]/5 px-4 py-3 text-xs leading-5 text-[#d8c38f]">
-                Select {eventBonusEntitlement - selectedBonusCount} more reward bundle{eventBonusEntitlement - selectedBonusCount === 1 ? '' : 's'} before submitting.
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
-
       <Card className="overflow-hidden">
         <div className="border-b border-[#292d34] px-5 py-4"><div className="text-sm font-bold text-[#eee9df]">{t('donationDetails')}</div></div>
         <SummaryRow label={t('playerId')} value={data.playerId} />
         <SummaryRow label={t('username')} value={data.username} />
+        <SummaryRow label="Server" value={`PlayCrows ${server.toUpperCase()}`} />
+        <SummaryRow
+          label={t('selectedPackageLabel')}
+          value={selectedPackageAmount === null ? t('notSelected') : `${selectedPackageTitle ?? t('package')} · $${selectedPackageAmount.toLocaleString()} × ${data.packageQuantity}`}
+        />
 
         {promoApplied && selectedPackageAmount !== null && originalPackageAmount !== null && discountedPackageAmount !== null ? (
           <>
@@ -278,17 +92,13 @@ export function StepComplete({ server, data, selectedPackageAmount, selectedPack
         ) : (
           <>
             <SummaryRow label={t('supportAmountTitle')} value={displayAmount(data)} />
-            <SummaryRow
-              label={t('selectedPackageLabel')}
-              value={selectedPackageAmount === null ? t('notSelected') : `${selectedPackageTitle ?? t('package')} · $${selectedPackageAmount.toLocaleString()} × ${data.packageQuantity}`}
-            />
           </>
         )}
 
         {eventBonusEntitlement > 0 && (
           <SummaryRow
-            label="Event Bonus Rewards"
-            value={summarizeEventBonusSelections(data.eventBonusSelections) || `Select ${eventBonusEntitlement} reward bundle${eventBonusEntitlement === 1 ? '' : 's'}`}
+            label={bonusText('bonusRewards')}
+            value={summarizeEventBonusSelections(data.eventBonusSelections) || bonusText('selectionInvalid')}
           />
         )}
         <SummaryRow label={t('paymentMethod')} value={paymentLabel} />
@@ -300,6 +110,32 @@ export function StepComplete({ server, data, selectedPackageAmount, selectedPack
         <SummaryRow label={t('additionalNotes')} value={data.additionalNotes.trim() || t('none')} />
       </Card>
 
+      <Card className="p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-bold text-[#eee9df]">{bonusText('bonusRewards')}</h3>
+          <button type="button" onClick={onBack} disabled={isSubmitting} className="min-h-11 rounded-lg border border-[#c9aa68]/40 px-3 py-2 text-xs font-semibold text-[#c9aa68] disabled:opacity-40">
+            {bonusText('editBonuses')}
+          </button>
+        </div>
+        {eventBonusEntitlement === 0 ? (
+          <p className="mt-3 text-sm text-[#aaa49a]">{bonusText('noBonus')}</p>
+        ) : (
+          <div className="mt-4 space-y-4">
+            <p className="text-sm font-semibold text-[#c9aa68]">{bonusText('selectedBundles', { count: eventBonusEntitlement })}</p>
+            {eventBonusOptions.filter(option => data.eventBonusSelections[option.eventNumber] > 0).map(option => (
+              <div key={option.eventNumber} className="rounded-xl border border-[#292d34] bg-[#0d0f13] p-4">
+                <div className="text-sm font-bold text-[#eee9df]">EVENT{option.eventNumber} · {option.title} × {data.eventBonusSelections[option.eventNumber]}</div>
+                <p className="mt-3 text-xs font-semibold text-[#c9aa68]">{bonusText('rewardsPerBundle')}</p>
+                <ul className="mt-2 list-inside list-disc space-y-1 text-xs leading-5 text-[#aaa49a]">
+                  {option.rewards.map((reward, index) => <li key={index}>{reward}</li>)}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+        {!eventBonusSelectionValid && <p role="alert" className="mt-3 text-sm text-[#ef8b8b]">{bonusText('selectionInvalid')}</p>}
+      </Card>
+
       <div className="rounded-xl border border-[#c9aa68]/25 bg-[#c9aa68]/5 px-4 py-4">
         <div className="text-sm font-bold text-[#c9aa68]">{t('whatNext')}</div>
         <p className="mt-2 text-xs leading-5 text-[#a8b2c5]">
@@ -309,7 +145,7 @@ export function StepComplete({ server, data, selectedPackageAmount, selectedPack
 
       {submitError && <div role="alert" className="rounded-xl border border-[#ef4444]/35 bg-[#ef4444]/5 px-4 py-3 text-xs leading-5 text-[#ef4444]">{submitError}</div>}
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <Btn variant="ghost" onClick={onBack} disabled={isSubmitting}>{t('back')}</Btn>
         <Btn onClick={() => void onSubmit()} disabled={!canSubmit}>{isSubmitting ? t('submitting') : t('submitDonation')}</Btn>
       </div>

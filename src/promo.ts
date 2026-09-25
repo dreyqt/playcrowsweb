@@ -7,10 +7,11 @@ export const EARLY_PROMO_CODE = 'WEEKEND10'
 export const EARLY_PROMO_DISCOUNT_PERCENT = 10
 
 /*
- * Sunday, September 27, 2026 at 11:59:59 PM Singapore / GMT+8.
- * new UTC equivalent: September 27, 2026 at 15:59:59.999.
+ * Valid throughout Sunday, September 27, 2026 in Singapore / GMT+8.
+ * The exclusive cutoff is Monday, September 28 at midnight (16:00 UTC).
+ * Keep synchronized with the PayPal checkout, submission and recovery functions.
  */
-export const EARLY_PROMO_END_ISO = '2026-09-27T15:59:59.999Z'
+export const EARLY_PROMO_END_ISO = '2026-09-27T16:00:00.000Z'
 
 export interface PromoApplyResult {
   success: boolean

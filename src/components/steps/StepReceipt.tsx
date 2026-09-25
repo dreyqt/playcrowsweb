@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import type { FormData } from '../../types'
 import { useI18n } from '../../i18n'
+import { useBonusI18n } from '../../bonusI18n'
 import { Btn, Card } from '../ui'
 import { UploadIcon } from '../icons'
 
@@ -20,6 +21,7 @@ export function StepReceipt({ data, onUpdate, onNext, onBack }: {
   onBack: () => void
 }) {
   const { t } = useI18n()
+  const { t: bonusText } = useBonusI18n()
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
 
@@ -56,7 +58,7 @@ export function StepReceipt({ data, onUpdate, onNext, onBack }: {
     setError('')
   }
 
-  const continueToReview = () => {
+  const continueToBonus = () => {
     if (!data.receiptFile) {
       setError(t('receiptRequired'))
       return
@@ -110,7 +112,7 @@ export function StepReceipt({ data, onUpdate, onNext, onBack }: {
 
       {error && <div role="alert" className="rounded-xl border border-[#ef4444]/35 bg-[#ef4444]/5 px-4 py-3 text-xs leading-5 text-[#ef4444]">{error}</div>}
       <div className="rounded-xl border border-[#c9aa68]/25 bg-[#c9aa68]/5 px-4 py-3 text-xs leading-5 text-[#aaa49a]">{t('receiptVisibility')}</div>
-      <div className="flex items-center justify-between"><Btn variant="ghost" onClick={onBack}>{t('back')}</Btn><Btn onClick={continueToReview} disabled={!data.receiptFile}>{t('continueReview')}</Btn></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><Btn variant="ghost" onClick={onBack}>{t('back')}</Btn><Btn onClick={continueToBonus} disabled={!data.receiptFile}>{bonusText('continueBonus')}</Btn></div>
     </div>
   )
 }

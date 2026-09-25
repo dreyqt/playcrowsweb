@@ -7,6 +7,7 @@ import {
 } from '../../constants'
 import { displayAmount } from '../../utils'
 import { useI18n } from '../../i18n'
+import { useBonusI18n } from '../../bonusI18n'
 import {
   EARLY_PROMO_CODE,
   EARLY_PROMO_DISCOUNT_PERCENT,
@@ -301,6 +302,7 @@ export function StepPayment({
   onBack: () => void
 }) {
   const { t } = useI18n()
+  const { t: bonusText } = useBonusI18n()
   const [redeemCode, setRedeemCode] = useState('')
   const [promoMessage, setPromoMessage] = useState('')
   const [promoMessageType, setPromoMessageType] =
@@ -840,7 +842,7 @@ export function StepPayment({
           onClick={onNext}
           disabled={!data.paymentMethod || (data.paymentMethod === 'paypal' && data.paypalPaymentStatus !== 'COMPLETED')}
         >
-          {t('continueReceipt')}
+          {data.paymentMethod === 'paypal' ? bonusText('continueBonus') : t('continueReceipt')}
         </Btn>
       </div>
     </div>

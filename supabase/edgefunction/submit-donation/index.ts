@@ -348,8 +348,10 @@ function parseServer(value: unknown): PlayCrowsServer | null {
 
 const EARLY_PROMO_CODE = 'WEEKEND10'
 const EARLY_PROMO_DISCOUNT_PERCENT = 10
+// Exclusive cutoff: September 28, 2026 at 00:00 Singapore / GMT+8.
+// Keep synchronized with src/promo.ts, paypal-checkout and recover-paypal-payment.
 const EARLY_PROMO_END_TIMESTAMP = Date.parse(
-  '2026-09-20T15:59:59.999Z'
+  '2026-09-27T16:00:00.000Z'
 )
 
 
