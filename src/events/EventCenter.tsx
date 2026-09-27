@@ -38,8 +38,8 @@ const LATEST_CLIENT_DOWNLOADS: Record<PlayCrowsServer, { pc: string; android: st
     android: 'http://download.playcrows.com/pv1/PlayAZ-v1-all-12.apk',
   },
   v2: {
-    pc: 'http://download.playcrows.com/pv2/PlayV2-PC-all-7.zip',
-    android: 'http://download.playcrows.com/pv2/PlayAZ-v2-all-7.apk',
+    pc: 'http://download.playcrows.com/pv2/PlayV2-PC-all-8.zip',
+    android: 'http://download.playcrows.com/pv2/PlayAZ-v2-all-8.apk',
   },
 }
 
