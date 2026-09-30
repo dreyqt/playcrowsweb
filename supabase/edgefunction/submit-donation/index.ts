@@ -72,6 +72,9 @@ async function sendDiscordDonationNotification(options: {
     createdAt: string
     eventBonusName: string | null
     eventBonusEligible: boolean | null
+    octoberBonusName: string | null
+    octoberBonusEligible: boolean | null
+    octoberVerifiedTotalUsd: number | null
   }
   server: PlayCrowsServer
   playerId: string
@@ -114,7 +117,9 @@ async function sendDiscordDonationNotification(options: {
       ? 'August Supply Package'
       : selectedPackageId.startsWith('september-supply-')
         ? 'September Supply Package'
-        : 'Support Package'
+        : selectedPackageId.startsWith('october-supply-')
+          ? 'October Package'
+          : 'Support Package'
 
   const receiptFilename = receipt && receiptExtension
     ? sanitizeDiscordFilename(receipt.name, receiptExtension)
@@ -200,7 +205,11 @@ async function sendDiscordDonationNotification(options: {
     ? 'Rare Monster Weapon Style SET'
     : selectedPackageId === 'september-supply-1000'
       ? 'Epic Monster Weapon Style'
-      : null
+      : selectedPackageId === 'october-supply-500'
+        ? 'The White Tiger of Manouille I'
+        : selectedPackageId === 'october-supply-1000'
+          ? "Balian's Battle Griffin"
+          : null
 
   if (oneTimeEventBonus) {
     ;(embed.fields as Array<Record<string, unknown>>).push({
@@ -210,6 +219,24 @@ async function sendDiscordDonationNotification(options: {
         : donation.eventBonusEligible === false
           ? `**${oneTimeEventBonus}**\n⛔ Already claimed by this Player ID. Do NOT grant this event bonus again.`
           : `**${oneTimeEventBonus}**\n⏳ Payment is not verified yet. Supabase will lock eligibility when verification is saved.`,
+      inline: false,
+    })
+  }
+
+  if (selectedPackageId.startsWith('october-supply-')) {
+    const octoberBonusName = donation.octoberBonusName ?? "Nureddin's Red Death"
+    const verifiedTotal = Number(donation.octoberVerifiedTotalUsd ?? 0)
+    const octoberBonusStatus = donation.octoberBonusEligible === true
+      ? '✅ Reserved for this verified order. Grant this mount exactly once.'
+      : donation.octoberBonusEligible === false
+        ? verifiedTotal >= 2000
+          ? '⛔ Already reserved by another verified order. Do NOT grant again.'
+          : `⏳ Threshold not reached. Verified October package total at this order: ${formatDiscordMoney('USD', verifiedTotal)} / $2,000.`
+        : '⏳ Payment is not verified yet. Eligibility is determined when verification is saved.'
+
+    ;(embed.fields as Array<Record<string, unknown>>).push({
+      name: '🎁 October $2,000 Cumulative Mount Bonus',
+      value: `**${octoberBonusName}**\n${octoberBonusStatus}\nOnly October packages for this Player ID on this server count.`,
       inline: false,
     })
   }
@@ -305,14 +332,14 @@ const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'support-class-change-50': { title: 'CLASS CHANGE', amount: 50 },
   'support-class-change-200': { title: 'CLASS CHANGE', amount: 200 },
   'support-class-change-500': { title: 'CLASS CHANGE', amount: 500 },
-  'august-supply-50': { title: 'AUGUST SUPPLY PACKAGE', amount: 50 },
-  'august-supply-100': { title: 'AUGUST SUPPLY PACKAGE', amount: 100 },
-  'august-supply-500': { title: 'AUGUST SUPPLY PACKAGE', amount: 500 },
-  'august-supply-1000': { title: 'AUGUST SUPPLY PACKAGE', amount: 1000 },
   'september-supply-50': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 50 },
   'september-supply-100': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 100 },
   'september-supply-500': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 500 },
   'september-supply-1000': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 1000 },
+  'october-supply-50': { title: 'OCTOBER PACKAGE', amount: 50 },
+  'october-supply-100': { title: 'OCTOBER PACKAGE', amount: 100 },
+  'october-supply-500': { title: 'OCTOBER PACKAGE', amount: 500 },
+  'october-supply-1000': { title: 'OCTOBER PACKAGE', amount: 1000 },
 }
 
 // Server catalogs are intentionally separate. V2 begins mirrored from V1, but
@@ -338,6 +365,10 @@ const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'september-supply-100': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 100 },
   'september-supply-500': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 500 },
   'september-supply-1000': { title: 'SEPTEMBER SUPPLY PACKAGE', amount: 1000 },
+  'october-supply-50': { title: 'OCTOBER PACKAGE', amount: 50 },
+  'october-supply-100': { title: 'OCTOBER PACKAGE', amount: 100 },
+  'october-supply-500': { title: 'OCTOBER PACKAGE', amount: 500 },
+  'october-supply-1000': { title: 'OCTOBER PACKAGE', amount: 1000 },
 }
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
@@ -945,7 +976,10 @@ export default {
           created_at,
           status,
           event_bonus_name,
-          event_bonus_eligible
+          event_bonus_eligible,
+          october_bonus_name,
+          october_bonus_eligible,
+          october_verified_total_usd
         `)
         .single()
 
@@ -978,6 +1012,9 @@ export default {
               createdAt: donation.created_at,
               eventBonusName: donation.event_bonus_name ?? null,
               eventBonusEligible: donation.event_bonus_eligible ?? null,
+              octoberBonusName: donation.october_bonus_name ?? null,
+              octoberBonusEligible: donation.october_bonus_eligible ?? null,
+              octoberVerifiedTotalUsd: donation.october_verified_total_usd ?? null,
             },
             server,
             playerId,

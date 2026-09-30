@@ -177,7 +177,10 @@ Deno.serve(async request => {
       status,
       discord_message_id,
       event_bonus_name,
-      event_bonus_eligible
+      event_bonus_eligible,
+      october_bonus_name,
+      october_bonus_eligible,
+      october_verified_total_usd
     `)
     .eq('id', donationId)
     .single()
@@ -209,9 +212,11 @@ Deno.serve(async request => {
       ? 'August Supply Package'
       : packageId.startsWith('september-supply-')
         ? 'September Supply Package'
-        : packageId.startsWith('support-')
-          ? 'Support Package'
-          : 'Legacy'
+        : packageId.startsWith('october-supply-')
+          ? 'October Package'
+          : packageId.startsWith('support-')
+            ? 'Support Package'
+            : 'Legacy'
 
   const statusPresentation = getStatusPresentation(donation.status)
 
@@ -280,7 +285,11 @@ Deno.serve(async request => {
     ? 'Rare Monster Weapon Style SET'
     : packageId === 'september-supply-1000'
       ? 'Epic Monster Weapon Style'
-      : null
+      : packageId === 'october-supply-500'
+        ? 'The White Tiger of Manouille I'
+        : packageId === 'october-supply-1000'
+          ? "Balian's Battle Griffin"
+          : null
 
   if (oneTimeEventBonus) {
     ;(embed.fields as Array<Record<string, unknown>>).push({
@@ -290,6 +299,24 @@ Deno.serve(async request => {
         : donation.event_bonus_eligible === false
           ? `**${donation.event_bonus_name ?? oneTimeEventBonus}**\n⛔ Already claimed by this Player ID. Do NOT grant again.`
           : `**${oneTimeEventBonus}**\n⏳ Eligibility pending payment verification.`,
+      inline: false,
+    })
+  }
+
+  if (packageId.startsWith('october-supply-')) {
+    const octoberBonusName = donation.october_bonus_name ?? "Nureddin's Red Death"
+    const verifiedTotal = Number(donation.october_verified_total_usd ?? 0)
+    const octoberBonusStatus = donation.october_bonus_eligible === true
+      ? '✅ Reserved for this verified order. Grant this mount exactly once.'
+      : donation.october_bonus_eligible === false
+        ? verifiedTotal >= 2000
+          ? '⛔ Already reserved by another verified order. Do NOT grant again.'
+          : `⏳ Threshold not reached. Verified October package total at this order: ${formatDiscordMoney('USD', verifiedTotal)} / $2,000.`
+        : '⏳ Eligibility pending payment verification.'
+
+    ;(embed.fields as Array<Record<string, unknown>>).push({
+      name: '🎁 October $2,000 Cumulative Mount Bonus',
+      value: `**${octoberBonusName}**\n${octoberBonusStatus}\nOnly October packages for this Player ID on this server count.`,
       inline: false,
     })
   }

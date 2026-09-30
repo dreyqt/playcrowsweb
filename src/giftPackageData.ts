@@ -5,7 +5,7 @@ export interface GiftReward {
   quantity?: number
 }
 
-export type GiftPackageCategory = 'currency' | 'support' | 'august-supply' | 'september-supply'
+export type GiftPackageCategory = 'currency' | 'support' | 'september-supply' | 'october-supply'
 
 export interface GiftPackage {
   id: string
@@ -19,7 +19,107 @@ export interface GiftPackage {
   rewards: GiftReward[]
 }
 
+/** Identical October rewards are available on both servers. */
+export const octoberGiftPackages: GiftPackage[] = [
+  {
+    id: 'october-supply-50', category: 'october-supply', title: 'OCTOBER PACKAGE', amount: 50, isNew: true,
+    rewards: [
+      { name: "Diamond", quantity: 175_000 },
+      { name: "Mileage", quantity: 30_000 },
+      { name: "Party Dungeon Raid Ticket (Bound)", quantity: 10 },
+      { name: "Time Recharger - Masarta Special Dungeon (Bound)", quantity: 50 },
+      { name: "Torn Invoices (Attribution)", quantity: 50 },
+      { name: "Torn Seniority Letter (Attribution)", quantity: 50 },
+      { name: "Brilliant Refinement Stone Selection Chest (Bound)", quantity: 100 },
+      { name: "Crusade Loot Chest (Attributed)", quantity: 5 },
+      { name: "Total War Supply Crates (Attributed)", quantity: 75 },
+      { name: "Shining Armor Enhancement Scroll Chest (Bound)", quantity: 100 },
+      { name: "Shining Weapon Enhancement Scroll Chest (Bound)", quantity: 100 },
+      { name: "Shining Accessory Enhancement Scroll Chest (Bound)", quantity: 100 },
+      { name: "Spell Rune Crystal I (Bound)", quantity: 500 },
+      { name: "Spell Starlight Crystal I (Bound)", quantity: 500 },
+      { name: "Enchantment Frost Crystal I (Attributed)", quantity: 500 },
+    ],
+  },
+  {
+    id: 'october-supply-100', category: 'october-supply', title: 'OCTOBER PACKAGE', amount: 100, isNew: true,
+    rewards: [
+      { name: "Diamond", quantity: 280_000 },
+      { name: "Mileage", quantity: 70_000 },
+      { name: "Party Dungeon Raid Ticket (Bound)", quantity: 25 },
+      { name: "Time Recharger - Masarta Special Dungeon (Bound)", quantity: 125 },
+      { name: "Time Charging Device - Harpenon Sanctum (Attribution)", quantity: 50 },
+      { name: "Torn Invoices (Attribution)", quantity: 150 },
+      { name: "Torn Seniority Letter (Attribution)", quantity: 150 },
+      { name: "Brilliant Refinement Stone Selection Chest (Bound)", quantity: 300 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 2_000 },
+      { name: "Wind Orb Chest (Attributed)", quantity: 20 },
+      { name: "Crusade Loot Chest (Attributed)", quantity: 12 },
+      { name: "Total War Supply Crates (Attributed)", quantity: 175 },
+      { name: "Shining Armor Enhancement Scroll Chest (Bound)", quantity: 200 },
+      { name: "Shining Weapon Enhancement Scroll Chest (Bound)", quantity: 200 },
+      { name: "Shining Accessory Enhancement Scroll Chest (Bound)", quantity: 200 },
+      { name: "Spell Rune Crystal I (Bound)", quantity: 1_500 },
+      { name: "Spell Starlight Crystal I (Bound)", quantity: 1_500 },
+      { name: "Enchantment Frost Crystal I (Attributed)", quantity: 1_500 },
+    ],
+  },
+  {
+    id: 'october-supply-500', category: 'october-supply', title: 'OCTOBER PACKAGE', amount: 500, isNew: true,
+    oneTimeEventBonus: "The White Tiger of Manouille I",
+    rewards: [
+      { name: "Diamond", quantity: 2_800_000 },
+      { name: "Mileage", quantity: 300_000 },
+      { name: "Contribution Coin", quantity: 150_000 },
+      { name: "Party Dungeon Raid Ticket (Bound)", quantity: 100 },
+      { name: "Time Recharger - Masarta Special Dungeon (Bound)", quantity: 500 },
+      { name: "Time Charging Device - Harpenon Sanctum (Attribution)", quantity: 300 },
+      { name: "Star's Memory (Bound)", quantity: 1_500 },
+      { name: "Torn Invoices (Attribution)", quantity: 2_000 },
+      { name: "Torn Seniority Letter (Attribution)", quantity: 2_000 },
+      { name: "Night Crows Blessing Stimulant of Growth (Bound)", quantity: 5 },
+      { name: "Brilliant Refinement Stone Selection Chest (Bound)", quantity: 5_000 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 15_000 },
+      { name: "Crusade Loot Chest (Attributed)", quantity: 100 },
+      { name: "Total War Supply Crates (Attributed)", quantity: 1_000 },
+      { name: "Shining Armor Enhancement Scroll Chest (Bound)", quantity: 1_000 },
+      { name: "Shining Weapon Enhancement Scroll Chest (Bound)", quantity: 1_000 },
+      { name: "Shining Accessory Enhancement Scroll Chest (Bound)", quantity: 1_000 },
+      { name: "Spell Rune Crystal I (Bound)", quantity: 12_000 },
+      { name: "Spell Starlight Crystal I (Bound)", quantity: 12_000 },
+      { name: "Enchantment Frost Crystal I (Attributed)", quantity: 12_000 },
+    ],
+  },
+  {
+    id: 'october-supply-1000', category: 'october-supply', title: 'OCTOBER PACKAGE', amount: 1000, isNew: true,
+    oneTimeEventBonus: "Balian's Battle Griffin",
+    rewards: [
+      { name: "Diamond", quantity: 6_500_000 },
+      { name: "Mileage", quantity: 600_000 },
+      { name: "Contribution Coin", quantity: 500_000 },
+      { name: "Party Dungeon Raid Ticket (Bound)", quantity: 250 },
+      { name: "Time Recharger - Masarta Special Dungeon (Bound)", quantity: 1_500 },
+      { name: "Time Charging Device - Harpenon Sanctum (Attribution)", quantity: 1_000 },
+      { name: "Star's Memory (Bound)", quantity: 4_500 },
+      { name: "Torn Invoices (Attribution)", quantity: 5_000 },
+      { name: "Torn Seniority Letter (Attribution)", quantity: 5_000 },
+      { name: "Night Crows Blessing Stimulant of Growth (Bound)", quantity: 10 },
+      { name: "Brilliant Refinement Stone Selection Chest (Bound)", quantity: 15_000 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 40_000 },
+      { name: "Crusade Loot Chest (Attributed)", quantity: 250 },
+      { name: "Total War Supply Crates (Attributed)", quantity: 2_500 },
+      { name: "Shining Armor Enhancement Scroll Chest (Bound)", quantity: 2_500 },
+      { name: "Shining Weapon Enhancement Scroll Chest (Bound)", quantity: 2_500 },
+      { name: "Shining Accessory Enhancement Scroll Chest (Bound)", quantity: 2_500 },
+      { name: "Spell Rune Crystal I (Bound)", quantity: 30_000 },
+      { name: "Spell Starlight Crystal I (Bound)", quantity: 30_000 },
+      { name: "Enchantment Frost Crystal I (Attributed)", quantity: 30_000 },
+    ],
+  },
+]
+
 export const v1GiftPackages: GiftPackage[] = [
+  ...octoberGiftPackages,
 {
   id: 'currency-5',
   category: 'currency',
@@ -279,72 +379,6 @@ export const v1GiftPackages: GiftPackage[] = [
     ],
   },
   {
-    id: 'august-supply-50', category: 'august-supply', title: 'AUGUST SUPPLY PACKAGE', amount: 50,
-    rewards: [
-      { name: 'Diamonds', quantity: 150_000 },
-      { name: 'Mileage', quantity: 25_000 },
-      { name: 'Crusade Loot Chest (Attributed)', quantity: 1 },
-      { name: 'Total War Supply Crates (Attributed)', quantity: 10 },
-      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 50 },
-      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 50 },
-      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 50 },
-    ],
-  },
-  {
-    id: 'august-supply-100', category: 'august-supply', title: 'AUGUST SUPPLY PACKAGE', amount: 100,
-    rewards: [
-      { name: 'Diamonds', quantity: 330_000 },
-      { name: 'Mileage', quantity: 50_000 },
-      { name: 'Crusade Loot Chest (Attributed)', quantity: 2 },
-      { name: "Guardian's Scepter (Attribution)", quantity: 1_500 },
-      { name: 'Total War Supply Crates (Attributed)', quantity: 50 },
-      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 150 },
-      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 150 },
-      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 150 },
-      { name: 'Wind Orb Chest (Attributed)', quantity: 5 },
-    ],
-  },
-  {
-    id: 'august-supply-500', category: 'august-supply', title: 'AUGUST SUPPLY PACKAGE', amount: 500,
-    rewards: [
-      { name: 'Diamonds', quantity: 2_500_000 },
-      { name: 'Mileage', quantity: 250_000 },
-      { name: 'Crusade Loot Chest (Attributed)', quantity: 12 },
-      { name: "Guardian's Scepter (Attribution)", quantity: 10_000 },
-      { name: 'Total War Supply Crates (Attributed)', quantity: 150 },
-      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 1_000 },
-      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 1_000 },
-      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 1_000 },
-      { name: 'Higher Arcane Scroll of Enlightenment (Bound)', quantity: 25 },
-      { name: 'Wind Orb Chest (Attributed)', quantity: 50 },
-      { name: 'Draught of Vigilance (Bound)', quantity: 100 },
-      { name: 'Superior Draught of Fury (Bound)', quantity: 20 },
-      { name: 'Superior Draught of Overcoming (Bound)', quantity: 20 },
-      { name: 'Superior Draught of Antagonism (Bound)', quantity: 20 },
-    ],
-  },
-  {
-    id: 'august-supply-1000', category: 'august-supply', title: 'AUGUST SUPPLY PACKAGE', amount: 1000,
-    rewards: [
-      { name: 'Diamonds', quantity: 6_000_000 },
-      { name: 'Mileage', quantity: 500_000 },
-      { name: 'Crusade Loot Chest (Attributed)', quantity: 30 },
-      { name: "Guardian's Scepter (Attribution)", quantity: 25_000 },
-      { name: 'Total War Supply Crates (Attributed)', quantity: 300 },
-      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 2_500 },
-      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 2_500 },
-      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 2_500 },
-      { name: 'Higher Arcane Scroll of Enlightenment (Bound)', quantity: 75 },
-      { name: 'Wind Orb Chest (Attributed)', quantity: 150 },
-      { name: "Forgotten One's Remnant Selection Chest (Bound)", quantity: 20 },
-      { name: 'Draught of Vigilance (Bound)', quantity: 200 },
-      { name: 'Superior Draught of Fury (Bound)', quantity: 50 },
-      { name: 'Superior Draught of Overcoming (Bound)', quantity: 50 },
-      { name: 'Superior Draught of Antagonism (Bound)', quantity: 50 },
-    ],
-  },
-
-  {
     id: 'september-supply-50', category: 'september-supply', title: 'SEPTEMBER SUPPLY PACKAGE', amount: 50,
     rewards: [
       { name: 'Diamonds', quantity: 150_000 },
@@ -414,6 +448,7 @@ export const v1GiftPackages: GiftPackage[] = [
 
 // V2 catalog — Diamond Packages plus selected Support Packages.
 export const v2GiftPackages: GiftPackage[] = [
+  ...octoberGiftPackages,
   {
     id: 'currency-5',
     category: 'currency',
@@ -694,4 +729,3 @@ export function getGiftPackages(server: PlayCrowsServer) {
 export function findGiftPackage(server: PlayCrowsServer, id: string | null) {
   return getGiftPackages(server).find(item => item.id === id) ?? null
 }
-

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import { octoberTranslations } from './octoberTranslations'
 
 export type LanguageCode = 'en' | 'ko' | 'th' | 'pt' | 'zh-TW' | 'ru'
 
@@ -13,6 +14,7 @@ export const LANGUAGES: { code: LanguageCode; short: string; label: string }[] =
 ]
 
 const en = {
+  ...octoberTranslations.en,
   heroicBonusTitle: "Current Bonus Event · Heroic Skills",
   heroicBonusExpand: "Expand",
   heroicBonusMinimize: "Minimize",
@@ -51,7 +53,7 @@ const en = {
   packageSelectionDesc: 'Choose the payment currency and quantity below.',
   changePackage: 'Change Package',
   voluntaryFooter: "© 2026 PlayCrows Development Team — All purchases support the game's longevity, continued development, and improvement.",
-  promoEnded: 'The WEEKEND10 promotion ended on September 20, 2026 at 11:59 PM GMT+8.',
+  promoEnded: 'The WEEKEND10 promotion ended on September 27, 2026 at 11:59 PM GMT+8.',
   invalidRedeem: 'Invalid redeem code.',
   promoNotEligible: 'WEEKEND10 applies to eligible V1 and V2 Web Shop packages during the weekend promotion.',
   promoApplied: 'WEEKEND10 applied. You will pay 10% less while receiving the full selected package rewards.',
@@ -214,6 +216,7 @@ type TranslationTable = Record<TranslationKey, string>
 
 const ko: TranslationTable = {
   ...en,
+  ...octoberTranslations.ko,
   v2EventBonusTitle: "현재 V2 보너스 · EVENT001 / EVENT002 / EVENT003 / EVENT004 / EVENT005 보상",
   v2EventBonusSummary: "$100 후원마다 EVENT001, EVENT002, EVENT003, EVENT004 또는 EVENT005 보상 패키지 중 1개를 선택할 수 있습니다.",
   v2EventBonusRepeatable: "반복 획득 가능: 추가 $100마다 보상 패키지 선택권이 1회씩 추가됩니다. $100 = 1개, $200 = 2개, $500 = 5개.",
@@ -251,6 +254,7 @@ const ko: TranslationTable = {
 
 const th: TranslationTable = {
   ...en,
+  ...octoberTranslations.th,
   v2EventBonusTitle: "โบนัส V2 ปัจจุบัน · รางวัล EVENT001 / EVENT002 / EVENT003 / EVENT004 / EVENT005",
   v2EventBonusSummary: "ทุกการสนับสนุน $100 = เลือกชุดรางวัล EVENT001, EVENT002, EVENT003, EVENT004 หรือ EVENT005 ได้ 1 ชุด",
   v2EventBonusRepeatable: "รับซ้ำได้: ทุก ๆ $100 เพิ่มเติมจะได้รับสิทธิ์เลือกชุดรางวัลเพิ่มอีก 1 ชุด $100 = 1 ชุด, $200 = 2 ชุด, $500 = 5 ชุด",
@@ -271,6 +275,7 @@ const th: TranslationTable = {
 
 const pt: TranslationTable = {
   ...en,
+  ...octoberTranslations.pt,
   v2EventBonusTitle: "Bônus V2 Atual · Recompensas EVENT001 / EVENT002 / EVENT003 / EVENT004 / EVENT005",
   v2EventBonusSummary: "Cada doação de $100 = escolha 1 pacote de recompensas: EVENT001, EVENT002, EVENT003, EVENT004 ou EVENT005.",
   v2EventBonusRepeatable: "Repetível: a cada $100 adicionais, você recebe outra escolha de pacote. $100 = 1, $200 = 2, $500 = 5.",
@@ -288,6 +293,7 @@ const pt: TranslationTable = {
 
 const zhTW: TranslationTable = {
   ...en,
+  ...octoberTranslations['zh-TW'],
   v2EventBonusTitle: "目前 V2 加碼 · EVENT001 / EVENT002 / EVENT003 / EVENT004 / EVENT005 獎勵",
   v2EventBonusSummary: "每贊助 $100 = 可從 EVENT001、EVENT002、EVENT003、EVENT004 或 EVENT005 中選擇 1 份獎勵組合。",
   v2EventBonusRepeatable: "可重複獲得：每增加 $100 可再獲得 1 次獎勵選擇。$100 = 1 份、$200 = 2 份、$500 = 5 份。",
@@ -304,6 +310,7 @@ const zhTW: TranslationTable = {
 
 const ru: TranslationTable = {
   ...en,
+  ...octoberTranslations.ru,
   v2EventBonusTitle: "Текущий бонус V2 · Награды EVENT001 / EVENT002 / EVENT003 / EVENT004 / EVENT005",
   v2EventBonusSummary: "За каждые $100 пожертвования можно выбрать 1 комплект наград: EVENT001, EVENT002, EVENT003, EVENT004 или EVENT005.",
   v2EventBonusRepeatable: "Можно получать повторно: за каждые дополнительные $100 добавляется ещё один выбор комплекта. $100 = 1, $200 = 2, $500 = 5.",
@@ -331,7 +338,7 @@ const ru: TranslationTable = {
   packageSelectionDesc: 'Выберите валюту оплаты и количество ниже.',
   changePackage: 'Сменить пакет',
   voluntaryFooter: '2026 PlayCrows Development Team — все взносы являются добровольной поддержкой.',
-  promoEnded: 'Акция WEEKEND10 завершилась 20 сентября 2026 года в 23:59 по GMT+8.',
+  promoEnded: 'Акция WEEKEND10 завершилась 27 сентября 2026 года в 23:59 по GMT+8.',
   invalidRedeem: 'Неверный промокод.',
   promoNotEligible: 'WEEKEND10 действует на подходящие пакеты WEB Shop V1 и V2 во время акции выходного дня.',
   promoApplied: 'WEEKEND10 применён. Вы заплатите на 10% меньше и получите полный набор наград выбранного пакета.',

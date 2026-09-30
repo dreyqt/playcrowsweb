@@ -3,6 +3,7 @@ import { getGiftPackages, type GiftPackageCategory } from '../giftPackageData'
 import type { PlayCrowsServer } from '../server'
 import { useI18n } from '../i18n'
 import { HeroicBonusNotice } from './HeroicBonusNotice'
+import { OctoberBonusNotice } from './OctoberBonusNotice'
 import { EARLY_PROMO_CODE, EARLY_PROMO_DISCOUNT_PERCENT, EARLY_PROMO_END_DISPLAY, isEarlyPromoActive } from '../promo'
 
 interface GiftPackagesProps {
@@ -45,6 +46,7 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   "Forgotten One's Remnant Selection Chest (Bound)": 'forgotten_ones_remnant_selection_chest.png',
   'Contibution Coin': 'contribution_coin.png',
   'NightCrows Stimulant of Growth (Bound)': 'nightcrows_stimulant_of_growth.png',
+  'Night Crows Blessing Stimulant of Growth (Bound)': 'night_crows_blessings_stimulant_of_growth.png',
   'Elemental Extraction of Fusion 11 times (attribution)': 'elemental_extraction_of_fusion.png',
   'Elemental Extraction of   Fusion 11 times (attribution)': 'elemental_extraction_of_fusion.png',
   'Time Recharger - Land of Prosperty (Bound)': 'time_recharger_land_of_prosperity.png',
@@ -57,6 +59,7 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   'Brilliant Weapon Refinement Stone (Bound)': 'brilliant_weapon_refinement_stone.png',
   'Brilliant Armor Refinement Stone (Bound)': 'brilliant_armor_refinement_stone.png',
   'Brilliant Accessory Refinement Stone (Bound)': 'brilliant_accessory_refinement_stone.png',
+  'Time Charging Device - Harpenon Sanctum (Attribution)': 'time_charging_harpenon.png',
 }
 
 function rewardNameToFilename(name: string) {
@@ -119,8 +122,8 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
   const sections: Record<GiftPackageCategory, { title: string; description: string }> = {
     currency: { title: t('currency'), description: t('currencyDesc') },
     support: { title: t('supportPackages'), description: t('supportPackagesDesc') },
-    'august-supply': { title: t('augustSupplyPackages'), description: t('augustSupplyPackagesDesc') },
     'september-supply': { title: t('septemberSupplyPackages'), description: t('septemberSupplyPackagesDesc') },
+    'october-supply': { title: t('octoberPackages'), description: t('octoberPackagesDesc') },
   }
   const availableCategories = useMemo(
     () => (Object.keys(sections) as GiftPackageCategory[]).filter(category =>
@@ -207,6 +210,10 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
         </div>
       )}
 
+      <div className="mb-6">
+        <OctoberBonusNotice />
+      </div>
+
       {availableCategories.length > 1 && (
         <nav className="gift-package-tabs" aria-label={t('webShop')}>
           {availableCategories.map(category => (
@@ -246,20 +253,20 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
                       <span className="gift-package-card__label">
                         {giftPackage.category === 'currency'
                           ? t('currency')
-                          : giftPackage.category === 'august-supply'
-                            ? t('augustSupplyPackage')
+                          : giftPackage.category === 'october-supply'
+                            ? t('octoberPackage')
                             : giftPackage.category === 'september-supply'
                               ? t('septemberSupplyPackage')
                               : t('supportPackage')}
                       </span>
                       {giftPackage.isNew && (
                         <span className="inline-flex items-center rounded-full border border-[#e7c36a]/60 bg-[#e7c36a]/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#f1d487] shadow-[0_0_16px_rgba(231,195,106,0.14)]">
-                          NEW
+                          {t('newBadge')}
                         </span>
                       )}
                       {giftPackage.oneTimeEventBonus && (
                         <span className="inline-flex items-center rounded-full border border-[#d66cff]/60 bg-[#d66cff]/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#e4a7ff] shadow-[0_0_16px_rgba(214,108,255,0.14)]">
-                          EVENT BONUS
+                          {t('eventBonus')}
                         </span>
                       )}
                     </div>
@@ -267,6 +274,11 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
                     <div className="mt-1 text-xl font-bold text-[#c9aa68]">
                       ${giftPackage.amount.toLocaleString()}
                     </div>
+                    {giftPackage.category === 'october-supply' && giftPackage.oneTimeEventBonus && (
+                      <p className="mt-3 text-sm font-semibold leading-relaxed text-[#e4a7ff]">
+                        {t('newMount')}: {giftPackage.oneTimeEventBonus}
+                      </p>
+                    )}
                   </div>
 
                   {isSelected && (
@@ -333,9 +345,12 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
 
             {rewardModalPackage.oneTimeEventBonus && (
               <div className="mx-4 mt-4 rounded-lg border border-[#d9b85f]/50 bg-[#d9b85f]/10 p-4">
-                <div className="text-[11px] font-black uppercase tracking-[0.16em] text-[#e7c36a]">Limited Event • One-Time Reward</div>
-                <div className="mt-1 text-base font-bold text-[#f5efe2]">{rewardModalPackage.oneTimeEventBonus}</div>
-                <div className="mt-1 text-xs text-[#a9a39a]">Granted once per eligible player/account. Buying multiple quantities does not grant additional copies of this event bonus.</div>
+                <div className="text-[11px] font-black uppercase tracking-[0.16em] text-[#e7c36a]">{t('oneTimeEventBonusTitle')}</div>
+                <div className="mt-1 text-base font-bold text-[#f5efe2]">
+                  {rewardModalPackage.category === 'october-supply' && `${t('newMount')}: `}
+                  {rewardModalPackage.oneTimeEventBonus}
+                </div>
+                <div className="mt-1 text-xs text-[#a9a39a]">{t('oneTimeEventBonusRule')}</div>
               </div>
             )}
 
