@@ -205,11 +205,9 @@ async function sendDiscordDonationNotification(options: {
     ? 'Rare Monster Weapon Style SET'
     : selectedPackageId === 'september-supply-1000'
       ? 'Epic Monster Weapon Style'
-      : selectedPackageId === 'october-supply-500'
+      : (selectedPackageId === 'october-supply-500' || selectedPackageId === 'october-supply-1000')
         ? 'The White Tiger of Manouille I'
-        : selectedPackageId === 'october-supply-1000'
-          ? "Balian's Battle Griffin"
-          : null
+        : null
 
   if (oneTimeEventBonus) {
     ;(embed.fields as Array<Record<string, unknown>>).push({
@@ -223,23 +221,7 @@ async function sendDiscordDonationNotification(options: {
     })
   }
 
-  if (selectedPackageId.startsWith('october-supply-')) {
-    const octoberBonusName = donation.octoberBonusName ?? "Nureddin's Red Death"
-    const verifiedTotal = Number(donation.octoberVerifiedTotalUsd ?? 0)
-    const octoberBonusStatus = donation.octoberBonusEligible === true
-      ? '✅ Reserved for this verified order. Grant this mount exactly once.'
-      : donation.octoberBonusEligible === false
-        ? verifiedTotal >= 2000
-          ? '⛔ Already reserved by another verified order. Do NOT grant again.'
-          : `⏳ Threshold not reached. Verified October package total at this order: ${formatDiscordMoney('USD', verifiedTotal)} / $2,000.`
-        : '⏳ Payment is not verified yet. Eligibility is determined when verification is saved.'
 
-    ;(embed.fields as Array<Record<string, unknown>>).push({
-      name: '🎁 October $2,000 Cumulative Mount Bonus',
-      value: `**${octoberBonusName}**\n${octoberBonusStatus}\nOnly October packages for this Player ID on this server count.`,
-      inline: false,
-    })
-  }
 
   if (paymentMethod === 'paddle') {
     ;(embed.fields as Array<Record<string, unknown>>).push({

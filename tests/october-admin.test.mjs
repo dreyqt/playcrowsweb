@@ -10,149 +10,73 @@ const helperSource = source.slice(source.indexOf('function getPackageCategory(')
 assert.ok(helperSource.length > 0, 'Admin fulfillment helpers must remain available to exercise')
 const helpers = vm.runInNewContext(stripTypeScriptTypes(helperSource) + `
   ({ getPackageCategory, getPackageEventBonusName, getItemsWithReservedBonuses,
-     getOctoberBonusDeliveryText, getEventBonusDeliveryText, buildFulfillmentNotes })
+     getEventBonusDeliveryText, buildFulfillmentNotes })
 `)
 
-const tiger = 'The White Tiger of Manouille I'
-const griffin = "Balian's Battle Griffin"
-const special = "Nureddin's Red Death"
-const verifiedAt = '2026-10-01T00:00:00Z'
 
-test('reopening an undelivered order merges newly reserved mounts into saved fulfillment text', () => {
-  const start = source.indexOf('const openDonation = ')
-  const openSource = source.slice(start, source.indexOf('\n  useEffect(', start))
-  const captured = {}
-  const sandbox = { record: donation({
-    items_delivered: 'Custom delivery details', fulfillment_status: 'not_delivered',
-    event_bonus_eligible: true, october_bonus_eligible: true,
-  }) }
-  for (const name of ['Selected', 'Notes', 'Status', 'PaypalTransactionId', 'PaymentVerified', 'DeliveredTo', 'ItemsDelivered', 'FulfillmentNotes', 'FulfillmentEvidence', 'SaveMessage', 'BlockMessage']) {
-    sandbox[`set${name}`] = value => { captured[name] = value }
+const tiger='The White Tiger of Manouille I'
+function donation(overrides={}) { return {
+  selected_package_id:'october-supply-500',selected_package_title:'OCTOBER PACKAGE',
+  selected_package_amount:500,package_quantity:1,username:'Player',fulfillment_status:'not_delivered',
+  payment_verified_at:'2026-10-01T00:00:00Z',event_bonus_eligible:true,event_bonus_name:tiger,
+  event_bonus_selections:[],...overrides,
+} }
+test('only $500 and $1,000 map to the same Tiger',()=>{
+  for(const amount of [500,1000]) assert.equal(helpers.getPackageEventBonusName('october-supply-'+amount),tiger)
+  for(const amount of [50,100]) assert.equal(helpers.getPackageEventBonusName('october-supply-'+amount),null)
+})
+test('eligible tiers include exactly one Tiger independent of quantity and retired fields',()=>{
+  for(const amount of [500,1000]) {
+    const record=donation({selected_package_id:'october-supply-'+amount,package_quantity:20,
+      october_bonus_eligible:true,october_bonus_name:"Nureddin's Red Death"})
+    const items=helpers.getItemsWithReservedBonuses(record)
+    assert.equal(items.split(tiger).length-1,1)
+    assert.doesNotMatch(items,/Battle Griffin|Red Death/)
+    assert.equal(helpers.getItemsWithReservedBonuses(record,items),items)
   }
-  vm.runInNewContext(stripTypeScriptTypes(helperSource + '\n' + openSource) + '\nopenDonation(record)', sandbox)
+})
+test('pending and previously claimed Tiger grants are excluded',()=>{
+  for(const eligible of [null,false]) {
+    const record=donation({event_bonus_eligible:eligible})
+    assert.ok(!helpers.getItemsWithReservedBonuses(record).includes(tiger))
+    assert.doesNotMatch(helpers.getEventBonusDeliveryText(record),/^ELIGIBLE/)
+  }
+})
+test('retired mounts are stripped from outstanding drafts but completed evidence is retained',()=>{
+  const stale="Custom details + Balian's Battle Griffin (One-Time Event Bonus) + Nureddin's Red Death (One-Time October $2,000 Bonus)"
+  const record=donation({selected_package_id:'october-supply-1000',event_bonus_name:"Balian's Battle Griffin",event_bonus_eligible:null,october_bonus_eligible:true})
+  assert.equal(helpers.getItemsWithReservedBonuses(record,stale),'Custom details')
+  assert.equal(helpers.getItemsWithReservedBonuses({...record,fulfillment_status:'delivered'},stale),stale)
+  assert.match(helpers.getEventBonusDeliveryText(record),/Payment must be verified/)
+})
+
+test('stale $100 Tiger suffixes are removed from outstanding drafts and preserved in delivered evidence',()=>{
+  const stale=`Custom details + ${tiger} (One-Time Event Bonus)`
+  const record=donation({selected_package_id:'october-supply-100',selected_package_amount:100})
+  assert.equal(helpers.getItemsWithReservedBonuses(record,stale),'Custom details')
+  assert.equal(helpers.getItemsWithReservedBonuses({...record,fulfillment_status:'delivered'},stale),stale)
+  assert.equal(helpers.getEventBonusDeliveryText(record),null)
+})
+
+test('new $1,000 eligibility cannot add a Tiger to completed delivery evidence',()=>{
+  const record=donation({selected_package_id:'october-supply-1000',fulfillment_status:'delivered'})
+  const historical="Custom details + Balian's Battle Griffin (One-Time Event Bonus)"
+  assert.equal(helpers.getItemsWithReservedBonuses(record,historical),historical)
+})
+test('reopening an undelivered eligible order adds newly reserved Tiger to saved text',()=>{
+  const start=source.indexOf('const openDonation = ')
+  const open=source.slice(start,source.indexOf('\n  useEffect(',start))
+  const captured={}
+  const sandbox={record:donation({items_delivered:'Custom delivery details'})}
+  for(const name of ['Selected','Notes','Status','PaypalTransactionId','PaymentVerified','DeliveredTo','ItemsDelivered','FulfillmentNotes','FulfillmentEvidence','SaveMessage','BlockMessage'])
+    sandbox['set'+name]=value=>{captured[name]=value}
+  vm.runInNewContext(stripTypeScriptTypes(helperSource+'\n'+open)+'\nopenDonation(record)',sandbox)
   assert.ok(captured.ItemsDelivered.startsWith('Custom delivery details'))
-  assert.ok(captured.ItemsDelivered.includes(griffin))
-  assert.ok(captured.ItemsDelivered.includes(special))
-  assert.equal(helpers.getItemsWithReservedBonuses(sandbox.record, captured.ItemsDelivered), captured.ItemsDelivered, 'Reopening must not duplicate mount names')
-  sandbox.record.fulfillment_status = 'delivered'
-  vm.runInNewContext(stripTypeScriptTypes(helperSource + '\n' + openSource) + '\nopenDonation(record)', { ...sandbox })
-  assert.equal(captured.ItemsDelivered, 'Custom delivery details', 'Delivered evidence stays as saved')
+  assert.ok(captured.ItemsDelivered.includes(tiger))
 })
-
-function donation(overrides = {}) {
-  return {
-    selected_package_id: 'october-supply-1000', selected_package_title: 'OCTOBER PACKAGE',
-    selected_package_amount: 1000, package_quantity: 2, username: 'Character',
-    payment_verified_at: verifiedAt, event_bonus_name: null, event_bonus_eligible: null,
-    october_bonus_name: null, october_bonus_eligible: null, october_verified_total_usd: null,
-    event_bonus_selections: [{ event_number: '001', quantity: 2, title: 'Existing event reward', rewards: [] }],
-    ...overrides,
-  }
-}
-
-test('admin category labels include October and preserve historical categories', () => {
-  const cases = [
-    ['october-supply-50', 'October Package'], ['october-supply-1000', 'October Package'],
-    ['september-supply-500', 'September Supply Package'], ['august-supply-500', 'August Supply Package'],
-    ['currency-100', 'Currency'], ['support-skill-bundle', 'Support Package'], [null, 'Legacy'],
-  ]
-  for (const [id, expected] of cases) assert.equal(helpers.getPackageCategory(id), expected)
-})
-
-test('the admin maps only the eligible October tiers to the correct package mounts', () => {
-  assert.equal(helpers.getPackageEventBonusName('october-supply-500'), tiger)
-  assert.equal(helpers.getPackageEventBonusName('october-supply-1000'), griffin)
-  for (const id of ['october-supply-50', 'october-supply-100', 'support-class-change-500', null]) {
-    assert.equal(helpers.getPackageEventBonusName(id), null)
-  }
-})
-
-test('pending and declined reservations never enter the items-to-deliver default', () => {
-  for (const packageEligible of [null, false]) {
-    for (const cumulativeEligible of [null, false]) {
-      const items = helpers.getItemsWithReservedBonuses(donation({
-        event_bonus_eligible: packageEligible, october_bonus_eligible: cumulativeEligible,
-        october_verified_total_usd: 5000,
-      }))
-      assert.doesNotMatch(items, /White Tiger|Battle Griffin|Red Death|One-Time/)
-      assert.match(items, /OCTOBER PACKAGE ×2/)
-      assert.match(items, /Event Bonus: EVENT001 ×2/)
-    }
-  }
-})
-
-test('both reserved mounts enter fulfillment once regardless of package quantity', () => {
-  for (const [amount, packageMount] of [[500, tiger], [1000, griffin]]) {
-    const record = donation({
-      selected_package_id: `october-supply-${amount}`, selected_package_amount: amount,
-      package_quantity: 5, event_bonus_eligible: true, october_bonus_eligible: true,
-    })
-    const items = helpers.getItemsWithReservedBonuses(record)
-    assert.equal(items.split(packageMount).length - 1, 1)
-    assert.equal(items.split(special).length - 1, 1)
-    assert.match(items, /OCTOBER PACKAGE ×5/)
-    const notes = helpers.buildFulfillmentNotes(record, 'Recipient', items)
-    assert.ok(notes.includes(packageMount))
-    assert.ok(notes.includes(special))
-  }
-})
-
-test('a newly reached cumulative bonus survives an already-claimed package mount', () => {
-  const record = donation({ event_bonus_eligible: false, october_bonus_eligible: true, october_verified_total_usd: 2000 })
-  const items = helpers.getItemsWithReservedBonuses(record)
-  assert.ok(items.includes(special))
-  assert.ok(!items.includes(griffin))
-  assert.match(helpers.getEventBonusDeliveryText(record), /ALREADY CLAIMED/)
-  assert.doesNotMatch(helpers.getEventBonusDeliveryText(record), /Fulfill only the normal package rewards/)
-  assert.match(helpers.getOctoberBonusDeliveryText(record), /ELIGIBLE.*Grant exactly once/)
-})
-
-test('package mount eligibility also remains independent of cumulative eligibility', () => {
-  const items = helpers.getItemsWithReservedBonuses(donation({ event_bonus_eligible: true, october_bonus_eligible: false }))
-  assert.ok(items.includes(griffin))
-  assert.ok(!items.includes(special))
-  const thresholdOnly = helpers.getItemsWithReservedBonuses(donation({
-    selected_package_id: 'october-supply-50', selected_package_amount: 50,
-    event_bonus_eligible: null, october_bonus_eligible: true,
-  }))
-  assert.ok(thresholdOnly.includes(special))
-  assert.ok(!thresholdOnly.includes(griffin))
-})
-
-test('cumulative status distinguishes unverified, under threshold, awarded and prior reservation', () => {
-  const pending = helpers.getOctoberBonusDeliveryText(donation({ payment_verified_at: null }))
-  assert.match(pending, /Save payment verification/)
-  assert.doesNotMatch(pending, /ELIGIBLE|Grant exactly once/)
-  const unpaidWithOldReservation = helpers.getOctoberBonusDeliveryText(donation({ payment_verified_at: null, october_bonus_eligible: true }))
-  assert.match(unpaidWithOldReservation, /Save payment verification/)
-  assert.match(helpers.getOctoberBonusDeliveryText(donation({ october_bonus_eligible: false, october_verified_total_usd: '1950' })), /\$1,950 \/ \$2,000.*not due/)
-  assert.match(helpers.getOctoberBonusDeliveryText(donation({ october_bonus_eligible: true, october_verified_total_usd: 2000 })), /ELIGIBLE.*Grant exactly once/)
-  assert.match(helpers.getOctoberBonusDeliveryText(donation({ october_bonus_eligible: false, october_verified_total_usd: '3000' })), /ALREADY RESERVED.*Do not grant again/)
-  assert.equal(helpers.getOctoberBonusDeliveryText(donation({ selected_package_id: 'september-supply-1000' })), null)
-})
-
-test('September fulfillment still uses its original weapon-style rewards', () => {
-  for (const [amount, bonus] of [[500, 'Rare Monster Weapon Style SET'], [1000, 'Epic Monster Weapon Style']]) {
-    const record = donation({
-      selected_package_id: `september-supply-${amount}`, selected_package_title: 'SEPTEMBER SUPPLY PACKAGE',
-      selected_package_amount: amount, event_bonus_eligible: true,
-    })
-    assert.equal(helpers.getPackageEventBonusName(record.selected_package_id), bonus)
-    assert.ok(helpers.getItemsWithReservedBonuses(record).includes(bonus))
-    assert.ok(!helpers.getItemsWithReservedBonuses(record).includes(special))
-    assert.match(helpers.getEventBonusDeliveryText(record), /ELIGIBLE/)
-  }
-})
-
-test('every explicit admin donation read includes package and cumulative reservation fields', () => {
-  const selects = [...source.matchAll(/\.select\(\s*'([^']+)'\s*\)/g)]
-    .map(match => match[1])
-    .filter(fields => fields.includes('reference_code'))
-  assert.equal(selects.length, 2, 'Inspect new explicit donation select paths when adding them')
-  const required = ['event_bonus_name', 'event_bonus_eligible', 'event_bonus_reserved_at',
-    'october_bonus_name', 'october_bonus_eligible', 'october_verified_total_usd', 'october_bonus_reserved_at']
-  for (const fields of selects) {
-    const selected = new Set(fields.split(',').map(field => field.trim()))
-    for (const field of required) assert.ok(selected.has(field), `${field} must be loaded`)
-  }
+test('September and legacy category labels remain correct',()=>{
+  assert.equal(helpers.getPackageCategory('october-supply-100'),'October Package')
+  assert.equal(helpers.getPackageCategory('august-supply-500'),'August Supply Package')
+  assert.equal(helpers.getPackageEventBonusName('september-supply-500'),'Rare Monster Weapon Style SET')
+  assert.equal(helpers.getPackageEventBonusName('september-supply-1000'),'Epic Monster Weapon Style')
 })

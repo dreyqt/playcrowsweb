@@ -76,7 +76,7 @@ export function StepAmount({ server, data, packageAmount, packageTitle, packageC
         </div>
       </Card>
 
-      {packageCategory === 'october-supply' && <OctoberBonusNotice />}
+      {packageCategory === 'october-supply' && (packageAmount === 500 || packageAmount === 1000) && <OctoberBonusNotice />}
 
       {server === 'v1' && (
         <HeroicBonusNotice compact septemberSelected={packageCategory === 'september-supply'} />

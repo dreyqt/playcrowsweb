@@ -92,7 +92,7 @@ export const octoberGiftPackages: GiftPackage[] = [
   },
   {
     id: 'october-supply-1000', category: 'october-supply', title: 'OCTOBER PACKAGE', amount: 1000, isNew: true,
-    oneTimeEventBonus: "Balian's Battle Griffin",
+    oneTimeEventBonus: 'The White Tiger of Manouille I',
     rewards: [
       { name: "Diamond", quantity: 6_500_000 },
       { name: "Mileage", quantity: 600_000 },

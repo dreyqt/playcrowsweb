@@ -306,40 +306,29 @@ function getDefaultItemsDelivered(donation: DonationRecord) {
 function getPackageEventBonusName(packageId: string | null | undefined) {
   if (packageId === 'september-supply-500') return 'Rare Monster Weapon Style SET'
   if (packageId === 'september-supply-1000') return 'Epic Monster Weapon Style'
-  if (packageId === 'october-supply-500') return 'The White Tiger of Manouille I'
-  if (packageId === 'october-supply-1000') return "Balian's Battle Griffin"
+  if (packageId === 'october-supply-500' || packageId === 'october-supply-1000') return 'The White Tiger of Manouille I'
   return null
 }
 
-function getOctoberBonusDeliveryText(donation: DonationRecord) {
-  if (!donation.selected_package_id?.startsWith('october-supply-')) return null
-  if (!donation.payment_verified_at || donation.october_bonus_eligible == null) {
-    return 'Save payment verification to calculate this player’s October-only progress on this server.'
-  }
-  if (donation.october_bonus_eligible) {
-    return "ELIGIBLE — Nureddin's Red Death is reserved for this order. Grant exactly once."
-  }
-  const total = Number(donation.october_verified_total_usd ?? 0)
-  return total >= 2000
-    ? "ALREADY RESERVED — Nureddin's Red Death belongs to another verified October order. Do not grant again."
-    : `$${total.toLocaleString()} / $2,000 in verified October package value when this order was verified. The special mount is not due on this order.`
-}
-
 function getItemsWithReservedBonuses(donation: DonationRecord, baseItems = getDefaultItemsDelivered(donation)) {
+  // Completed delivery text remains historical evidence, even when the promotion changes.
+  if (donation.fulfillment_status === 'delivered') return baseItems
+  // Remove only obsolete auto-generated mount suffixes from undelivered drafts.
   let items = baseItems
-  const packageBonus = donation.event_bonus_name ?? getPackageEventBonusName(donation.selected_package_id)
+    .replace(/ \+ Balian['’]s Battle Griffin \(One-Time Event Bonus\)/g, '')
+    .replace(/ \+ Nureddin['’]s Red Death \(One-Time October \$2,000 Bonus\)/g, '')
+  const packageBonus = getPackageEventBonusName(donation.selected_package_id)
+  if (donation.selected_package_id === 'october-supply-100') {
+    items = items.replace(/ \+ The White Tiger of Manouille I \(One-Time Event Bonus\)/g, '')
+  }
   if (packageBonus && donation.event_bonus_eligible === true && !items.includes(packageBonus)) {
     items += ` + ${packageBonus} (One-Time Event Bonus)`
-  }
-  const octoberBonus = donation.october_bonus_name ?? "Nureddin's Red Death"
-  if (donation.october_bonus_eligible === true && !items.includes(octoberBonus)) {
-    items += ` + ${octoberBonus} (One-Time October $2,000 Bonus)`
   }
   return items
 }
 
 function getEventBonusDeliveryText(donation: DonationRecord) {
-  const bonusName = donation.event_bonus_name ?? getPackageEventBonusName(donation.selected_package_id)
+  const bonusName = getPackageEventBonusName(donation.selected_package_id)
   if (!bonusName) return null
   if (!donation.payment_verified_at || donation.event_bonus_eligible == null) {
     return `Payment must be verified before the one-time ${bonusName} entitlement is locked.`
@@ -757,9 +746,6 @@ const openReceipt = async () => {
     const eventBonusName = getPackageEventBonusName(selected.selected_package_id)
     if (eventBonusName && selected.event_bonus_eligible == null) {
       return setSaveMessage('Save the verified payment first. Supabase must lock this player’s one-time event bonus eligibility before you fulfill the order.')
-    }
-    if (selected.selected_package_id?.startsWith('october-supply-') && selected.october_bonus_eligible == null) {
-      return setSaveMessage('Save the verified payment first to calculate October purchase progress and mount eligibility.')
     }
     if (!fulfillmentEvidence) return setSaveMessage('Upload the original backend ledger screenshot before marking this package delivered.')
     setSaving(true); setSaveMessage('Uploading fulfillment evidence…')
@@ -1457,18 +1443,10 @@ const openReceipt = async () => {
                     <div className={`mb-4 rounded-lg border p-3 ${selected.event_bonus_eligible === true ? 'border-[#22c55e]/50 bg-[#22c55e]/10' : selected.event_bonus_eligible === false ? 'border-[#ef4444]/50 bg-[#ef4444]/10' : 'border-[#d3ad62]/50 bg-[#d3ad62]/10'}`}>
                       <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c9aa68]">{selected.selected_package_id?.startsWith('october-') ? 'October' : 'September'} One-Time Event Bonus</div>
                       <div className={`mt-1 text-sm font-bold ${selected.event_bonus_eligible === true ? 'text-[#22c55e]' : selected.event_bonus_eligible === false ? 'text-[#ef4444]' : 'text-[#d3ad62]'}`}>
-                        {selected.event_bonus_name ?? getPackageEventBonusName(selected.selected_package_id)}
+                        {getPackageEventBonusName(selected.selected_package_id)}
                       </div>
                       <div className="mt-1 text-xs leading-5 text-[#c9c3b9]">{getEventBonusDeliveryText(selected)}</div>
                       {selected.event_bonus_reserved_at && <div className="mt-1 text-[10px] text-[#8c887f]">Entitlement locked: {formatDate(selected.event_bonus_reserved_at)}</div>}
-                    </div>
-                  )}
-                  {selected.selected_package_id?.startsWith('october-supply-') && (
-                    <div className="mb-4 rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 p-3">
-                      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c9aa68]">October $2,000 Special Mount Bonus</div>
-                      <div className="mt-1 text-sm font-bold text-[#eee9df]">{selected.october_bonus_name ?? "Nureddin's Red Death"}</div>
-                      <div className="mt-1 text-xs leading-5 text-[#c9c3b9]">{getOctoberBonusDeliveryText(selected)}</div>
-                      {selected.october_bonus_reserved_at && <div className="mt-1 text-[10px] text-[#8c887f]">Entitlement locked: {formatDate(selected.october_bonus_reserved_at)}</div>}
                     </div>
                   )}
                   <div className="flex items-center justify-between gap-3"><span className="text-xs font-bold uppercase tracking-widest text-[#c9aa68]">Payment & Fulfillment Evidence</span><span className={`rounded-full border px-2 py-1 text-[9px] font-bold ${selected.fulfillment_status === 'delivered' ? 'border-[#22c55e]/40 text-[#22c55e]' : 'border-[#77746e]/40 text-[#aaa49a]'}`}>{selected.fulfillment_status === 'delivered' ? 'DELIVERED' : 'NOT DELIVERED'}</span></div>
