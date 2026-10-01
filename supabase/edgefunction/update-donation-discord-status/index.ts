@@ -285,9 +285,7 @@ Deno.serve(async request => {
     ? 'Rare Monster Weapon Style SET'
     : packageId === 'september-supply-1000'
       ? 'Epic Monster Weapon Style'
-      : (packageId === 'october-supply-500' || packageId === 'october-supply-1000')
-        ? 'The White Tiger of Manouille I'
-        : null
+      : null
 
   if (oneTimeEventBonus) {
     ;(embed.fields as Array<Record<string, unknown>>).push({

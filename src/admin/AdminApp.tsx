@@ -306,21 +306,21 @@ function getDefaultItemsDelivered(donation: DonationRecord) {
 function getPackageEventBonusName(packageId: string | null | undefined) {
   if (packageId === 'september-supply-500') return 'Rare Monster Weapon Style SET'
   if (packageId === 'september-supply-1000') return 'Epic Monster Weapon Style'
-  if (packageId === 'october-supply-500' || packageId === 'october-supply-1000') return 'The White Tiger of Manouille I'
   return null
 }
 
 function getItemsWithReservedBonuses(donation: DonationRecord, baseItems = getDefaultItemsDelivered(donation)) {
   // Completed delivery text remains historical evidence, even when the promotion changes.
   if (donation.fulfillment_status === 'delivered') return baseItems
-  // Remove only obsolete auto-generated mount suffixes from undelivered drafts.
+  // Remove only retired auto-generated mount suffixes from undelivered October drafts.
   let items = baseItems
-    .replace(/ \+ Balian['’]s Battle Griffin \(One-Time Event Bonus\)/g, '')
-    .replace(/ \+ Nureddin['’]s Red Death \(One-Time October \$2,000 Bonus\)/g, '')
-  const packageBonus = getPackageEventBonusName(donation.selected_package_id)
-  if (donation.selected_package_id === 'october-supply-100') {
-    items = items.replace(/ \+ The White Tiger of Manouille I \(One-Time Event Bonus\)/g, '')
+  if (donation.selected_package_id?.startsWith('october-supply-')) {
+    items = items
+      .replace(/ \+ The White Tiger of Manouille I \(One-Time Event Bonus\)/g, '')
+      .replace(/ \+ Balian['’]s Battle Griffin \(One-Time Event Bonus\)/g, '')
+      .replace(/ \+ Nureddin['’]s Red Death \(One-Time October \$2,000 Bonus\)/g, '')
   }
+  const packageBonus = getPackageEventBonusName(donation.selected_package_id)
   if (packageBonus && donation.event_bonus_eligible === true && !items.includes(packageBonus)) {
     items += ` + ${packageBonus} (One-Time Event Bonus)`
   }

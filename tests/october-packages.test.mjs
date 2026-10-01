@@ -84,26 +84,28 @@ test('V1 and V2 offer the same four tabs, retain September and remove August', (
   }
 })
 
-test('only the $500 and $1,000 October packages advertise the same White Tiger mount', () => {
+test('all four October packages keep their 73 reward entries without mount bonuses', () => {
   for (const server of ['v1', 'v2']) {
     const october = getGiftPackages(server).filter(item => item.category === 'october-supply')
     assert.equal(october.length, 4)
+    assert.equal(october.reduce((count, item) => count + item.rewards.length, 0), 73)
     for (const item of october) {
-      if (item.amount === 500 || item.amount === 1000) assert.equal(item.oneTimeEventBonus, 'The White Tiger of Manouille I')
-      else assert.equal(item.oneTimeEventBonus, undefined)
+      assert.equal(item.oneTimeEventBonus, undefined)
     }
   }
 })
 
-test('all six October translations advertise only the corrected $500 and $1,000 tiers', () => {
+test('all six October translations keep category labels and remove the mount promotion', () => {
   const { octoberTranslations } = loadSource('src/octoberTranslations.ts', ['octoberTranslations'])
   assert.equal(Object.keys(octoberTranslations).length, 6)
   for (const [locale, translation] of Object.entries(octoberTranslations)) {
-    for (const field of ['octoberBonusPackages', 'octoberBonusRule']) {
-      assert.match(translation[field], /\$500/, `${locale}: ${field}`)
-      assert.match(translation[field], /\$1,000/, `${locale}: ${field}`)
-      assert.doesNotMatch(translation[field], /\$100\b|\$2,000|Battle Griffin|Red Death/, `${locale}: ${field}`)
+    for (const field of ['octoberPackages', 'octoberPackage', 'octoberPackagesDesc']) {
+      assert.ok(translation[field].trim(), `${locale}: ${field}`)
     }
+    for (const field of ['octoberBonusTitle', 'octoberBonusPackages', 'octoberBonusRule', 'octoberBonusOnly', 'newMount']) {
+      assert.equal(translation[field], undefined, `${locale}: ${field}`)
+    }
+    assert.doesNotMatch(JSON.stringify(translation), /White Tiger|Battle Griffin|Red Death/, locale)
   }
 })
 

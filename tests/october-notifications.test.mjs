@@ -102,19 +102,17 @@ function field(embed, name) {
 
 
 for (const [stage, render] of [['initial submission', initialEmbed], ['admin update', updatedEmbed]]) {
-  test(stage + ': both qualifying tiers award the Tiger only after verification', async () => {
-    for (const server of ['v1','v2']) for (const amount of [500,1000]) for (const eligible of [null,false,true]) {
-      const embed=await render(donation({server, selected_package_id:'october-supply-'+amount, event_bonus_eligible:eligible}))
-      const bonus=field(embed,'One-Time Event Bonus').value
-      assert.ok(bonus.includes('The White Tiger of Manouille I'))
-      if(eligible===true) assert.match(bonus,/Reserved for this verified order/)
-      else if(eligible===false) assert.match(bonus,/Do NOT grant/)
-      else assert.doesNotMatch(bonus,/✅/)
+  test(stage + ': no October tier advertises a mount regardless of stale Tiger eligibility', async () => {
+    for (const server of ['v1','v2']) for (const amount of [50,100,500,1000]) for (const eligible of [null,false,true]) {
+      const embed=await render(donation({server, selected_package_id:'october-supply-'+amount,
+        event_bonus_name:'The White Tiger of Manouille I', event_bonus_eligible:eligible}))
+      assert.equal(field(embed,'One-Time Event Bonus'),undefined)
       assert.equal(field(embed,'Cumulative Mount Bonus'),undefined)
+      assert.doesNotMatch(JSON.stringify(embed),/White Tiger|Battle Griffin|Red Death|Cumulative Mount/)
     }
   })
-  test(stage + ': $50 and $100 never advertise a mount, even with stale eligibility', async () => {
-    for(const amount of [50,100]) {
+  test(stage + ': stale Griffin and cumulative bonus fields cannot revive any mount', async () => {
+    for(const amount of [50,100,500,1000]) {
       const embed=await render(donation({selected_package_id:'october-supply-'+amount,
         event_bonus_name:"Balian's Battle Griffin",event_bonus_eligible:true,
         october_bonus_name:"Nureddin's Red Death",october_bonus_eligible:true,october_verified_total_usd:2000}))
@@ -123,16 +121,19 @@ for (const [stage, render] of [['initial submission', initialEmbed], ['admin upd
       assert.doesNotMatch(JSON.stringify(embed),/Battle Griffin|Red Death|Cumulative Mount/)
     }
   })
-  test(stage + ': the $100 tier cannot retain a stale Tiger entitlement', async () => {
-    for (const server of ['v1', 'v2']) {
-      const embed = await render(donation({ server, selected_package_id: 'october-supply-100',
-        event_bonus_name: 'The White Tiger of Manouille I', event_bonus_eligible: true }))
+  test(stage + ': buying multiple October packages cannot create a mount entitlement', async () => {
+    for (const amount of [50,100,500,1000]) {
+      const embed = await render(donation({ selected_package_id: 'october-supply-'+amount, package_quantity:20,
+        amount:amount*20, selected_package_amount:amount, event_bonus_eligible:true }))
       assert.equal(field(embed, 'One-Time Event Bonus'), undefined)
-      assert.doesNotMatch(JSON.stringify(embed), /White Tiger/)
+      assert.equal(field(embed, 'Cumulative Mount Bonus'), undefined)
+      assert.doesNotMatch(JSON.stringify(embed), /White Tiger|Battle Griffin|Red Death/)
     }
   })
   test(stage + ': September bonus is unchanged', async () => {
-    const embed=await render(donation({selected_package_id:'september-supply-500',event_bonus_eligible:true}))
-    assert.match(field(embed,'One-Time Event Bonus').value,/Rare Monster Weapon Style SET/)
+    for (const [amount, bonus] of [[500,'Rare Monster Weapon Style SET'],[1000,'Epic Monster Weapon Style']]) {
+      const embed=await render(donation({selected_package_id:'september-supply-'+amount,event_bonus_eligible:true}))
+      assert.ok(field(embed,'One-Time Event Bonus').value.includes(bonus))
+    }
   })
 }

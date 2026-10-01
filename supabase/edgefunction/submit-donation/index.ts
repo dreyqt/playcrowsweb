@@ -205,9 +205,7 @@ async function sendDiscordDonationNotification(options: {
     ? 'Rare Monster Weapon Style SET'
     : selectedPackageId === 'september-supply-1000'
       ? 'Epic Monster Weapon Style'
-      : (selectedPackageId === 'october-supply-500' || selectedPackageId === 'october-supply-1000')
-        ? 'The White Tiger of Manouille I'
-        : null
+      : null
 
   if (oneTimeEventBonus) {
     ;(embed.fields as Array<Record<string, unknown>>).push({

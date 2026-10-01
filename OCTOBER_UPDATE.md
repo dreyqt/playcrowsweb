@@ -1,41 +1,40 @@
-# October webshop update — White Tiger for $500 or $1,000
+# October webshop update — mount bonuses removed
 
-Updated from the supplied `playcrowsweb.zip`. The live website and database have not been changed.
+This source update removes the entire October mount promotion from V1 and V2. The live website and database have not been changed.
 
 ## Included changes
 
-- Removed August packages from V1 and from active checkout/submission validation. Historical August orders remain readable and recoverable.
-- Both V1 and V2 now show the same category tabs, in order: Currency, Support Packages, September Supply Packages, October Packages.
-- Added the $50, $100, $500 and $1,000 October packages to both servers using the latest revised lists. All 73 reward entries and quantities are included in the supplied order. Item #12080765 is named **Torn Invoices (Attribution)** as confirmed by the user.
-- **The White Tiger of Manouille I** is the only October mount reward. Purchase either the **$500 or $1,000 October package** to qualify after payment verification. Both tiers share one reward per player/server. The $100 tier does not qualify.
-- Removed the $1,000 Griffin bonus and the $2,000 cumulative Red Death bonus from the active shop, notifications and fulfillment instructions. The $1,000 package and all package contents remain available. No cumulative spending requirement applies to the Tiger.
-- Updated admin fulfillment details and notification formatting. The database reserves eligibility; the existing staff fulfillment process delivers the mount.
-- Added October UI translations for all six existing languages. Existing missing-item icon fallbacks are used where the supplied source has no matching artwork.
+- Removed the White Tiger bonus from the $500 and $1,000 October packages. No October tier or quantity grants a promotional mount.
+- Removed the mount promotion notice from the webshop and checkout, along with its localized copy and October mount badges and reward labels.
+- Removed mount fulfillment instructions from current admin views and donation notifications. Stale eligibility fields cannot restore a mount promotion.
+- All four October packages remain available with the same 73 reward entries, prices and quantities, including Torn Invoices (Attribution).
+- Both servers retain matching category tabs: Currency, Support Packages, September Supply Packages and October Packages. August remains removed from active purchasing.
+- Normal package items, including mount summon items in other packages, September weapon-style bonuses and the existing event reward selection remain unchanged.
 
 ## Deployment order
 
-1. Apply the new `supabase/migrations/20261003_correct_october_mount_tiers.sql` migration. If earlier October migrations have not been installed, apply `20261001_october_mount_bonuses.sql`, then `20261002_october_single_mount_rules.sql`, then the new `20261003` correction before reopening purchases. Existing September, dual-server and fulfillment migrations are prerequisites. Do not rerun older migrations after the latest correction, as they contain superseded rules.
-2. Deploy the updated edge functions: `submit-donation`, `paypal-checkout`, `recover-paypal-payment`, and `update-donation-discord-status`.
-3. Build and deploy the frontend using the existing production environment configuration (`npm ci`, then `npm run build`).
+1. Apply the new database migration: supabase/migrations/20261004_remove_october_mount_bonuses.sql.
+2. Deploy the updated submit-donation and update-donation-discord-status edge functions.
+3. Build and deploy the frontend using your existing production environment configuration.
 
-Apply the database migration before the functions and frontend so purchases use the new entitlement rules. If the previous update is already deployed, only `submit-donation` and `update-donation-discord-status` changed in this revision; the full source also includes the prior October checkout and recovery support. No credentials, real payment tests or deployment are included in this archive.
+If earlier October updates were never installed, apply the October migrations in sequence (20261001, 20261002, 20261003, then 20261004) before reopening purchases. The existing September bonus, dual-server and fulfillment schemas are prerequisites. Do not rerun an older migration after 20261004 because it contains superseded promotion rules.
 
-## Bonus handling
+The full archive also includes the earlier October payment catalog updates in paypal-checkout and recover-paypal-payment; deploy those if they are not already installed. No payment configuration or credentials are included.
 
-- A payment verification timestamp is authoritative. A verified order awaiting fulfillment counts; an unverified order or an order already rejected at first verification does not.
-- The $500 and $1,000 October tiers use the same Tiger reservation key. Buying both, buying multiple quantities or retrying payment verification cannot grant a second Tiger on the same server. V1 and V2 remain independent.
-- $50 and $100 packages do not qualify even when their quantities total $500, $1,000 or $2,000. There is no separate cumulative mount reward.
-- Existing valid Tiger reservations are preserved. Previously verified $1,000 purchases are backfilled; if an eligible package was already delivered, staff should deliver the new supplemental Tiger separately. The migration records the entitlement without changing the original delivery evidence.
-- Mistaken $100 reservations on undelivered orders are archived in `october_mount_rule_corrections` and released so a qualifying $500/$1,000 order can receive the Tiger. Their generated Tiger fulfillment text is cleared. Completed prior $100 reservations are retained to prevent duplicate delivery; staff should reconcile any such historical cases using the delivery evidence.
-- Retired-mount eligibility and known automatically generated retired-mount suffixes are cleared from outstanding orders. Completed delivery evidence and historical claim ledger entries are retained. Retained retired-mount ledger entries are audit records, not current fulfillment instructions.
-- The old cumulative purchase tables are retained for audit purposes but are no longer updated or used for new rewards.
-- As with the existing September system, existing reservations are retained if an order is later rejected or verification is cleared. Refunds, identity corrections or entitlement reversals require explicit staff reconciliation.
+## Existing orders and audit records
+
+- All outstanding October orders lose their mount eligibility, whether their payment was already verified or still pending. Exact automatically generated mount suffixes are removed from outstanding delivery drafts.
+- New October purchases, later verification, repeated verification and fulfillment-only edits cannot create or restore a mount entitlement.
+- Completed delivery records are retained exactly as historical evidence. Existing mount claim ledgers and cumulative totals are retained for audit purposes only; they are not instructions to grant a reward.
+- No new mount claims, cumulative credits or cumulative totals are created. Other package and September bonus handling is unaffected.
 
 ## Verification
 
-Verified the production build and TypeScript check, reward/catalog/checkout/notification/admin checks, eight local PostgreSQL correction tests, and browser scenarios covering V1/V2 at desktop/mobile sizes, including qualifying and nonqualifying checkout notices.
+Passed: production build, TypeScript, all 43 reward/catalog/checkout/notification/admin tests, all 8 local PostgreSQL retirement tests and all 4 V1/V2 desktop/mobile browser scenarios. Package cards, reward dialogs and checkout show no mount promotion; both servers retain matching tabs and exact package contents.
 
-The current PostgreSQL tests run the actual migration sequence in an isolated PGlite database, covering both eligible tiers, shared entitlement, excluded tiers and quantities, archived mistaken $100 claims, past $1,000 purchases, existing Tiger claims, preserved completed evidence, retries and migration idempotency. The older `october-bonuses-db.cjs` and `october-single-mount-db.cjs` remain regression tests for their historical migration versions only. PGlite serializes one session; separate simultaneous PostgreSQL connections were not tested. Browser payment/database calls are mocked or blocked.
+The current database suite is tests/october-no-mounts-db.cjs. It executes the full migration sequence and checks outstanding cleanup, completed-history preservation, all tiers and quantities, late payment verification, stale metadata on fulfillment edits, unchanged September rewards and idempotent migration reruns. Earlier database test files cover their historical migrations only.
+
+Database tests run locally in PGlite; separate concurrent PostgreSQL sessions are not simulated. Browser payment/database calls are mocked or blocked, and no live payments, messages or deployments were performed.
 
 Run the standard tests with Node 22.18 or newer:
 
@@ -51,7 +50,7 @@ Additional QA tools can be installed separately, without changing production dep
 ```powershell
 npm install --prefix ../qa @electric-sql/pglite@0.5.8 @playwright/test@1.63.0
 $env:NODE_PATH = (Resolve-Path ../qa/node_modules).Path
-node --test tests/october-eligibility-correction-db.cjs
+node --test tests/october-no-mounts-db.cjs
 ```
 
 For the browser tests, run a local preview with fake settings in a separate terminal:

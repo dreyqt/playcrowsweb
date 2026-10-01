@@ -3,7 +3,6 @@ import { getGiftPackages, type GiftPackageCategory } from '../giftPackageData'
 import type { PlayCrowsServer } from '../server'
 import { useI18n } from '../i18n'
 import { HeroicBonusNotice } from './HeroicBonusNotice'
-import { OctoberBonusNotice } from './OctoberBonusNotice'
 import { EARLY_PROMO_CODE, EARLY_PROMO_DISCOUNT_PERCENT, EARLY_PROMO_END_DISPLAY, isEarlyPromoActive } from '../promo'
 
 interface GiftPackagesProps {
@@ -210,10 +209,6 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
         </div>
       )}
 
-      <div className="mb-6">
-        <OctoberBonusNotice />
-      </div>
-
       {availableCategories.length > 1 && (
         <nav className="gift-package-tabs" aria-label={t('webShop')}>
           {availableCategories.map(category => (
@@ -274,11 +269,6 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
                     <div className="mt-1 text-xl font-bold text-[#c9aa68]">
                       ${giftPackage.amount.toLocaleString()}
                     </div>
-                    {giftPackage.category === 'october-supply' && giftPackage.oneTimeEventBonus && (
-                      <p className="mt-3 text-sm font-semibold leading-relaxed text-[#e4a7ff]">
-                        {t('newMount')}: {giftPackage.oneTimeEventBonus}
-                      </p>
-                    )}
                   </div>
 
                   {isSelected && (
@@ -347,7 +337,6 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
               <div className="mx-4 mt-4 rounded-lg border border-[#d9b85f]/50 bg-[#d9b85f]/10 p-4">
                 <div className="text-[11px] font-black uppercase tracking-[0.16em] text-[#e7c36a]">{t('oneTimeEventBonusTitle')}</div>
                 <div className="mt-1 text-base font-bold text-[#f5efe2]">
-                  {rewardModalPackage.category === 'october-supply' && `${t('newMount')}: `}
                   {rewardModalPackage.oneTimeEventBonus}
                 </div>
                 <div className="mt-1 text-xs text-[#a9a39a]">{t('oneTimeEventBonusRule')}</div>
