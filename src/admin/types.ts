@@ -22,6 +22,8 @@ export interface DonationRecord {
   selected_package_id: string | null
   selected_package_title: string | null
   package_quantity: number | null
+  cumulative_credit_usd: number | string | null
+  boosting_bonus_rewards: Array<{ name: string; quantity: number }> | null
   additional_notes: string | null
   event_bonus_selections: DonationEventBonusSelection[] | null
   event_bonus_selection_count: number | null

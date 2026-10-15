@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import type { DonationRecord, DonationStatus } from './types'
+import { boostingAccessoryRewards, boostingWeaponRewards } from '../giftPackageData'
 
 const STATUS_LABELS: Record<DonationStatus, string> = {
   pending: 'Pending',
@@ -273,6 +274,7 @@ function getPackageCategory(packageId: string | null | undefined) {
   if (packageId?.startsWith('august-supply-')) return 'August Supply Package'
   if (packageId?.startsWith('september-supply-')) return 'September Supply Package'
   if (packageId?.startsWith('october-supply-')) return 'October Package'
+  if (packageId?.startsWith('boosting-')) return 'Boosting Package'
   return 'Legacy'
 }
 
@@ -300,7 +302,29 @@ function getDefaultItemsDelivered(donation: DonationRecord) {
   const quantity = Math.max(1, donation.package_quantity ?? 1)
   const eventBonusSummary = getEventBonusSelectionSummary(donation)
 
-  return `${title} ×${quantity}${eventBonusSummary ? ` + Event Bonus: ${eventBonusSummary}` : ''}`
+  const boostingBonus = getBoostingBonusRewards(donation)
+    .map(reward => `${reward.name} ×${reward.quantity.toLocaleString()}`).join(', ')
+  return `${title} ×${quantity}${eventBonusSummary ? ` + Event Bonus: ${eventBonusSummary}` : ''}${boostingBonus ? ` + Boosting Bonus: ${boostingBonus}` : ''}`
+}
+
+function getBoostingBonusRewards(donation: DonationRecord) {
+  if (!donation.selected_package_id?.startsWith('boosting-')) return []
+  if (Array.isArray(donation.boosting_bonus_rewards)) return donation.boosting_bonus_rewards
+  const rewards = donation.selected_package_id === 'boosting-500'
+    ? boostingAccessoryRewards
+    : donation.selected_package_id === 'boosting-1000' ? boostingWeaponRewards : []
+  const quantity = Math.max(1, donation.package_quantity ?? 1)
+  return rewards.map(reward => ({ name: reward.name, quantity: (reward.quantity ?? 1) * quantity }))
+}
+
+function getCumulativeCreditUsd(donation: DonationRecord) {
+  if (donation.cumulative_credit_usd != null && Number.isFinite(Number(donation.cumulative_credit_usd))) {
+    return Number(donation.cumulative_credit_usd)
+  }
+  if (donation.selected_package_amount == null) return null
+  const value = Number(donation.selected_package_amount) * Math.max(1, donation.package_quantity ?? 1)
+  const multiplier = donation.server === 'v2' && /^boosting-(50|200|500|1000)$/.test(donation.selected_package_id ?? '') ? 2 : 1
+  return Number.isFinite(value) ? value * multiplier : null
 }
 
 function getPackageEventBonusName(packageId: string | null | undefined) {
@@ -550,7 +574,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -801,6 +825,7 @@ const openReceipt = async () => {
         ['Character / Username', selected.username],
         ['Payment Method', PAYMENT_LABELS[selected.payment_method]],
         ['Amount', formatMoney(selected.currency, selected.amount)],
+        ['Cumulative Value (USD)', getCumulativeCreditUsd(selected) == null ? 'Not recorded' : formatMoney('USD', getCumulativeCreditUsd(selected)!)],
         ...paymentRows,
         ['Payment Verified', selected.payment_verified_at ? formatDate(selected.payment_verified_at) : 'No'],
         ['Package', getPackageDisplayName(selected)],
@@ -879,7 +904,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
       )
       .single()
 
@@ -1251,6 +1276,9 @@ const openReceipt = async () => {
                     </td>
                     <td className="px-3 py-4 align-middle font-semibold">
                       <div>{formatMoney(donation.currency, donation.amount)}</div>
+                      {donation.selected_package_id?.startsWith('boosting-') && getCumulativeCreditUsd(donation) !== null && (
+                        <div className="mt-1 text-[10px] font-medium text-[#c9aa68]">Cumulative: {formatMoney('USD', getCumulativeCreditUsd(donation)!)}</div>
+                      )}
                       {donation.promo_code && Number(donation.discount_percent) > 0 && (
                         <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-[#c9aa68]/40 bg-[#c9aa68]/10 px-2 py-0.5 text-[9px] font-bold text-[#c9aa68]">
                           <span aria-hidden="true">🏷</span> {donation.promo_code} · {Number(donation.discount_percent)}% OFF
@@ -1373,6 +1401,16 @@ const openReceipt = async () => {
                     <DetailRow label="Coupon Code" value="None" />
                   )}
                   <DetailRow label="Total Paid" value={formatMoney(selected.currency, selected.amount)} />
+                  <DetailRow label="Cumulative Value (USD)" value={getCumulativeCreditUsd(selected) == null ? 'Not recorded' : formatMoney('USD', getCumulativeCreditUsd(selected)!)} />
+                  {getBoostingBonusRewards(selected).length > 0 && (
+                    <div className="border-b border-[#292d34] py-3">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-[#c9aa68]">Boosting Package Bonus</div>
+                      <ul className="mt-3 space-y-2 text-xs leading-5 text-[#eee9df]">
+                        {getBoostingBonusRewards(selected).map(reward => <li key={reward.name}>{reward.name} ×{reward.quantity.toLocaleString()}</li>)}
+                      </ul>
+                      <p className="mt-2 text-xs text-[#aaa49a]">Grant all listed bonus items after payment verification. Quantities include every package in this order.</p>
+                    </div>
+                  )}
                   <DetailRow label="Package ID" value={selected.selected_package_id ?? 'Legacy record'} />
                   <DetailRow label="Additional Notes" value={selected.additional_notes ?? 'None'} />
                   {(selected.event_bonus_selections ?? []).length > 0 && (

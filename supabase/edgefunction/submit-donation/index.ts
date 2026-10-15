@@ -1,5 +1,32 @@
 import { withSupabase } from 'npm:@supabase/server@^1'
 
+// Keep these rules synchronized with the Boosting migration and giftPackageData.ts.
+// Cumulative credit is not a payment amount or an event-selection entitlement.
+function getCumulativeCreditUsd(server: 'v1' | 'v2', packageId: string, packageAmount: number, quantity: number) {
+  const isBoosting = ['boosting-50', 'boosting-200', 'boosting-500', 'boosting-1000'].includes(packageId)
+  return Math.round(packageAmount * quantity * (server === 'v2' && isBoosting ? 2 : 1) * 100) / 100
+}
+
+function getBoostingBonusRewards(packageId: string, quantity: number): Array<{ name: string; quantity: number }> {
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999) return []
+  if (packageId === 'boosting-500') return [
+    { name: 'Golden Necklace Insignia (Attributed)', quantity: 4 * quantity },
+    { name: 'Golden Ring Insignia (Attribution)', quantity: 4 * quantity },
+  ]
+  if (packageId !== 'boosting-1000') return []
+  return [
+    "Gaspard's Savage Greatsword (Bound)",
+    "Theophil's Creed Spear (Bound)",
+    "Brandt's Domination Twin Sword (Bound)",
+    "Alyn's Illusion Longbow (Bound)",
+    "Johannes' Motive Scepter (Bound)",
+    "Ludwig's Straight Sword of Justice (Bound)",
+    "Clemens' Freedom Dagger (Bound)",
+    "Zenesia's Ruling Segum (Attributed)",
+    "Eleanor's Ambition Staff (Bound)",
+  ].map(name => ({ name, quantity }))
+}
+
 const MAX_RECEIPT_SIZE = 5 * 1024 * 1024
 const MAX_PACKAGE_QUANTITY = 999
 const MAX_ADDITIONAL_NOTES_LENGTH = 1000
@@ -75,6 +102,7 @@ async function sendDiscordDonationNotification(options: {
     octoberBonusName: string | null
     octoberBonusEligible: boolean | null
     octoberVerifiedTotalUsd: number | null
+    cumulativeCreditUsd?: number | null
   }
   server: PlayCrowsServer
   playerId: string
@@ -119,7 +147,9 @@ async function sendDiscordDonationNotification(options: {
         ? 'September Supply Package'
         : selectedPackageId.startsWith('october-supply-')
           ? 'October Package'
-          : 'Support Package'
+          : selectedPackageId.startsWith('boosting-')
+            ? 'Boosting Package'
+            : 'Support Package'
 
   const receiptFilename = receipt && receiptExtension
     ? sanitizeDiscordFilename(receipt.name, receiptExtension)
@@ -183,6 +213,24 @@ async function sendDiscordDonationNotification(options: {
       text: `PlayCrows ${server.toUpperCase()} Donation Center • Click the title to open Admin Dashboard`,
     },
     timestamp: donation.createdAt,
+  }
+
+  if (selectedPackageId.startsWith('boosting-')) {
+    const credit = donation.cumulativeCreditUsd ?? getCumulativeCreditUsd(server, selectedPackageId, selectedPackageAmount, packageQuantity)
+    ;(embed.fields as Array<Record<string, unknown>>).push({
+      name: 'Cumulative Credit (USD)',
+      value: `${formatDiscordMoney('USD', credit)}${server === 'v2' ? ' · V2 2× Boosting value' : ''}\nCredited after payment verification.`,
+      inline: false,
+    })
+    const bonusRewards = getBoostingBonusRewards(selectedPackageId, packageQuantity)
+    if (bonusRewards.length > 0) {
+      ;(embed.fields as Array<Record<string, unknown>>).push({
+        name: '🎁 Boosting Package Bonus',
+        value: bonusRewards.map(reward => `${reward.name} ×${reward.quantity.toLocaleString()}`).join('\n') +
+          '\nAll listed items included. Grant after payment verification; quantities above cover this entire order.',
+        inline: false,
+      })
+    }
   }
 
   if (eventBonusSelections.length > 0) {
@@ -320,6 +368,10 @@ const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'october-supply-100': { title: 'OCTOBER PACKAGE', amount: 100 },
   'october-supply-500': { title: 'OCTOBER PACKAGE', amount: 500 },
   'october-supply-1000': { title: 'OCTOBER PACKAGE', amount: 1000 },
+  'boosting-50': { title: 'BOOSTING PACKAGE', amount: 50 },
+  'boosting-200': { title: 'BOOSTING PACKAGE', amount: 200 },
+  'boosting-500': { title: 'BOOSTING PACKAGE', amount: 500 },
+  'boosting-1000': { title: 'BOOSTING PACKAGE', amount: 1000 },
 }
 
 // Server catalogs are intentionally separate. V2 begins mirrored from V1, but
@@ -349,6 +401,10 @@ const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'october-supply-100': { title: 'OCTOBER PACKAGE', amount: 100 },
   'october-supply-500': { title: 'OCTOBER PACKAGE', amount: 500 },
   'october-supply-1000': { title: 'OCTOBER PACKAGE', amount: 1000 },
+  'boosting-50': { title: 'BOOSTING PACKAGE', amount: 50 },
+  'boosting-200': { title: 'BOOSTING PACKAGE', amount: 200 },
+  'boosting-500': { title: 'BOOSTING PACKAGE', amount: 500 },
+  'boosting-1000': { title: 'BOOSTING PACKAGE', amount: 1000 },
 }
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
@@ -920,6 +976,8 @@ export default {
           selected_package_id: selectedPackageId,
           selected_package_title: selectedPackage.title,
           package_quantity: packageQuantity,
+          cumulative_credit_usd: getCumulativeCreditUsd(server, selectedPackageId, selectedPackage.amount, packageQuantity),
+          boosting_bonus_rewards: getBoostingBonusRewards(selectedPackageId, packageQuantity),
           additional_notes: additionalNotes || null,
           event_bonus_selections: eventBonusSelections.map(selection => ({
             event_number: selection.eventNumber,
@@ -955,6 +1013,8 @@ export default {
           reference_code,
           created_at,
           status,
+          cumulative_credit_usd,
+          boosting_bonus_rewards,
           event_bonus_name,
           event_bonus_eligible,
           october_bonus_name,
@@ -995,6 +1055,7 @@ export default {
               octoberBonusName: donation.october_bonus_name ?? null,
               octoberBonusEligible: donation.october_bonus_eligible ?? null,
               octoberVerifiedTotalUsd: donation.october_verified_total_usd ?? null,
+              cumulativeCreditUsd: donation.cumulative_credit_usd ?? null,
             },
             server,
             playerId,

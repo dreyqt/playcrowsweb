@@ -18,6 +18,8 @@ import {
   isEarlyPromoActive,
 } from '../../promo'
 import { Btn, Card } from '../ui'
+import type { GiftPackageCategory } from '../../giftPackageData'
+import { BoostingBonusNotice } from '../BoostingBonusNotice'
 
 const PAYMENT_LABELS = {
   paypal: 'PayPal',
@@ -35,11 +37,12 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function StepComplete({ server, data, selectedPackageAmount, selectedPackageTitle, promoCode, eventBonusOptions, onSubmit, onBack, isSubmitting, submitError }: {
+export function StepComplete({ server, data, selectedPackageAmount, selectedPackageTitle, selectedPackageCategory, promoCode, eventBonusOptions, onSubmit, onBack, isSubmitting, submitError }: {
   server: PlayCrowsServer
   data: FormData
   selectedPackageAmount: number | null
   selectedPackageTitle: string | null
+  selectedPackageCategory?: GiftPackageCategory
   promoCode: string | null
   eventBonusOptions: EventBonusOption[]
   onSubmit: () => Promise<void> | void
@@ -83,7 +86,7 @@ export function StepComplete({ server, data, selectedPackageAmount, selectedPack
 
         {promoApplied && selectedPackageAmount !== null && originalPackageAmount !== null && discountedPackageAmount !== null ? (
           <>
-            <SummaryRow label={t('giftPackageCredit')} value={`$${(selectedPackageAmount * packageQuantity).toLocaleString()} ($${selectedPackageAmount.toLocaleString()} × ${packageQuantity})`} />
+            <SummaryRow label={t('giftPackageCredit')} value={`$${(selectedPackageAmount * packageQuantity * (server === 'v2' && selectedPackageCategory === 'boosting' ? 2 : 1)).toLocaleString()}`} />
             <SummaryRow label={t('originalPayment')} value={formatCurrencyAmount(data.currency, originalPackageAmount)} />
             <SummaryRow label={t('redeemCode')} value={EARLY_PROMO_CODE} />
             <SummaryRow label={t('discount')} value={`${EARLY_PROMO_DISCOUNT_PERCENT}%`} />
@@ -109,6 +112,10 @@ export function StepComplete({ server, data, selectedPackageAmount, selectedPack
         )}
         <SummaryRow label={t('additionalNotes')} value={data.additionalNotes.trim() || t('none')} />
       </Card>
+
+      {selectedPackageCategory === 'boosting' && selectedPackageAmount !== null && (
+        <BoostingBonusNotice server={server} packageAmount={selectedPackageAmount} packageQuantity={packageQuantity} compact />
+      )}
 
       <Card className="p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">

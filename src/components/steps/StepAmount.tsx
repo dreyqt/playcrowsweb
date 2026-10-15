@@ -4,6 +4,7 @@ import { convertAmount } from '../../utils'
 import { useI18n } from '../../i18n'
 import { Btn, Card } from '../ui'
 import { HeroicBonusNotice } from '../HeroicBonusNotice'
+import { BoostingBonusNotice } from '../BoostingBonusNotice'
 import type { GiftPackageCategory } from '../../giftPackageData'
 import type { PlayCrowsServer } from '../../server'
 
@@ -74,6 +75,10 @@ export function StepAmount({ server, data, packageAmount, packageTitle, packageC
           {data.currency !== 'USD' && <div className="mt-1 text-xs text-[#8f8b84]">{t('usdEquivalent')}: ${totalUsd.toLocaleString()}</div>}
         </div>
       </Card>
+
+      {packageCategory === 'boosting' && (
+        <BoostingBonusNotice server={server} packageAmount={packageAmount} packageQuantity={quantity} compact />
+      )}
 
       {server === 'v1' && (
         <HeroicBonusNotice compact septemberSelected={packageCategory === 'september-supply'} />

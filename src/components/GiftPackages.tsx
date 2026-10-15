@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getGiftPackages, type GiftPackageCategory } from '../giftPackageData'
+import { getBoostingCumulativeValue, getGiftPackages, type GiftPackageCategory } from '../giftPackageData'
 import type { PlayCrowsServer } from '../server'
 import { useI18n } from '../i18n'
 import { HeroicBonusNotice } from './HeroicBonusNotice'
+import { BoostingBonusNotice } from './BoostingBonusNotice'
 import { EARLY_PROMO_CODE, EARLY_PROMO_DISCOUNT_PERCENT, EARLY_PROMO_END_DISPLAY, isEarlyPromoActive } from '../promo'
 
 interface GiftPackagesProps {
@@ -59,6 +60,20 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   'Brilliant Armor Refinement Stone (Bound)': 'brilliant_armor_refinement_stone.png',
   'Brilliant Accessory Refinement Stone (Bound)': 'brilliant_accessory_refinement_stone.png',
   'Time Charging Device - Harpenon Sanctum (Attribution)': 'time_charging_harpenon.png',
+  'Time Charging Device - Harpenon Sanctum (Bound)': 'time_charging_harpenon.png',
+  '[L] Weapon Style Summon Challenge Ticket (Bound)': 'weapon_style_challenge_ticket.png',
+  '[L] Mount Summon Challenge Ticket (Bound)': 'mount_challenge_ticket.png',
+  'Elemental Extraction of Fusion 11 Times (Attribution)': 'elemental_extraction_of_fusion.png',
+  "Eligio's Stimulant of EXP (Bound)": 'exp_bottle.png',
+  "Night Crow's Stimulant of Growth (Bound)": 'nightcrows_stimulant_of_growth.png',
+  'Shining Weapon Enhancement Scroll (Bound)': 'shining_weapon_enhancement.png',
+  'Shining Armor Enhancement Scroll (Bound)': 'shining_armor_enhancement.png',
+  'Shining Accessory Enhancement Scroll (Bound)': 'shining_accessory_enhancement.png',
+  "Ancient Master's Alloy (Bound)": 'ancients_master_alloy.png',
+  'Spell Rune Crystal I (Bound)': 'spell_rune_crystal_I.png',
+  'Spell Starlight Crystal I (Bound)': 'spell_starlight_crystal_I.png',
+  'Enchantment Frost Crystal I (Attributed)': 'enchantment_frost_crystal_I.png',
+  '[C] Crafting Material x40 Selection Chest (Bound)': 'c_crafting_material_40_selection_chest.png',
 }
 
 function rewardNameToFilename(name: string) {
@@ -119,6 +134,7 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
   const { t } = useI18n()
   const giftPackages = useMemo(() => getGiftPackages(server), [server])
   const sections: Record<GiftPackageCategory, { title: string; description: string }> = {
+    boosting: { title: t('boostingPacks'), description: t('boostingPacksDesc') },
     currency: { title: t('currency'), description: t('currencyDesc') },
     support: { title: t('supportPackages'), description: t('supportPackagesDesc') },
     'september-supply': { title: t('septemberSupplyPackages'), description: t('septemberSupplyPackagesDesc') },
@@ -233,6 +249,12 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
           <p className="mt-1 text-sm text-[#8f8b84]">{section.description}</p>
         </div>
 
+        {activeCategory === 'boosting' && (
+          <div className="mb-5">
+            <BoostingBonusNotice server={server} compact />
+          </div>
+        )}
+
         <div className="gift-packages__grid">
           {visiblePackages.map(giftPackage => {
             const isSelected = selectedPackageId === giftPackage.id
@@ -246,7 +268,9 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="gift-package-card__label">
-                        {giftPackage.category === 'currency'
+                        {giftPackage.category === 'boosting'
+                          ? t('boostingPackage')
+                          : giftPackage.category === 'currency'
                           ? t('currency')
                           : giftPackage.category === 'october-supply'
                             ? t('octoberPackage')
@@ -275,6 +299,17 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
                     <span className="gift-package-card__selected">{t('selected')}</span>
                   )}
                 </header>
+
+                {giftPackage.category === 'boosting' && (
+                  <div className="space-y-2 px-[18px] pb-4 text-xs">
+                    <p className="text-[#a9a39a]">{t('boostingIncludedRewards')}: {giftPackage.rewards.length}</p>
+                    {server === 'v2' && (
+                      <p className="font-semibold text-[#c4b5fd]">2× {t('cumulativeValue')}: ${getBoostingCumulativeValue(server, giftPackage.amount).toLocaleString('en-US')}</p>
+                    )}
+                    {giftPackage.amount === 500 && <p className="font-semibold text-[#f1d487]">+ {t('boostingAccessoryBonus')}</p>}
+                    {giftPackage.amount === 1000 && <p className="font-semibold text-[#f1d487]">+ {t('boostingWeaponBonus')}</p>}
+                  </div>
+                )}
 
                 <div className="gift-package-card__actions">
                   <button
@@ -314,7 +349,7 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
           }}
         >
           <div className="gift-rewards-modal__panel">
-            <div className="gift-rewards-modal__header">
+            <div className="gift-rewards-modal__header shrink-0">
               <div>
                 <span className="gift-package-card__label">{t('rewards')}</span>
                 <h3 id="gift-rewards-modal-title">{rewardModalPackage.title}</h3>
@@ -333,6 +368,7 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
               </button>
             </div>
 
+            <div className="min-h-0 overflow-y-auto">
             {rewardModalPackage.oneTimeEventBonus && (
               <div className="mx-4 mt-4 rounded-lg border border-[#d9b85f]/50 bg-[#d9b85f]/10 p-4">
                 <div className="text-[11px] font-black uppercase tracking-[0.16em] text-[#e7c36a]">{t('oneTimeEventBonusTitle')}</div>
@@ -343,7 +379,14 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
               </div>
             )}
 
-            <ul className="gift-rewards-modal__list">
+            {rewardModalPackage.category === 'boosting' && (
+              <div className="mx-4 mt-4">
+                <BoostingBonusNotice server={server} packageAmount={rewardModalPackage.amount} />
+                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-[#a9a39a]">{t('boostingIncludedRewards')} · {rewardModalPackage.rewards.length}</p>
+              </div>
+            )}
+
+            <ul className="gift-rewards-modal__list" style={{ overflowY: 'visible' }}>
               {rewardModalPackage.rewards.map(reward => (
                 <li key={reward.name} className="gift-package-card__reward-row">
                   <RewardIcon
@@ -362,6 +405,7 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
                 </li>
               ))}
             </ul>
+            </div>
 
             {onSelectPackage && (
               <button

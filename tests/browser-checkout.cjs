@@ -69,6 +69,7 @@ async function mockNetwork(page, settings = {}) {
 async function startPayment(page, server, amount, quantity = 1, promo = false) {
   await page.goto(baseUrl)
   await page.getByRole('button', { name: new RegExp(`PlayCrows ${server.toUpperCase()}`) }).click()
+  await page.locator('.gift-package-tabs button').filter({ hasText: /^Currency$/ }).click()
   const card = page.locator('article').filter({ has: page.getByText(`$${amount.toLocaleString()}`, { exact: true }) }).first()
   await card.getByRole('button', { name: /^Select / }).click()
   if (quantity !== 1) await page.getByRole('spinbutton').fill(String(quantity))

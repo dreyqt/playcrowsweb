@@ -5,7 +5,7 @@ export interface GiftReward {
   quantity?: number
 }
 
-export type GiftPackageCategory = 'currency' | 'support' | 'september-supply' | 'october-supply'
+export type GiftPackageCategory = 'currency' | 'support' | 'september-supply' | 'october-supply' | 'boosting'
 
 export interface GiftPackage {
   id: string
@@ -18,6 +18,228 @@ export interface GiftPackage {
   oneTimeEventBonus?: string
   rewards: GiftReward[]
 }
+
+/** Package-specific bonuses repeat with package quantity, on either server. */
+export const boostingAccessoryRewards: GiftReward[] = [
+  { name: 'Golden Necklace Insignia (Attributed)', quantity: 4 },
+  { name: 'Golden Ring Insignia (Attribution)', quantity: 4 },
+]
+
+/** Every $1,000 package includes all nine weapons, one of each. */
+export const boostingWeaponRewards: GiftReward[] = [
+  { name: "Gaspard's Savage Greatsword (Bound)", quantity: 1 },
+  { name: "Theophil's Creed Spear (Bound)", quantity: 1 },
+  { name: "Brandt's Domination Twin Sword (Bound)", quantity: 1 },
+  { name: "Alyn's Illusion Longbow (Bound)", quantity: 1 },
+  { name: "Johannes' Motive Scepter (Bound)", quantity: 1 },
+  { name: "Ludwig's Straight Sword of Justice (Bound)", quantity: 1 },
+  { name: "Clemens' Freedom Dagger (Bound)", quantity: 1 },
+  { name: "Zenesia's Ruling Segum (Attributed)", quantity: 1 },
+  { name: "Eleanor's Ambition Staff (Bound)", quantity: 1 },
+]
+
+export function getBoostingCumulativeValue(server: PlayCrowsServer, packageAmount: number, packageQuantity = 1) {
+  return packageAmount * packageQuantity * (server === 'v2' ? 2 : 1)
+}
+
+/** Same base contents on both servers; only V2 doubles cumulative credit. */
+export const boostingGiftPackages: GiftPackage[] = [
+  {
+    id: 'boosting-50', category: 'boosting', title: 'BOOSTING PACKAGE', amount: 50, isNew: true,
+    rewards: [
+      { name: 'Diamonds', quantity: 200_000 },
+      { name: 'Contribution Coin', quantity: 8_000 },
+      { name: 'Gold Chest (Bound)', quantity: 10_000 },
+      { name: 'Star Memory (Bound)', quantity: 500 },
+      { name: 'Morion (Bound)', quantity: 15_000 },
+      { name: 'Seal of Advancement (Bound)', quantity: 5_000 },
+      { name: 'Time Charging Device - Harpenon Sanctum (Bound)', quantity: 100 },
+      { name: '[L] Weapon Style Summon Challenge Ticket (Bound)', quantity: 100 },
+      { name: '[L] Mount Summon Challenge Ticket (Bound)', quantity: 100 },
+      { name: 'Element Extraction of Harmony (Bound)', quantity: 2_000 },
+      { name: "Eligio's Stimulant of EXP (Bound)", quantity: 100 },
+      { name: "Night Crow's Stimulant of Growth (Bound)", quantity: 150 },
+      { name: 'Source of Growth (Bound)', quantity: 500 },
+      { name: 'Source of Wisdom (Bound)', quantity: 10 },
+      { name: 'Torn Invoices (Bound)', quantity: 100 },
+      { name: 'Torn Seniority Letter (Bound)', quantity: 100 },
+      { name: 'Brilliant Refinement Stone Selection Chest (Bound)', quantity: 1_000 },
+      { name: 'Shining Weapon Enhancement Scroll (Bound)', quantity: 500 },
+      { name: 'Shining Armor Enhancement Scroll (Bound)', quantity: 500 },
+      { name: 'Shining Accessory Enhancement Scroll (Bound)', quantity: 500 },
+      { name: 'Superior Arcane Scroll of Enlightenment (Bound)', quantity: 20 },
+      { name: 'Brilliant Enhancement Scroll Selection Chest (Bound)', quantity: 50 },
+      { name: 'Pitch-black Enhancement Scroll Selection Chest (Bound)', quantity: 50 },
+      { name: "Ancient Master's Alloy (Bound)", quantity: 40 },
+      { name: '[UC] Crafting Material Selection Chest (Bound)', quantity: 150 },
+      { name: '[C] Crafting Material x40 Selection Chest (Bound)', quantity: 100 },
+      { name: '[R] Arcane Scroll Selection Chest (Bound)', quantity: 150 },
+      { name: 'Metal Fragment (Bound)', quantity: 15_000 },
+      { name: 'Ancient Papyrus (Bound)', quantity: 3_000 },
+      { name: 'Golden Weighing Scale (Bound)', quantity: 2_000 },
+      { name: 'Golden Key (Bound)', quantity: 2_000 },
+      { name: 'Golden Carving Knife (Bound)', quantity: 2_000 },
+      { name: "Master's Aircraft Toolbox (Bound)", quantity: 30 },
+      { name: 'Old Aircraft Component (Bound)', quantity: 2_000 },
+    ],
+  },
+  {
+    id: 'boosting-200', category: 'boosting', title: 'BOOSTING PACKAGE', amount: 200, isNew: true,
+    rewards: [
+      { name: 'Diamonds', quantity: 1_200_000 },
+      { name: 'Mileage', quantity: 200_000 },
+      { name: 'Contribution Coin', quantity: 100_000 },
+      { name: 'Gold Chest (Bound)', quantity: 35_000 },
+      { name: "Star's Memory (Bound)", quantity: 1_750 },
+      { name: 'Morion (Bound)', quantity: 75_000 },
+      { name: 'Seal of Advancement (Bound)', quantity: 25_000 },
+      { name: 'Party Dungeon Raid Ticket (Bound)', quantity: 75 },
+      { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 300 },
+      { name: 'Time Charging Device - Harpenon Sanctum (Bound)', quantity: 500 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 100 },
+      { name: "Forgotten One's Remnant Selection Chest (Bound)", quantity: 30 },
+      { name: '[L] Weapon Style Summon Challenge Ticket (Bound)', quantity: 500 },
+      { name: '[L] Mount Summon Challenge Ticket (Bound)', quantity: 500 },
+      { name: 'Elemental Extraction of Fusion 11 Times (Attribution)', quantity: 650 },
+      { name: 'Element Extraction of Harmony (Bound)', quantity: 9_000 },
+      { name: "Eligio's Stimulant of EXP (Bound)", quantity: 500 },
+      { name: "Night Crow's Stimulant of Growth (Bound)", quantity: 750 },
+      { name: 'Night Crows Blessing Stimulant of Growth (Bound)', quantity: 3 },
+      { name: 'Source of Growth (Bound)', quantity: 2_500 },
+      { name: 'Source of Wisdom (Bound)', quantity: 50 },
+      { name: 'Torn Invoices (Bound)', quantity: 600 },
+      { name: 'Torn Seniority Letter (Bound)', quantity: 600 },
+      { name: 'Brilliant Refinement Stone Selection Chest (Bound)', quantity: 4_000 },
+      { name: 'Shining Weapon Enhancement Scroll (Bound)', quantity: 2_500 },
+      { name: 'Shining Armor Enhancement Scroll (Bound)', quantity: 2_500 },
+      { name: 'Shining Accessory Enhancement Scroll (Bound)', quantity: 2_500 },
+      { name: 'Higher Arcane Scroll of Enlightenment (Bound)', quantity: 40 },
+      { name: 'Superior Arcane Scroll of Enlightenment (Bound)', quantity: 100 },
+      { name: 'Brilliant Enhancement Scroll Selection Chest (Bound)', quantity: 250 },
+      { name: 'Pitch-black Enhancement Scroll Selection Chest (Bound)', quantity: 250 },
+      { name: "Ancient Master's Alloy (Bound)", quantity: 200 },
+      { name: 'Spell Rune Crystal I (Bound)', quantity: 7_500 },
+      { name: 'Spell Starlight Crystal I (Bound)', quantity: 7_500 },
+      { name: 'Enchantment Frost Crystal I (Attributed)', quantity: 7_500 },
+      { name: 'Wind Orb Chest (Attributed)', quantity: 45 },
+      { name: '[UC] Crafting Material Selection Chest (Bound)', quantity: 700 },
+      { name: '[C] Crafting Material x40 Selection Chest (Bound)', quantity: 700 },
+      { name: '[R] Arcane Scroll Selection Chest (Bound)', quantity: 700 },
+      { name: 'Metal Fragment (Bound)', quantity: 75_000 },
+      { name: 'Ancient Papyrus (Bound)', quantity: 15_000 },
+      { name: 'Golden Weighing Scale (Bound)', quantity: 10_000 },
+      { name: 'Golden Key (Bound)', quantity: 10_000 },
+      { name: 'Golden Carving Knife (Bound)', quantity: 10_000 },
+      { name: "Master's Aircraft Toolbox (Bound)", quantity: 160 },
+      { name: 'Old Aircraft Component (Bound)', quantity: 10_000 },
+    ],
+  },
+  {
+    id: 'boosting-500', category: 'boosting', title: 'BOOSTING PACKAGE', amount: 500, isNew: true,
+    rewards: [
+      { name: 'Diamonds', quantity: 4_000_000 },
+      { name: 'Mileage', quantity: 750_000 },
+      { name: 'Contribution Coin', quantity: 400_000 },
+      { name: 'Gold Chest (Bound)', quantity: 110_000 },
+      { name: "Star's Memory (Bound)", quantity: 5_200 },
+      { name: 'Morion (Bound)', quantity: 225_000 },
+      { name: 'Seal of Advancement (Bound)', quantity: 100_000 },
+      { name: 'Party Dungeon Raid Ticket (Bound)', quantity: 220 },
+      { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 850 },
+      { name: 'Time Charging Device - Harpenon Sanctum (Bound)', quantity: 1_500 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 300 },
+      { name: 'Total War Supply Crates (Attributed)', quantity: 4_500 },
+      { name: "Forgotten One's Remnant Selection Chest (Bound)", quantity: 90 },
+      { name: '[L] Weapon Style Summon Challenge Ticket (Bound)', quantity: 1_500 },
+      { name: '[L] Mount Summon Challenge Ticket (Bound)', quantity: 1_500 },
+      { name: 'Elemental Extraction of Fusion 11 Times (Attribution)', quantity: 2_250 },
+      { name: 'Element Extraction of Harmony (Bound)', quantity: 28_000 },
+      { name: "Eligio's Stimulant of EXP (Bound)", quantity: 1_600 },
+      { name: "Night Crow's Stimulant of Growth (Bound)", quantity: 2_500 },
+      { name: 'Night Crows Blessing Stimulant of Growth (Bound)', quantity: 9 },
+      { name: 'Source of Growth (Bound)', quantity: 8_000 },
+      { name: 'Source of Wisdom (Bound)', quantity: 160 },
+      { name: 'Torn Invoices (Bound)', quantity: 2_000 },
+      { name: 'Torn Seniority Letter (Bound)', quantity: 2_000 },
+      { name: 'Brilliant Refinement Stone Selection Chest (Bound)', quantity: 12_500 },
+      { name: 'Shining Weapon Enhancement Scroll (Bound)', quantity: 7_500 },
+      { name: 'Shining Armor Enhancement Scroll (Bound)', quantity: 7_500 },
+      { name: 'Shining Accessory Enhancement Scroll (Bound)', quantity: 7_500 },
+      { name: 'Higher Arcane Scroll of Enlightenment (Bound)', quantity: 110 },
+      { name: 'Superior Arcane Scroll of Enlightenment (Bound)', quantity: 300 },
+      { name: 'Brilliant Enhancement Scroll Selection Chest (Bound)', quantity: 800 },
+      { name: 'Pitch-black Enhancement Scroll Selection Chest (Bound)', quantity: 800 },
+      { name: "Ancient Master's Alloy (Bound)", quantity: 700 },
+      { name: 'Spell Rune Crystal I (Bound)', quantity: 22_000 },
+      { name: 'Spell Starlight Crystal I (Bound)', quantity: 22_000 },
+      { name: 'Enchantment Frost Crystal I (Attributed)', quantity: 22_000 },
+      { name: 'Wind Orb Chest (Attributed)', quantity: 125 },
+      { name: '[UC] Crafting Material Selection Chest (Bound)', quantity: 2_100 },
+      { name: '[C] Crafting Material x40 Selection Chest (Bound)', quantity: 2_100 },
+      { name: '[R] Arcane Scroll Selection Chest (Bound)', quantity: 2_100 },
+      { name: 'Metal Fragment (Bound)', quantity: 225_000 },
+      { name: 'Ancient Papyrus (Bound)', quantity: 45_000 },
+      { name: 'Golden Weighing Scale (Bound)', quantity: 30_000 },
+      { name: 'Golden Key (Bound)', quantity: 30_000 },
+      { name: 'Golden Carving Knife (Bound)', quantity: 30_000 },
+      { name: "Master's Aircraft Toolbox (Bound)", quantity: 500 },
+      { name: 'Old Aircraft Component (Bound)', quantity: 35_000 },
+    ],
+  },
+  {
+    id: 'boosting-1000', category: 'boosting', title: 'BOOSTING PACKAGE', amount: 1000, isNew: true,
+    rewards: [
+      { name: 'Diamonds', quantity: 9_000_000 },
+      { name: 'Mileage', quantity: 2_000_000 },
+      { name: 'Contribution Coin', quantity: 1_000_000 },
+      { name: 'Gold Chest (Bound)', quantity: 250_000 },
+      { name: "Star's Memory (Bound)", quantity: 15_000 },
+      { name: 'Morion (Bound)', quantity: 550_000 },
+      { name: 'Seal of Advancement (Bound)', quantity: 250_000 },
+      { name: 'Party Dungeon Raid Ticket (Bound)', quantity: 500 },
+      { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 2_000 },
+      { name: 'Time Charging Device - Harpenon Sanctum (Attribution)', quantity: 3_000 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 200_000 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 700 },
+      { name: 'Total War Supply Crates (Attributed)', quantity: 10_000 },
+      { name: "Forgotten One's Remnant Selection Chest (Bound)", quantity: 200 },
+      { name: '[L] Weapon Style Summon Challenge Ticket (Bound)', quantity: 3_500 },
+      { name: '[L] Mount Summon Challenge Ticket (Bound)', quantity: 3_500 },
+      { name: 'Elemental Extraction of Fusion 11 Times (Attribution)', quantity: 5_000 },
+      { name: 'Element Extraction of Harmony (Bound)', quantity: 60_000 },
+      { name: "Eligio's Stimulant of EXP (Bound)", quantity: 4_000 },
+      { name: "Night Crow's Stimulant of Growth (Bound)", quantity: 6_000 },
+      { name: 'Night Crows Blessing Stimulant of Growth (Bound)', quantity: 20 },
+      { name: 'Source of Growth (Bound)', quantity: 20_000 },
+      { name: 'Source of Wisdom (Bound)', quantity: 400 },
+      { name: 'Torn Invoices (Attribution)', quantity: 5_000 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 5_000 },
+      { name: 'Brilliant Refinement Stone Selection Chest (Bound)', quantity: 30_000 },
+      { name: 'Shining Weapon Enhancement Scroll (Bound)', quantity: 20_000 },
+      { name: 'Shining Armor Enhancement Scroll (Bound)', quantity: 20_000 },
+      { name: 'Shining Accessory Enhancement Scroll (Bound)', quantity: 20_000 },
+      { name: 'Higher Arcane Scroll of Enlightenment (Bound)', quantity: 250 },
+      { name: 'Superior Arcane Scroll of Enlightenment (Bound)', quantity: 750 },
+      { name: 'Brilliant Enhancement Scroll Selection Chest (Bound)', quantity: 2_000 },
+      { name: 'Pitch-black Enhancement Scroll Selection Chest (Bound)', quantity: 2_000 },
+      { name: "Ancient Master's Alloy (Bound)", quantity: 2_000 },
+      { name: 'Spell Rune Crystal I (Bound)', quantity: 50_000 },
+      { name: 'Spell Starlight Crystal I (Bound)', quantity: 50_000 },
+      { name: 'Enchantment Frost Crystal I (Attributed)', quantity: 50_000 },
+      { name: 'Wind Orb Chest (Attributed)', quantity: 300 },
+      { name: '[UC] Crafting Material Selection Chest (Bound)', quantity: 5_000 },
+      { name: '[C] Crafting Material x40 Selection Chest (Bound)', quantity: 5_000 },
+      { name: '[R] Arcane Scroll Selection Chest (Bound)', quantity: 5_000 },
+      { name: 'Metal Fragment (Bound)', quantity: 550_000 },
+      { name: 'Ancient Papyrus (Bound)', quantity: 120_000 },
+      { name: 'Golden Weighing Scale (Bound)', quantity: 80_000 },
+      { name: 'Golden Key (Bound)', quantity: 80_000 },
+      { name: 'Golden Carving Knife (Bound)', quantity: 80_000 },
+      { name: "Master's Aircraft Toolbox (Bound)", quantity: 1_400 },
+      { name: 'Old Aircraft Component (Bound)', quantity: 85_000 },
+    ],
+  },
+]
 
 /** Identical October rewards are available on both servers. */
 export const octoberGiftPackages: GiftPackage[] = [
@@ -117,6 +339,7 @@ export const octoberGiftPackages: GiftPackage[] = [
 ]
 
 export const v1GiftPackages: GiftPackage[] = [
+  ...boostingGiftPackages,
   ...octoberGiftPackages,
 {
   id: 'currency-5',
@@ -446,6 +669,7 @@ export const v1GiftPackages: GiftPackage[] = [
 
 // V2 catalog — Diamond Packages plus selected Support Packages.
 export const v2GiftPackages: GiftPackage[] = [
+  ...boostingGiftPackages,
   ...octoberGiftPackages,
   {
     id: 'currency-5',

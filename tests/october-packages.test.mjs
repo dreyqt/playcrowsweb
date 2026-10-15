@@ -74,9 +74,9 @@ for (const server of ['v1', 'v2']) {
   }
 }
 
-test('V1 and V2 offer the same four tabs, retain September and remove August', () => {
+test('V1 and V2 offer the same five categories, retain September and remove August', () => {
   const categories = server => [...new Set(plain(getGiftPackages(server)).map(item => item.category))].sort()
-  assert.deepEqual(categories('v1'), ['currency', 'october-supply', 'september-supply', 'support'])
+  assert.deepEqual(categories('v1'), ['boosting', 'currency', 'october-supply', 'september-supply', 'support'])
   assert.deepEqual(categories('v2'), categories('v1'))
   for (const server of ['v1', 'v2']) {
     assert.equal(getGiftPackages(server).some(item => item.id.startsWith('august-supply-')), false)

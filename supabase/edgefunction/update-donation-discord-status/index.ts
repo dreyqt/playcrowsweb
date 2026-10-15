@@ -1,5 +1,32 @@
 import { createClient } from 'npm:@supabase/supabase-js@^2'
 
+// Keep these rules synchronized with the Boosting migration and giftPackageData.ts.
+// Cumulative credit is not a payment amount or an event-selection entitlement.
+function getCumulativeCreditUsd(server: 'v1' | 'v2', packageId: string, packageAmount: number, quantity: number) {
+  const isBoosting = ['boosting-50', 'boosting-200', 'boosting-500', 'boosting-1000'].includes(packageId)
+  return Math.round(packageAmount * quantity * (server === 'v2' && isBoosting ? 2 : 1) * 100) / 100
+}
+
+function getBoostingBonusRewards(packageId: string, quantity: number): Array<{ name: string; quantity: number }> {
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999) return []
+  if (packageId === 'boosting-500') return [
+    { name: 'Golden Necklace Insignia (Attributed)', quantity: 4 * quantity },
+    { name: 'Golden Ring Insignia (Attribution)', quantity: 4 * quantity },
+  ]
+  if (packageId !== 'boosting-1000') return []
+  return [
+    "Gaspard's Savage Greatsword (Bound)",
+    "Theophil's Creed Spear (Bound)",
+    "Brandt's Domination Twin Sword (Bound)",
+    "Alyn's Illusion Longbow (Bound)",
+    "Johannes' Motive Scepter (Bound)",
+    "Ludwig's Straight Sword of Justice (Bound)",
+    "Clemens' Freedom Dagger (Bound)",
+    "Zenesia's Ruling Segum (Attributed)",
+    "Eleanor's Ambition Staff (Bound)",
+  ].map(name => ({ name, quantity }))
+}
+
 const DEFAULT_ADMIN_DASHBOARD_URL = 'https://playcrowsweb.vercel.app/admin'
 
 const CORS_HEADERS = {
@@ -170,6 +197,8 @@ Deno.serve(async request => {
       selected_package_id,
       selected_package_title,
       package_quantity,
+      cumulative_credit_usd,
+      boosting_bonus_rewards,
       additional_notes,
       payment_method,
       receipt_original_name,
@@ -214,9 +243,11 @@ Deno.serve(async request => {
         ? 'September Supply Package'
         : packageId.startsWith('october-supply-')
           ? 'October Package'
-          : packageId.startsWith('support-')
-            ? 'Support Package'
-            : 'Legacy'
+          : packageId.startsWith('boosting-')
+            ? 'Boosting Package'
+            : packageId.startsWith('support-')
+              ? 'Support Package'
+              : 'Legacy'
 
   const statusPresentation = getStatusPresentation(donation.status)
 
@@ -279,6 +310,25 @@ Deno.serve(async request => {
       text: `PlayCrows ${server.toUpperCase()} Donation Center • Click the title to open Admin Dashboard`,
     },
     timestamp: donation.created_at,
+  }
+
+  if (packageId.startsWith('boosting-')) {
+    const quantity = donation.package_quantity ?? 1
+    const credit = donation.cumulative_credit_usd ?? getCumulativeCreditUsd(server, packageId, Number(donation.selected_package_amount), quantity)
+    ;(embed.fields as Array<Record<string, unknown>>).push({
+      name: 'Cumulative Credit (USD)',
+      value: `${formatDiscordMoney('USD', Number(credit))}${server === 'v2' ? ' · V2 2× Boosting value' : ''}\n${donation.status === 'rejected' ? 'Rejected order: do not credit.' : 'Credited after payment verification.'}`,
+      inline: false,
+    })
+    const bonusRewards = getBoostingBonusRewards(packageId, quantity)
+    if (bonusRewards.length > 0) {
+      ;(embed.fields as Array<Record<string, unknown>>).push({
+        name: '🎁 Boosting Package Bonus',
+        value: bonusRewards.map(reward => `${reward.name} ×${reward.quantity.toLocaleString()}`).join('\n') +
+          (donation.status === 'rejected' ? '\nRejected order: do not grant these items.' : '\nAll listed items included. Grant after payment verification; quantities above cover this entire order.'),
+        inline: false,
+      })
+    }
   }
 
   const oneTimeEventBonus = packageId === 'september-supply-500'

@@ -43,6 +43,10 @@ const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'october-supply-100': { title: 'OCTOBER PACKAGE', amount: 100 },
   'october-supply-500': { title: 'OCTOBER PACKAGE', amount: 500 },
   'october-supply-1000': { title: 'OCTOBER PACKAGE', amount: 1000 },
+  'boosting-50': { title: 'BOOSTING PACKAGE', amount: 50 },
+  'boosting-200': { title: 'BOOSTING PACKAGE', amount: 200 },
+  'boosting-500': { title: 'BOOSTING PACKAGE', amount: 500 },
+  'boosting-1000': { title: 'BOOSTING PACKAGE', amount: 1000 },
 }
 
 
@@ -73,6 +77,10 @@ const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'october-supply-100': { title: 'OCTOBER PACKAGE', amount: 100 },
   'october-supply-500': { title: 'OCTOBER PACKAGE', amount: 500 },
   'october-supply-1000': { title: 'OCTOBER PACKAGE', amount: 1000 },
+  'boosting-50': { title: 'BOOSTING PACKAGE', amount: 50 },
+  'boosting-200': { title: 'BOOSTING PACKAGE', amount: 200 },
+  'boosting-500': { title: 'BOOSTING PACKAGE', amount: 500 },
+  'boosting-1000': { title: 'BOOSTING PACKAGE', amount: 1000 },
 }
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER

@@ -1,5 +1,32 @@
 import { createClient } from 'npm:@supabase/supabase-js@^2'
 
+// Keep these rules synchronized with the Boosting migration and giftPackageData.ts.
+// Cumulative credit is not a payment amount or an event-selection entitlement.
+function getCumulativeCreditUsd(server: 'v1' | 'v2', packageId: string, packageAmount: number, quantity: number) {
+  const isBoosting = ['boosting-50', 'boosting-200', 'boosting-500', 'boosting-1000'].includes(packageId)
+  return Math.round(packageAmount * quantity * (server === 'v2' && isBoosting ? 2 : 1) * 100) / 100
+}
+
+function getBoostingBonusRewards(packageId: string, quantity: number): Array<{ name: string; quantity: number }> {
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999) return []
+  if (packageId === 'boosting-500') return [
+    { name: 'Golden Necklace Insignia (Attributed)', quantity: 4 * quantity },
+    { name: 'Golden Ring Insignia (Attribution)', quantity: 4 * quantity },
+  ]
+  if (packageId !== 'boosting-1000') return []
+  return [
+    "Gaspard's Savage Greatsword (Bound)",
+    "Theophil's Creed Spear (Bound)",
+    "Brandt's Domination Twin Sword (Bound)",
+    "Alyn's Illusion Longbow (Bound)",
+    "Johannes' Motive Scepter (Bound)",
+    "Ludwig's Straight Sword of Justice (Bound)",
+    "Clemens' Freedom Dagger (Bound)",
+    "Zenesia's Ruling Segum (Attributed)",
+    "Eleanor's Ambition Staff (Bound)",
+  ].map(name => ({ name, quantity }))
+}
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -43,6 +70,10 @@ const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'october-supply-100': { title: 'OCTOBER PACKAGE', amount: 100 },
   'october-supply-500': { title: 'OCTOBER PACKAGE', amount: 500 },
   'october-supply-1000': { title: 'OCTOBER PACKAGE', amount: 1000 },
+  'boosting-50': { title: 'BOOSTING PACKAGE', amount: 50 },
+  'boosting-200': { title: 'BOOSTING PACKAGE', amount: 200 },
+  'boosting-500': { title: 'BOOSTING PACKAGE', amount: 500 },
+  'boosting-1000': { title: 'BOOSTING PACKAGE', amount: 1000 },
 }
 
 const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
@@ -70,6 +101,10 @@ const V2_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
   'october-supply-100': { title: 'OCTOBER PACKAGE', amount: 100 },
   'october-supply-500': { title: 'OCTOBER PACKAGE', amount: 500 },
   'october-supply-1000': { title: 'OCTOBER PACKAGE', amount: 1000 },
+  'boosting-50': { title: 'BOOSTING PACKAGE', amount: 50 },
+  'boosting-200': { title: 'BOOSTING PACKAGE', amount: 200 },
+  'boosting-500': { title: 'BOOSTING PACKAGE', amount: 500 },
+  'boosting-1000': { title: 'BOOSTING PACKAGE', amount: 1000 },
 }
 const GIFT_PACKAGES_BY_SERVER = { v1: V1_GIFT_PACKAGES, v2: V2_GIFT_PACKAGES } as const
 type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
@@ -137,7 +172,7 @@ function parseDescription(description: unknown) {
   return { title: match[1].trim(), quantity: Number(match[2]), server: match[3].toLowerCase() as PlayCrowsServer }
 }
 function inferPackage(server: PlayCrowsServer, title: string, quantity: number, totalPaid: number) {
-  if (!Number.isInteger(quantity) || quantity < 1) return null
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999) return null
   const unitPaid = Math.round((totalPaid / quantity) * 100) / 100
   const catalog = Object.entries(GIFT_PACKAGES_BY_SERVER[server]).filter(([, item]) => item.title.toLowerCase() === title.toLowerCase())
   const regular = catalog.filter(([, item]) => Math.abs(item.amount - unitPaid) < 0.001)
@@ -216,11 +251,13 @@ export default {
       const { data: donation, error: insertError } = await adminClient.from('donations').insert({
         server, player_id: custom.playerId, username: custom.username, currency: 'USD', amount: totalPaid,
         selected_package_amount: recoveredPackage.amount, selected_package_id: recoveredPackage.id, selected_package_title: recoveredPackage.title,
+        cumulative_credit_usd: getCumulativeCreditUsd(server, recoveredPackage.id, recoveredPackage.amount, description.quantity),
+        boosting_bonus_rewards: getBoostingBonusRewards(recoveredPackage.id, description.quantity),
         package_quantity: description.quantity, additional_notes: 'Recovered from a completed PayPal checkout after the customer closed the Donation Center before final submission.',
         payment_method: 'paypal', paypal_order_id: String(order.id), paypal_capture_id: String(capture.id), paypal_payment_status: 'COMPLETED',
         paypal_payer_email: payerEmail, paypal_transaction_id: String(capture.id), payment_verified_at: verifiedAt, promo_code: recoveredPackage.promoCode, discount_percent: recoveredPackage.discountPercent,
         status: 'pending', admin_notes: `Recovered from PayPal by ${user.email ?? user.id}. Original PayPal ID entered: ${inputId}.`,
-      }).select('id, reference_code, created_at, server, player_id, username, selected_package_id, selected_package_title, package_quantity, amount, currency, paypal_order_id, paypal_capture_id, payment_verified_at, event_bonus_name, event_bonus_eligible, october_bonus_name, october_bonus_eligible, october_verified_total_usd').single()
+      }).select('id, reference_code, created_at, server, player_id, username, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, amount, currency, paypal_order_id, paypal_capture_id, payment_verified_at, event_bonus_name, event_bonus_eligible, october_bonus_name, october_bonus_eligible, october_verified_total_usd').single()
       if (insertError || !donation) {
         console.error('Recovered PayPal donation insert error:', insertError)
         if (insertError?.code === '23505') return jsonResponse({ error: 'This PayPal payment has already been recorded.' }, 409)

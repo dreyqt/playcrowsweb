@@ -7,7 +7,7 @@ const path = require('node:path')
 
 const baseUrl = process.env.CHECKOUT_TEST_URL || 'http://127.0.0.1:4173'
 const artifacts = process.env.CHECKOUT_TEST_ARTIFACTS || path.resolve('work/qa/artifacts')
-const expectedTabs = ['Currency', 'Support Packages', 'September Supply Packages', 'October Packages']
+const expectedTabs = ['Boosting Packs', 'Currency', 'Support Packages', 'September Supply Packages', 'October Packages']
 const tiers = [
   { amount: 50, quantities: [175000, 30000, 10, 50, 50, 50, 100, 5, 75, 100, 100, 100, 500, 500, 500] },
   { amount: 100, quantities: [280000, 70000, 25, 125, 50, 150, 150, 300, 2000, 20, 12, 175, 200, 200, 200, 1500, 1500, 1500] },

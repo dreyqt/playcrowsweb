@@ -562,6 +562,7 @@ function PublicApp() {
                 data={form}
                 selectedPackageAmount={selectedPackage?.amount ?? null}
                 selectedPackageTitle={selectedPackage?.title ?? null}
+                selectedPackageCategory={selectedPackage?.category}
                 promoCode={appliedPromoCode}
                 eventBonusOptions={eventBonusOptions}
                 onSubmit={submitForm}
