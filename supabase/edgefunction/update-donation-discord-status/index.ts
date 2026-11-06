@@ -243,11 +243,13 @@ Deno.serve(async request => {
         ? 'September Supply Package'
         : packageId.startsWith('october-supply-')
           ? 'October Package'
-          : packageId.startsWith('boosting-')
-            ? 'Boosting Package'
-            : packageId.startsWith('support-')
-              ? 'Support Package'
-              : 'Legacy'
+          : packageId.startsWith('november-supply-')
+            ? 'November Package'
+            : packageId.startsWith('boosting-')
+              ? 'Boosting Package'
+              : packageId.startsWith('support-')
+                ? 'Support Package'
+                : 'Legacy'
 
   const statusPresentation = getStatusPresentation(donation.status)
 

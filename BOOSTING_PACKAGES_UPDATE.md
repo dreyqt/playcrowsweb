@@ -1,11 +1,13 @@
 # Boosting Packs update — October 15, 2026
 
+V1 purchase-policy follow-up: each Boosting tier is now limited to one purchase per account, quantity 1. See [V1 Boosting purchase limit](V1_BOOSTING_PURCHASE_LIMIT.md) for the required migration and payment-function updates. V2 remains unchanged.
+
 ## What changed
 
 - Added a Boosting Packs shop category for V1 and V2, with $50, $200, $500 and $1,000 packages.
 - Preserved all supplied base rewards and quantities: 34, 46, 47 and 48 items respectively. The $50 package now follows the same resource-first ordering and item/quantity formatting as the other tiers. No Mileage was added to the $50 tier.
 - Each $500 package includes Golden Necklace Insignia (Attributed) ×4 and Golden Ring Insignia (Attribution) ×4.
-- Each $1,000 package includes **all nine supplied Legendary weapons, one of each**, as clarified. This is not a weapon choice. Buying multiple packages multiplies every bonus quantity.
+- Each $1,000 package includes **all nine supplied Legendary weapons, one of each**, as clarified. This is not a weapon choice. V2 purchases of multiple packages multiply every bonus quantity; V1 allows each tier once per account.
 - Bonuses are per package: smaller packages do not combine to unlock them, and the $1,000 package does not also receive the $500 accessory bonus.
 - V2 Boosting packages alone earn double cumulative value: $100, $400, $1,000 and $2,000 per package. V1 keeps ordinary face value. Payment amounts and existing $100 event-bonus selections retain their existing calculations.
 - Added bonus notices in the shop, reward details, amount step and final review, with translations for the site's six languages.

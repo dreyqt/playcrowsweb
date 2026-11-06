@@ -74,10 +74,10 @@ for (const server of ['v1', 'v2']) {
   }
 }
 
-test('V1 and V2 offer the same five categories, retain September and remove August', () => {
+test('merged V1 shop adds November while preserving legacy categories and historical V2 catalog', () => {
   const categories = server => [...new Set(plain(getGiftPackages(server)).map(item => item.category))].sort()
-  assert.deepEqual(categories('v1'), ['boosting', 'currency', 'october-supply', 'september-supply', 'support'])
-  assert.deepEqual(categories('v2'), categories('v1'))
+  assert.deepEqual(categories('v1'), ['boosting', 'currency', 'november-supply', 'october-supply', 'september-supply', 'support'])
+  assert.deepEqual(categories('v2'), ['boosting', 'currency', 'october-supply', 'september-supply', 'support'])
   for (const server of ['v1', 'v2']) {
     assert.equal(getGiftPackages(server).some(item => item.id.startsWith('august-supply-')), false)
     assert.equal(getGiftPackages(server).filter(item => item.category === 'september-supply').length, 4)
@@ -123,8 +123,8 @@ test('checkout and submission accept every displayed package with the displayed 
   }
 })
 
-test('PayPal creates October orders for both servers and respects package quantities', async () => {
-  for (const server of ['v1', 'v2']) {
+test('PayPal creates October orders for the merged V1 shop and respects package quantities', async () => {
+  for (const server of ['v1']) {
     for (const amount of amounts) {
       const orders = []
       const { app } = loadSource('supabase/edgefunction/paypal-checkout/index.ts', ['app'], {
@@ -150,7 +150,7 @@ test('PayPal creates October orders for both servers and respects package quanti
 
 test('retired August packages are rejected before contacting PayPal', async () => {
   const { app } = loadSource('supabase/edgefunction/paypal-checkout/index.ts', ['app'])
-  for (const server of ['v1', 'v2']) {
+  for (const server of ['v1']) {
     for (const amount of amounts) {
       const response = await app.fetch(new Request('https://local.test/checkout', {
         method: 'POST', body: JSON.stringify({ action: 'create', server, selectedPackageId: `august-supply-${amount}`, packageQuantity: 1, playerId: 'LOCAL-PLAYER', username: 'Local Hero' }),

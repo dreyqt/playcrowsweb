@@ -16,8 +16,6 @@ export function BoostingBonusNotice({ server, packageAmount, packageQuantity = 1
   const showWeapons = packageAmount === undefined || packageAmount === 1000
   const hasBonus = showAccessories || showWeapons
 
-  if (!hasBonus && server !== 'v2') return null
-
   const bonuses = [
     ...(showAccessories ? [{ amount: 500, title: t('boostingAccessoryBonus'), rule: t('boostingAccessoryRule'), rewards: boostingAccessoryRewards }] : []),
     ...(showWeapons ? [{ amount: 1000, title: t('boostingWeaponBonus'), rule: t('boostingWeaponRule'), rewards: boostingWeaponRewards }] : []),
@@ -25,6 +23,11 @@ export function BoostingBonusNotice({ server, packageAmount, packageQuantity = 1
 
   return (
     <aside aria-label={t('boostingBonusTitle')} className="space-y-3">
+      {server === 'v1' && (
+        <div className="rounded-xl border border-[#c9aa68]/40 bg-[#c9aa68]/5 p-4">
+          <p className="text-sm font-bold text-[#f1d487]">{t('boostingV1Limit')}</p>
+        </div>
+      )}
       {server === 'v2' && (
         <div className="rounded-xl border border-[#a78bfa]/40 bg-[#8b5cf6]/10 p-4">
           <div className="text-[10px] font-black uppercase tracking-[0.12em] text-[#c4b5fd]">{t('boostingCumulativeBadge')}</div>
@@ -43,7 +46,7 @@ export function BoostingBonusNotice({ server, packageAmount, packageQuantity = 1
       )}
       {hasBonus && (
         <div className="rounded-xl border border-[#c9aa68]/40 bg-[#c9aa68]/5 p-4">
-          <h4 className="text-sm font-bold text-[#f1d487]">{t('boostingBonusTitle')} · V1 &amp; V2</h4>
+          <h4 className="text-sm font-bold text-[#f1d487]">{t('boostingBonusTitle')}</h4>
           <div className={`mt-3 grid gap-3 ${bonuses.length > 1 && !compact ? 'sm:grid-cols-2' : ''}`}>
             {bonuses.map(bonus => (
               <div key={bonus.amount} className="min-w-0 rounded-lg border border-[#c9aa68]/20 bg-[#111318] p-3">

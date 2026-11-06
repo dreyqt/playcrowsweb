@@ -23,7 +23,6 @@ import CrowLogo from './assets/playcrows-icon.jpg'
 import { findGiftPackage } from './giftPackageData'
 import { I18nProvider, useI18n } from './i18n'
 import { LanguageSelector } from './components/LanguageSelector'
-import { ServerSelection } from './components/ServerSelection'
 import type { PlayCrowsServer } from './server'
 import { PLAYCROWS_SERVERS } from './server'
 import { getEventBonusEntitlement, isEventBonusSelectionValid, type EventBonusOption } from './eventBonus'
@@ -50,7 +49,8 @@ const INITIAL: FormData = {
 function PublicApp() {
   const { t } = useI18n()
   const { t: bonusText } = useBonusI18n()
-  const [selectedServer, setSelectedServer] = useState<PlayCrowsServer | null>(null)
+  // The merged public shop uses V1; legacy V2 records remain in administration.
+  const selectedServer: PlayCrowsServer = 'v1'
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [submissionReference, setSubmissionReference] = useState('')
@@ -258,24 +258,6 @@ function PublicApp() {
     }
   }
 
-  const changeServer = () => {
-    if (form.receiptPreview) URL.revokeObjectURL(form.receiptPreview)
-    setForm(INITIAL)
-    setEventBonusOptions([])
-    setStep(1)
-    setSubmitted(false)
-    setSubmissionReference('')
-    setSubmitError('')
-    setAppliedPromoCode(null)
-    setSelectedPackageId(null)
-    setActiveTab('packages')
-    setSelectedServer(null)
-  }
-
-  if (!selectedServer) {
-    return <ServerSelection onSelect={setSelectedServer} />
-  }
-
   const selectedPackage = selectedServer ? findGiftPackage(selectedServer, selectedPackageId) : null
   const hasSelectedPackage = selectedPackage !== null
 
@@ -320,16 +302,11 @@ function PublicApp() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={changeServer}
-              className="rounded-lg border border-[#3b414b] bg-[#15181e] px-3 py-2 text-xs font-bold text-[#d9d5cc] transition-colors hover:border-[#c9aa68]/60 hover:text-[#c9aa68]"
-              title="Change server"
-            >
+            <span className="hidden rounded-lg border border-[#3b414b] bg-[#15181e] px-3 py-2 text-xs font-bold text-[#d9d5cc] sm:inline-block">
               {PLAYCROWS_SERVERS[selectedServer].name}
-            </button>
+            </span>
             <a
-              href={`/events?server=${selectedServer}`}
+              href="/events"
               className="rounded-lg border border-[#c9aa68]/35 bg-[#c9aa68]/5 px-3 py-2 text-xs font-bold text-[#c9aa68] no-underline transition-colors hover:bg-[#c9aa68]/10"
             >
               Events
@@ -342,7 +319,7 @@ function PublicApp() {
       <main
         ref={mainRef}
         tabIndex={-1}
-        className={`mx-auto px-4 py-10 transition-[max-width] duration-200 ${
+        className={`mx-auto px-4 py-10 transition-[max-width] duration-200 focus:outline-none ${
           step === 1 && activeTab === 'packages' && !hasSelectedPackage
             ? 'max-w-5xl'
             : 'max-w-2xl'
@@ -381,13 +358,6 @@ function PublicApp() {
           </section>
         ) : (
           <>
-            <div className="mb-4 flex items-center justify-between rounded-xl border border-[#292d34] bg-[#0f1115] px-4 py-3">
-              <div>
-                <div className="text-[9px] font-black uppercase tracking-[0.18em] text-[#77746e]">Selected Server</div>
-                <div className="mt-0.5 text-sm font-bold text-[#c9aa68]">{PLAYCROWS_SERVERS[selectedServer].name}</div>
-              </div>
-              <button type="button" onClick={changeServer} className="text-xs font-bold text-[#8f8b84] hover:text-[#c9aa68]">Change</button>
-            </div>
             <StepProgress current={step} paymentMethod={form.paymentMethod} />
 
             {step === 1 && (
@@ -513,6 +483,8 @@ function PublicApp() {
 
             {step === 2 && (
               <StepPlayerInfo
+                server={selectedServer}
+                selectedPackageId={selectedPackageId}
                 data={form}
                 onUpdate={update}
                 onNext={next}

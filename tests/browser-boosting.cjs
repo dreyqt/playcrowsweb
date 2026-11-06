@@ -138,7 +138,7 @@ function sortedRows(rows) {
 }
 
 async function mockNetwork(page) {
-  const state = { paypal: [], submissions: [], blocked: [], catalogs: [] }
+  const state = { paypal: [], eligibility: [], submissions: [], blocked: [], catalogs: [], captureResponses: [] }
   const sdk = `window.paypal = { Buttons(options) { let button; return {
     async render(container) { button = document.createElement('button'); button.textContent = 'Complete mocked PayPal payment';
       button.onclick = async () => { try { const orderID = await options.createOrder(); await options.onApprove({orderID}); } catch (error) { options.onError(error); } }; container.appendChild(button); },
@@ -156,7 +156,15 @@ async function mockNetwork(page) {
     }
     if (url.pathname.endsWith('/functions/v1/paypal-checkout')) {
       const body = request.postDataJSON()
+      if (body.action === 'check-boosting-eligibility') {
+        state.eligibility.push(body)
+        if (state.paypal.some(entry => entry.action === 'capture') && body.paypalOrderId !== 'LOCAL-BOOSTING-ORDER') {
+          return route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: 'This tier is already reserved by the completed payment.', code: 'V1_BOOSTING_LIMIT' }) })
+        }
+        return json({ eligible: true })
+      }
       state.paypal.push(body)
+      if (body.action === 'capture' && state.captureResponses.length) return state.captureResponses.shift()(route, body)
       const order = state.paypal.find(entry => entry.action === 'create')
       const amount = order ? Number(order.selectedPackageId.split('-').at(-1)) * order.packageQuantity : 50
       return json(body.action === 'create' ? { orderId: 'LOCAL-BOOSTING-ORDER' } : { orderId: 'LOCAL-BOOSTING-ORDER', captureId: 'LOCAL-BOOSTING-CAPTURE', status: 'COMPLETED', amount: amount.toFixed(2), currency: 'USD' })
@@ -206,11 +214,8 @@ async function checkRewardContents(dialog, amount) {
 }
 async function checkBonusNotice(scope, server, amount, quantity = 1) {
   const notice = scope.getByRole('complementary', { name: 'Boosting Package Bonuses', exact: true })
-  if (server === 'v1' && amount !== undefined && amount < 500) {
-    await expect(notice).toHaveCount(0)
-    return
-  }
   await expect(notice).toHaveCount(1)
+  if (server === 'v1') await expect(notice).toContainText(/once per account|one purchase per account/i)
   if (server === 'v2') {
     await expect(notice).toContainText('V2 EXCLUSIVE · 2× CUMULATIVE VALUE')
     if (amount !== undefined) await expect(notice.getByText(price(amount * quantity * 2), { exact: true })).toHaveCount(1)
@@ -264,6 +269,22 @@ async function selectPackage(page, server, amount, quantity = 1) {
 }
 async function checkQuantities(page, server) {
   const state = await mockNetwork(page)
+  if (server === 'v1') {
+    for (const amount of [50, 200, 500, 1000]) {
+      await selectPackage(page, server, amount)
+      await expect(page.getByRole('spinbutton')).toHaveValue('1')
+      await expect(page.getByRole('spinbutton')).toHaveAttribute('readonly', '')
+      await expect(page.getByRole('spinbutton')).toHaveAttribute('max', '1')
+      await expect(page.getByRole('button', { name: /(?:increase|decrease) quantity/i })).toHaveCount(0)
+      await expect(page.locator('main')).toContainText(/once per account|one purchase per account/i)
+      await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeEnabled()
+      await noOverflow(page)
+    }
+    await screenshot(page, 'boosting-v1-quantity-one.png')
+    assert.equal(state.paypal.length, 0)
+    assert.equal(state.submissions.length, 0)
+    return
+  }
   for (const amount of [50, 200, 500, 1000]) {
     await selectPackage(page, server, amount, 2)
     await noOverflow(page)
@@ -288,7 +309,7 @@ function formValue(body, name) {
   assert.notEqual(start, -1, `Submission contains ${name}`)
   return body.slice(start + marker.length).split('\r\n')[0]
 }
-async function checkCheckout(page, server, amount, quantity = 1, paypal = false) {
+async function checkCheckout(page, server, amount, quantity = 1, paypal = false, resumePayment = false) {
   const state = await mockNetwork(page)
   await selectPackage(page, server, amount, quantity)
   await page.getByRole('button', { name: 'Continue', exact: true }).click()
@@ -307,6 +328,18 @@ async function checkCheckout(page, server, amount, quantity = 1, paypal = false)
     await page.getByRole('button', { name: /Continue to Bonus/i }).click()
   }
   await expect(page.getByRole('heading', { name: /Choose your bonus rewards/i })).toBeVisible()
+  if (resumePayment) {
+    // A captured order owns the once-per-tier reservation. Returning through
+    // player information must identify that same order, not block its owner.
+    await page.getByRole('button', { name: 'Back', exact: true }).click()
+    await expect(page.getByText('PayPal payment completed', { exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Back', exact: true }).click()
+    await page.getByRole('button', { name: 'Continue to Payment', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Choose Your Payment Method' })).toBeVisible()
+    await expect(page.getByText('PayPal payment completed', { exact: true })).toBeVisible()
+    await page.getByRole('button', { name: /Continue to bonus rewards/i }).click()
+    await expect(page.getByRole('heading', { name: /Choose your bonus rewards/i })).toBeVisible()
+  }
   const entitlement = Math.floor(amount * quantity / 100)
   if (entitlement > 0) {
     await expect(page.getByText(`${price(amount * quantity)} in package value · Bonus bundles: ${entitlement}`, { exact: true })).toBeVisible()
@@ -332,6 +365,13 @@ async function checkCheckout(page, server, amount, quantity = 1, paypal = false)
   assert.equal(formValue(body, 'packageQuantity'), String(quantity))
   assert.equal(formValue(body, 'amount'), String(amount * quantity), 'Submitted actual payment remains undoubled')
   assert.equal(formValue(body, 'eventBonusSelections'), entitlement ? JSON.stringify({ '001': entitlement }) : '{}')
+  assert.equal(state.eligibility.length, server === 'v1' ? (resumePayment ? 2 : 1) : 0, 'Only V1 Boosting requires the pre-payment purchase-limit check')
+  if (server === 'v1') {
+    assert.deepEqual(state.eligibility[0], {
+      action: 'check-boosting-eligibility', server: 'v1', selectedPackageId: `boosting-${amount}`, playerId: 'local-boosting-test',
+    })
+    if (resumePayment) assert.deepEqual(state.eligibility[1], { ...state.eligibility[0], paypalOrderId: 'LOCAL-BOOSTING-ORDER' })
+  }
   if (paypal) {
     assert.equal(state.paypal.length, 2)
     assert.deepEqual(state.paypal.map(request => request.action), ['create', 'capture'])
@@ -340,7 +380,66 @@ async function checkCheckout(page, server, amount, quantity = 1, paypal = false)
     assert.equal(state.paypal[0].server, server)
   }
 }
+async function checkCaptureRetry(page) {
+  const state = await mockNetwork(page)
+  let finishRetry
+  state.captureResponses.push(
+    route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Payment confirmation temporarily unavailable. Retry the same order.' }) }),
+    route => new Promise(resolve => {
+      finishRetry = async () => {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ orderId: 'LOCAL-BOOSTING-ORDER', captureId: 'LOCAL-BOOSTING-CAPTURE', status: 'COMPLETED', amount: '50.00', currency: 'USD' }) })
+        resolve()
+      }
+    }),
+  )
+  await selectPackage(page, 'v1', 50)
+  await page.getByRole('button', { name: 'Continue', exact: true }).click()
+  await page.getByPlaceholder('Enter your Login ID').fill('local-capture-retry')
+  await page.getByPlaceholder('Enter your in-game character name').fill('Capture Retry Hero')
+  await page.getByRole('button', { name: 'Continue to Payment', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Choose Your Payment Method' })).toBeVisible()
+  await page.getByRole('button', { name: /PayPal Pay securely/ }).click()
+  // A populated promo input would normally enable Apply. It must also be
+  // locked while this approved order awaits confirmation.
+  const promoInput = page.locator('input[type="text"]').first()
+  await promoInput.fill('TEST-CODE')
+  await page.getByRole('button', { name: 'Complete mocked PayPal payment', exact: true }).click()
+  const retry = page.getByRole('button', { name: 'Retry payment confirmation', exact: true })
+  await expect(retry).toBeEnabled()
+  await expect(page.getByText('PayPal order: LOCAL-BOOSTING-ORDER', { exact: true })).toBeVisible()
+  await expect(page.locator('main')).toContainText('Payment confirmation temporarily unavailable.')
+  await expect(page.getByRole('button', { name: 'Complete mocked PayPal payment', exact: true })).not.toBeVisible()
+  await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeDisabled()
+  await expect(promoInput).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Apply Code', exact: true })).toBeDisabled()
+  const methods = page.getByRole('button', { name: /^(?:PayPal|GCash|Wise|Bybit) /i })
+  await expect(methods).toHaveCount(4)
+  for (const method of await methods.all()) await expect(method).toBeDisabled()
+  await screenshot(page, 'boosting-v1-paypal-capture-retry.png')
+  assert.deepEqual(state.paypal.map(request => request.action), ['create', 'capture'])
+
+  await retry.click()
+  await expect.poll(() => state.paypal.filter(request => request.action === 'capture').length).toBe(2)
+  await expect(page.getByRole('button', { name: /retry payment confirmation|confirming/i })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeDisabled()
+  await expect(page.getByRole('heading', { name: /Choose your bonus rewards/i })).toHaveCount(0)
+  assert.deepEqual(state.paypal.map(request => request.action), ['create', 'capture', 'capture'], 'Retry confirms the existing order without creating a second order')
+  await finishRetry()
+
+  await expect(page.getByRole('heading', { name: /Choose your bonus rewards/i })).toBeVisible()
+  await page.getByRole('button', { name: 'Review submission', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Review Your Submission' })).toBeVisible()
+  await page.getByRole('button', { name: 'Submit Donation Form', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Donation Form Submitted' })).toBeVisible()
+  assert.equal(state.eligibility.length, 1)
+  assert.deepEqual(state.paypal.filter(request => request.action === 'capture').map(request => request.orderId), ['LOCAL-BOOSTING-ORDER', 'LOCAL-BOOSTING-ORDER'])
+  assert.equal(state.submissions.length, 1)
+  assert.equal(formValue(state.submissions[0], 'paypalOrderId'), 'LOCAL-BOOSTING-ORDER')
+  assert.equal(formValue(state.submissions[0], 'paypalCaptureId'), 'LOCAL-BOOSTING-CAPTURE')
+  assert.equal(formValue(state.submissions[0], 'packageQuantity'), '1')
+}
 async function runCase(browser, name, fn, mobile = false) {
+  if (process.env.CHECKOUT_TEST_CASE && !name.includes(process.env.CHECKOUT_TEST_CASE)) return
   const context = await browser.newContext({ viewport: mobile ? { width: 390, height: 844 } : { width: 1280, height: 1000 }, locale: 'en-US', timezoneId: 'Asia/Singapore', serviceWorkers: 'block' })
   await context.addInitScript(() => localStorage.setItem('playcrows-language', 'en'))
   const page = await context.newPage()
@@ -368,11 +467,13 @@ async function main() {
       await runCase(browser, `boosting-${server}-quantities`, page => checkQuantities(page, server), server === 'v2')
       await runCase(browser, `boosting-${server}-50-manual-checkout`, page => checkCheckout(page, server, 50), server === 'v2')
     }
+    await runCase(browser, 'boosting-v1-paypal-capture-retry', checkCaptureRetry, true)
+    await runCase(browser, 'boosting-v1-50-paypal-resume', page => checkCheckout(page, 'v1', 50, 1, true, true))
     await runCase(browser, 'boosting-v2-1000-paypal-quantity-two', page => checkCheckout(page, 'v2', 1000, 2, true), true)
   } finally {
     await browser.close()
     await fs.writeFile(path.join(artifacts, 'boosting-results.json'), JSON.stringify(results, null, 2))
   }
-  if (results.some(result => result.result === 'FAIL')) process.exitCode = 1
+  if (!results.length || results.some(result => result.result === 'FAIL')) process.exitCode = 1
 }
 main().catch(error => { console.error(error); process.exitCode = 1 })

@@ -29,6 +29,7 @@ import gcashQr from '../../assets/gcash-qr.jpg'
 import bybitQr from '../../assets/bybit-qr.png'
 import wiseQr from '../../assets/wise-qr.png'
 import { createPayPalOrder, capturePayPalOrder } from '../../lib/paypalCheckout'
+import { isLimitedBoostingPackage } from '../../lib/boostingPurchaseLimit'
 
 declare global {
   interface Window {
@@ -93,19 +94,59 @@ function PayPalCheckout({
   selectedPackageId,
   promoCode,
   onCompleted,
+  onConfirmationPending,
 }: {
   server: PlayCrowsServer
   data: FormData
   selectedPackageId: string | null
   promoCode: string | null
   onCompleted: (result: { orderId: string; captureId: string }) => void
+  onConfirmationPending: (pending: boolean) => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [status, setStatus] = useState<'loading' | 'ready' | 'completed' | 'error'>('loading')
+  const [status, setStatus] = useState<'loading' | 'ready' | 'confirming' | 'completed' | 'error'>('loading')
   const [message, setMessage] = useState('Loading secure PayPal checkout…')
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null)
+  const pendingOrderRef = useRef<string | null>(null)
+  const confirming = useRef(false)
+  const mounted = useRef(true)
+  const limited = isLimitedBoostingPackage(server, selectedPackageId)
+
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
+
+  const confirmPayment = useCallback(async (orderId: string) => {
+    if (confirming.current) return
+    confirming.current = true
+    if (limited) {
+      pendingOrderRef.current = orderId
+      setPendingOrderId(orderId)
+      onConfirmationPending(true)
+    }
+    setStatus('confirming')
+    setMessage('Confirming your PayPal payment…')
+    try {
+      const result = await capturePayPalOrder(server, orderId, promoCode)
+      if (!mounted.current) return
+      setStatus('completed')
+      setMessage(`Payment completed · ${result.captureId}`)
+      onConfirmationPending(false)
+      onCompleted({ orderId: result.orderId, captureId: result.captureId })
+    } catch (error) {
+      if (!mounted.current) return
+      setStatus('error')
+      setMessage(error instanceof Error ? error.message : 'PayPal payment confirmation was interrupted.')
+      if (!limited) throw error
+    } finally {
+      confirming.current = false
+    }
+  }, [limited, onCompleted, onConfirmationPending, promoCode, server])
 
   useEffect(() => {
     if (!selectedPackageId || !containerRef.current) return
+    if (limited && pendingOrderRef.current) return
     let cancelled = false
     let buttons: ReturnType<NonNullable<Window['paypal']>['Buttons']> | null = null
 
@@ -119,6 +160,7 @@ function PayPalCheckout({
         buttons = window.paypal.Buttons({
           style: { layout: 'vertical', shape: 'rect', label: 'paypal', height: 45 },
           createOrder: async () => {
+            if (limited && pendingOrderRef.current) throw new Error('Please retry confirmation of your existing PayPal order below.')
             const quantity = Number(data.packageQuantity)
             if (!Number.isInteger(quantity) || quantity < 1) throw new Error('Invalid package quantity.')
             setMessage('Creating your secure PayPal order…')
@@ -133,12 +175,8 @@ function PayPalCheckout({
           },
           onApprove: async (approvalData: { orderID?: string }) => {
             if (!approvalData.orderID) throw new Error('PayPal did not return an order ID.')
-            setMessage('Confirming your PayPal payment…')
-            const result = await capturePayPalOrder(server, approvalData.orderID, promoCode)
             if (cancelled) return
-            setStatus('completed')
-            setMessage(`Payment completed · ${result.captureId}`)
-            onCompleted({ orderId: result.orderId, captureId: result.captureId })
+            await confirmPayment(approvalData.orderID)
           },
           onCancel: () => {
             if (!cancelled) setMessage('PayPal checkout was canceled. You can try again when ready.')
@@ -171,7 +209,7 @@ function PayPalCheckout({
       cancelled = true
       void buttons?.close?.()
     }
-  }, [server, data.packageQuantity, data.playerId, data.username, onCompleted, promoCode, selectedPackageId])
+  }, [server, data.packageQuantity, data.playerId, data.username, confirmPayment, limited, promoCode, selectedPackageId])
 
   if (data.paypalPaymentStatus === 'COMPLETED' && data.paypalCaptureId) {
     return (
@@ -196,8 +234,15 @@ function PayPalCheckout({
         </div>
       </div>
 
-      <div ref={containerRef} className="min-h-[48px]" />
-      <p className={`text-center text-xs leading-5 ${status === 'error' ? 'text-[#ef4444]' : 'text-[#77746e]'}`}>{message}</p>
+      <div ref={containerRef} className={pendingOrderId ? 'hidden' : 'min-h-[48px]'} />
+      <p aria-live="polite" className={`text-center text-xs leading-5 ${status === 'error' ? 'text-[#ef4444]' : 'text-[#77746e]'}`}>{message}</p>
+      {pendingOrderId && status !== 'completed' && (
+        <div className="flex flex-col gap-3 rounded-xl border border-[#c9aa68]/30 p-4">
+          <p className="text-xs leading-5 text-[#b8c3d4]">Keep this page open and retry confirmation to finish your existing payment. If it still fails, contact PlayCrows support with this order ID.</p>
+          <p className="break-all font-mono text-xs text-[#eee9df]">PayPal order: {pendingOrderId}</p>
+          <Btn onClick={() => void confirmPayment(pendingOrderId)} disabled={status === 'confirming'}>Retry payment confirmation</Btn>
+        </div>
+      )}
     </div>
   )
 }
@@ -305,6 +350,7 @@ export function StepPayment({
   const { t: bonusText } = useBonusI18n()
   const [redeemCode, setRedeemCode] = useState('')
   const [promoMessage, setPromoMessage] = useState('')
+  const [confirmationPending, setConfirmationPending] = useState(false)
   const [promoMessageType, setPromoMessageType] =
     useState<'success' | 'error' | ''>('')
 
@@ -491,7 +537,7 @@ export function StepPayment({
                 }
               }}
               placeholder={t('enterRedeem')}
-              disabled={promoApplied}
+              disabled={promoApplied || confirmationPending}
               className="min-h-11 flex-1 rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-sm font-semibold uppercase tracking-wider text-[#eee9df] outline-none transition focus:border-[#c9aa68] disabled:cursor-not-allowed disabled:opacity-70"
             />
 
@@ -499,6 +545,7 @@ export function StepPayment({
               <button
                 type="button"
                 onClick={removeCode}
+                disabled={confirmationPending}
                 className="min-h-11 rounded-lg border border-[#ef4444]/40 bg-[#ef4444]/5 px-4 text-xs font-bold text-[#ef4444] transition hover:bg-[#ef4444]/10"
               >
                 {t('remove')}
@@ -507,7 +554,7 @@ export function StepPayment({
               <button
                 type="button"
                 onClick={applyCode}
-                disabled={!redeemCode.trim()}
+                disabled={!redeemCode.trim() || confirmationPending}
                 className="min-h-11 rounded-lg border border-[#c9aa68]/50 bg-[#c9aa68]/10 px-5 text-xs font-bold text-[#c9aa68] transition hover:bg-[#c9aa68]/20 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {t('applyCode')}
@@ -565,6 +612,7 @@ export function StepPayment({
             <button
               type="button"
               key={method.id}
+              disabled={confirmationPending}
               onClick={() => {
                 onUpdate({
                   paymentMethod: method.id,
@@ -689,6 +737,7 @@ export function StepPayment({
               selectedPackageId={selectedPackageId}
               promoCode={promoApplied ? EARLY_PROMO_CODE : null}
               onCompleted={completePayPalPayment}
+              onConfirmationPending={setConfirmationPending}
             />
           )}
 
@@ -834,6 +883,7 @@ export function StepPayment({
         <Btn
           variant="ghost"
           onClick={onBack}
+          disabled={confirmationPending}
         >
           {t('back')}
         </Btn>

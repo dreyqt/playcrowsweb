@@ -147,9 +147,11 @@ async function sendDiscordDonationNotification(options: {
         ? 'September Supply Package'
         : selectedPackageId.startsWith('october-supply-')
           ? 'October Package'
-          : selectedPackageId.startsWith('boosting-')
-            ? 'Boosting Package'
-            : 'Support Package'
+          : selectedPackageId.startsWith('november-supply-')
+            ? 'November Package'
+            : selectedPackageId.startsWith('boosting-')
+              ? 'Boosting Package'
+              : 'Support Package'
 
   const receiptFilename = receipt && receiptExtension
     ? sanitizeDiscordFilename(receipt.name, receiptExtension)
@@ -340,6 +342,11 @@ interface GiftPackageDefinition {
  * The server uses it to prevent clients from changing package prices/titles.
  */
 const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
+  'november-supply-50': { title: 'NOVEMBER PACKAGE', amount: 50 },
+  'november-supply-100': { title: 'NOVEMBER PACKAGE', amount: 100 },
+  'november-supply-200': { title: 'NOVEMBER PACKAGE', amount: 200 },
+  'november-supply-500': { title: 'NOVEMBER PACKAGE', amount: 500 },
+  'november-supply-1000': { title: 'NOVEMBER PACKAGE', amount: 1000 },
   'currency-5': { title: 'Diamond Package', amount: 5 },
   'currency-10': { title: 'Diamond Package', amount: 10 },
   'currency-50': { title: 'Diamond Package', amount: 50 },
@@ -477,6 +484,9 @@ async function verifyPayPalOrder(options: {
   username: string
   expectedAmountUsd: number
   promoCode: string | null
+  selectedPackageId: string
+  selectedPackageTitle: string
+  packageQuantity: number
 }) {
   const { server, orderId, captureId, playerId, username, expectedAmountUsd, promoCode } = options
   const accessToken = await getPayPalAccessToken(server)
@@ -497,6 +507,17 @@ async function verifyPayPalOrder(options: {
   }
 
   const purchaseUnit = order.purchase_units?.[0]
+  // A same-price order must not be relabeled as Boosting or November (or vice versa).
+  // The provider description and final donation must refer to the same package.
+  const trustedDescription = String(purchaseUnit?.description ?? '').match(/^(.*?)\s+×(\d+)\s+\|\s+PlayCrows\s+(V1|V2)$/i)
+  const needsPackageVerification = server === 'v1' && (options.selectedPackageId.startsWith('boosting-') ||
+    options.selectedPackageId.startsWith('november-supply-') ||
+    ['BOOSTING PACKAGE', 'NOVEMBER PACKAGE'].includes(trustedDescription?.[1].trim().toUpperCase() ?? ''))
+  if (needsPackageVerification && (order.purchase_units?.length !== 1 || !trustedDescription ||
+    trustedDescription[1].trim() !== options.selectedPackageTitle ||
+    Number(trustedDescription[2]) !== options.packageQuantity || trustedDescription[3].toLowerCase() !== server)) {
+    throw new Error('The PayPal payment does not match the selected package and quantity.')
+  }
   const capture = purchaseUnit?.payments?.captures?.find(
     (item: any) => item?.id === captureId
   )
@@ -533,6 +554,11 @@ async function verifyPayPalOrder(options: {
   }
 
   return {
+    verifiedAt: (() => {
+      const timestamp = Date.parse(String(capture.create_time ?? capture.update_time ?? ''))
+      if (!Number.isFinite(timestamp)) throw new Error('The PayPal payment verification time is missing.')
+      return new Date(timestamp).toISOString()
+    })(),
     payerEmail:
       typeof order.payer?.email_address === 'string'
         ? order.payer.email_address
@@ -578,6 +604,10 @@ function errorResponse(message: string, status = 400) {
     { success: false, error: message },
     { status }
   )
+}
+
+function boostingLimitResponse(message = 'Each V1 Boosting package can be purchased only once per account. This tier is already purchased or awaiting payment review.') {
+  return Response.json({ success: false, error: message, code: 'V1_BOOSTING_LIMIT' }, { status: 409 })
 }
 
 export default {
@@ -632,6 +662,11 @@ export default {
       const receipt = formData.get('receipt')
 
       if (!server) return errorResponse('Please select a valid PlayCrows server.')
+      // Preserve submission of provider-verified historical payments; new manual
+      // V2 checkouts must use V1 after the merge. Verification still runs below.
+      if (server === 'v2' && paymentMethod !== 'paypal' && paymentMethod !== 'paddle') {
+        return errorResponse('V2 has merged into V1. Please refresh the shop and purchase through V1.', 410)
+      }
       if (!playerId) return errorResponse('Player ID is required.')
       if (playerId.length > 100) return errorResponse('Player ID is too long.')
       if (!username) return errorResponse('Username is required.')
@@ -682,6 +717,11 @@ export default {
         packageQuantity > MAX_PACKAGE_QUANTITY
       ) {
         return errorResponse('Invalid package quantity.')
+      }
+      // Already captured historical PayPal orders are validated with provider time
+      // below; the database permits their original quantities during recovery.
+      if (server === 'v1' && selectedPackageId.startsWith('boosting-') && packageQuantity !== 1 && paymentMethod !== 'paypal') {
+        return boostingLimitResponse('Each V1 Boosting package is limited to quantity 1 and one purchase per account.')
       }
 
       if (additionalNotes.length > MAX_ADDITIONAL_NOTES_LENGTH) {
@@ -829,6 +869,7 @@ export default {
       }
 
       let paypalPayerEmail: string | null = null
+      let paypalVerifiedAt: string | null = null
       let paddleVerifiedAt: string | null = null
 
       if (paymentMethod === 'paddle') {
@@ -922,14 +963,28 @@ export default {
             username,
             expectedAmountUsd: expectedPayPalAmountUsd,
             promoCode: appliedPromoCode,
+            selectedPackageId,
+            selectedPackageTitle: selectedPackage.title,
+            packageQuantity,
           })
           paypalPayerEmail = verification.payerEmail
+          paypalVerifiedAt = verification.verifiedAt
         } catch (error) {
           console.error('PayPal payment verification failed:', error)
           return errorResponse(
             error instanceof Error ? error.message : 'Unable to verify the PayPal payment.'
           )
         }
+      }
+
+      // Friendly manual-payment check before upload; the transaction trigger is
+      // authoritative and serializes simultaneous submissions with PayPal holds.
+      if (server === 'v1' && selectedPackageId.startsWith('boosting-') && paymentMethod !== 'paypal') {
+        const { data: eligible, error: eligibilityError } = await context.supabaseAdmin.rpc('check_v1_boosting_eligibility', {
+          p_player_id: playerId, p_package_id: selectedPackageId,
+        })
+        if (eligibilityError) return errorResponse('Unable to check purchase eligibility. Please try again.', 503)
+        if (eligible !== true) return boostingLimitResponse()
       }
 
       const receiptFile = receipt instanceof File ? receipt : null
@@ -995,7 +1050,7 @@ export default {
           paypal_payment_status: paymentMethod === 'paypal' ? 'COMPLETED' : null,
           paypal_payer_email: paymentMethod === 'paypal' ? paypalPayerEmail : null,
           paypal_transaction_id: paymentMethod === 'paypal' ? paypalCaptureId : null,
-          payment_verified_at: paymentMethod === 'paypal' ? new Date().toISOString() : paymentMethod === 'paddle' ? paddleVerifiedAt : null,
+          payment_verified_at: paymentMethod === 'paypal' ? paypalVerifiedAt : paymentMethod === 'paddle' ? paddleVerifiedAt : null,
           receipt_path: receiptPath,
           receipt_original_name: receiptFile
             ? receiptFile.name.replace(/[^\w.\- ]/g, '').slice(0, 255) || `receipt.${extension}`
@@ -1029,6 +1084,8 @@ export default {
         if (receiptPath) {
           await context.supabaseAdmin.storage.from('payment-receipts').remove([receiptPath])
         }
+
+        if (insertError.message?.includes('V1_BOOSTING_LIMIT')) return boostingLimitResponse()
 
         return errorResponse('Unable to save the donation submission.', 500)
       }

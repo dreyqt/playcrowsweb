@@ -38,6 +38,11 @@ interface GiftPackageDefinition { title: string; amount: number }
 // Recovery also retains retired packages to fulfill payments already completed.
 // Active checkout and donation submission do not accept the August packages.
 const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
+  'november-supply-50': { title: 'NOVEMBER PACKAGE', amount: 50 },
+  'november-supply-100': { title: 'NOVEMBER PACKAGE', amount: 100 },
+  'november-supply-200': { title: 'NOVEMBER PACKAGE', amount: 200 },
+  'november-supply-500': { title: 'NOVEMBER PACKAGE', amount: 500 },
+  'november-supply-1000': { title: 'NOVEMBER PACKAGE', amount: 1000 },
   'currency-5': { title: 'Diamond Package', amount: 5 },
   'currency-10': { title: 'Diamond Package', amount: 10 },
   'currency-50': { title: 'Diamond Package', amount: 50 },
@@ -246,7 +251,11 @@ export default {
       }
       const { data: existing } = await adminClient.from('donations').select('id, reference_code').or(`paypal_order_id.eq.${order.id},paypal_capture_id.eq.${capture.id},paypal_transaction_id.eq.${capture.id}`).limit(1).maybeSingle()
       if (existing) return jsonResponse({ error: `This PayPal payment is already recorded as ${existing.reference_code}.`, duplicate: true, donationId: existing.id, referenceCode: existing.reference_code }, 409)
-      const verifiedAt = capture.update_time || capture.create_time || new Date().toISOString()
+      // Preserve the provider's original capture time so payments completed before
+      // the V1 limit took effect can be recorded without rewriting old purchases.
+      const captureTimestamp = Date.parse(String(capture.create_time ?? capture.update_time ?? ''))
+      if (!Number.isFinite(captureTimestamp)) return jsonResponse({ error: 'PayPal capture time is missing; contact support to reconcile this payment.' }, 422)
+      const verifiedAt = new Date(captureTimestamp).toISOString()
       const payerEmail = typeof order.payer?.email_address === 'string' ? order.payer.email_address : null
       const { data: donation, error: insertError } = await adminClient.from('donations').insert({
         server, player_id: custom.playerId, username: custom.username, currency: 'USD', amount: totalPaid,
@@ -260,6 +269,10 @@ export default {
       }).select('id, reference_code, created_at, server, player_id, username, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, amount, currency, paypal_order_id, paypal_capture_id, payment_verified_at, event_bonus_name, event_bonus_eligible, october_bonus_name, october_bonus_eligible, october_verified_total_usd').single()
       if (insertError || !donation) {
         console.error('Recovered PayPal donation insert error:', insertError)
+        if (insertError?.message?.includes('V1_BOOSTING_LIMIT')) return jsonResponse({
+          error: 'This V1 Boosting tier is already purchased or awaiting payment review. The payment needs support reconciliation; do not ask the customer to pay again.',
+          code: 'V1_BOOSTING_LIMIT',
+        }, 409)
         if (insertError?.code === '23505') return jsonResponse({ error: 'This PayPal payment has already been recorded.' }, 409)
         return jsonResponse({ error: 'PayPal was verified, but the recovered donation record could not be created.' }, 500)
       }

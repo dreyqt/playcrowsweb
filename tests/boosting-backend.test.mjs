@@ -58,8 +58,8 @@ test('only V2 Boosting doubles cumulative credit; all bonuses scale per purchase
   }
 })
 
-test('PayPal charges the unchanged face value on both servers for every Boosting tier and quantity', async () => {
-  for (const server of ['v1', 'v2']) for (const amount of tiers) for (const quantity of [1, 3]) {
+test('PayPal charges unchanged V1 face value and rejects retired V2 purchases before provider contact', async () => {
+  for (const server of ['v1', 'v2']) for (const amount of tiers) for (const quantity of server === 'v1' ? [1] : [1, 3]) {
     let order
     const { app } = load('paypal-checkout', ['app'], { fetch: async (url, options) => {
       if (String(url).endsWith('/v1/oauth2/token')) return Response.json({ access_token: 'local-token' })
@@ -69,7 +69,12 @@ test('PayPal charges the unchanged face value on both servers for every Boosting
     const response = await app.fetch(new Request('https://local.test/checkout', {
       method: 'POST', body: JSON.stringify({ action: 'create', server, selectedPackageId: `boosting-${amount}`,
         packageQuantity: quantity, playerId: 'PLAYER', username: 'Character' }),
-    }))
+    }), { supabaseAdmin: { rpc: async () => ({ data: true, error: null }) } })
+    if (server === 'v2') {
+      assert.equal(response.status, 410)
+      assert.equal(order, undefined)
+      continue
+    }
     assert.equal(response.status, 200)
     assert.equal(order.purchase_units[0].amount.value, (amount * quantity).toFixed(2))
     assert.equal(order.purchase_units[0].description, `BOOSTING PACKAGE ×${quantity} | PlayCrows ${server.toUpperCase()}`)
@@ -78,6 +83,7 @@ test('PayPal charges the unchanged face value on both servers for every Boosting
 
 function submissionClient(capture) {
   return {
+    rpc: async () => ({ data: true, error: null }),
     storage: { from: () => ({ upload: async () => ({ error: null }) }) },
     from(table) {
       let sorts = 0
@@ -111,8 +117,13 @@ async function submit(server, amount, quantity, currency = 'USD', overrides = {}
 }
 
 test('manual submissions persist trusted separate credit and all bonus items without doubling charge or event choices', async () => {
-  for (const server of ['v1', 'v2']) for (const amount of tiers) for (const quantity of [1, 3]) {
+  for (const server of ['v1', 'v2']) for (const amount of tiers) for (const quantity of server === 'v1' ? [1] : [1, 3]) {
     const { response, row } = await submit(server, amount, quantity)
+    if (server === 'v2') {
+      assert.equal(response.status, 410)
+      assert.equal(row, undefined)
+      continue
+    }
     assert.equal(response.status, 201, await response.text())
     assert.equal(row.amount, amount * quantity)
     assert.equal(row.selected_package_amount, amount)
@@ -121,17 +132,17 @@ test('manual submissions persist trusted separate credit and all bonus items wit
     assert.deepEqual(plain(row.boosting_bonus_rewards), expectedBonus(amount, quantity))
     assert.equal(row.payment_verified_at, null)
   }
-  const { response, row } = await submit('v2', 50, 3, 'PHP')
+  const { response, row } = await submit('v1', 50, 1, 'PHP')
   assert.equal(response.status, 201)
-  assert.equal(row.amount, 9000)
-  assert.equal(row.cumulative_credit_usd, 300)
+  assert.equal(row.amount, 3000)
+  assert.equal(row.cumulative_credit_usd, 50)
 })
 
 test('submission rejects inflated payment/package values, quantity and doubled event claims', async () => {
   for (const overrides of [{ amount: 100 }, { selectedPackageAmount: 100 }, { selectedPackageTitle: 'Fake title' },
     { packageQuantity: 0 }, { packageQuantity: 1000 }, { selectedPackageId: 'boosting-9999' },
     { eventBonusSelections: '{"001":1}' }]) {
-    const { response, row } = await submit('v2', 50, 1, 'USD', overrides)
+    const { response, row } = await submit('v1', 50, 1, 'USD', overrides)
     assert.equal(response.status, 400)
     assert.equal(row, undefined)
   }

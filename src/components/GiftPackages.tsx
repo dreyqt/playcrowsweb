@@ -64,6 +64,7 @@ const REWARD_ICON_ALIASES: Record<string, string> = {
   '[L] Weapon Style Summon Challenge Ticket (Bound)': 'weapon_style_challenge_ticket.png',
   '[L] Mount Summon Challenge Ticket (Bound)': 'mount_challenge_ticket.png',
   'Elemental Extraction of Fusion 11 Times (Attribution)': 'elemental_extraction_of_fusion.png',
+  'Element Extraction of Fusion x11 (Attribution)': 'elemental_extraction_of_fusion.png',
   "Eligio's Stimulant of EXP (Bound)": 'exp_bottle.png',
   "Night Crow's Stimulant of Growth (Bound)": 'nightcrows_stimulant_of_growth.png',
   'Shining Weapon Enhancement Scroll (Bound)': 'shining_weapon_enhancement.png',
@@ -134,6 +135,7 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
   const { t } = useI18n()
   const giftPackages = useMemo(() => getGiftPackages(server), [server])
   const sections: Record<GiftPackageCategory, { title: string; description: string }> = {
+    'november-supply': { title: t('novemberPackages'), description: t('novemberPackagesDesc') },
     boosting: { title: t('boostingPacks'), description: t('boostingPacksDesc') },
     currency: { title: t('currency'), description: t('currencyDesc') },
     support: { title: t('supportPackages'), description: t('supportPackagesDesc') },
@@ -270,6 +272,8 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
                       <span className="gift-package-card__label">
                         {giftPackage.category === 'boosting'
                           ? t('boostingPackage')
+                          : giftPackage.category === 'november-supply'
+                          ? t('novemberPackage')
                           : giftPackage.category === 'currency'
                           ? t('currency')
                           : giftPackage.category === 'october-supply'
@@ -303,6 +307,7 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
                 {giftPackage.category === 'boosting' && (
                   <div className="space-y-2 px-[18px] pb-4 text-xs">
                     <p className="text-[#a9a39a]">{t('boostingIncludedRewards')}: {giftPackage.rewards.length}</p>
+                    {server === 'v1' && <p className="font-semibold text-[#f1d487]">{t('boostingSinglePurchaseBadge')}</p>}
                     {server === 'v2' && (
                       <p className="font-semibold text-[#c4b5fd]">2× {t('cumulativeValue')}: ${getBoostingCumulativeValue(server, giftPackage.amount).toLocaleString('en-US')}</p>
                     )}

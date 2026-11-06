@@ -21,10 +21,11 @@ export function StepAmount({ server, data, packageAmount, packageTitle, packageC
   const quantity = Math.max(0, Math.floor(Number(data.packageQuantity) || 0))
   const totalUsd = packageAmount * quantity
   const cur = CURRENCY_META[data.currency]
-  const valid = quantity >= 1 && quantity <= 999
+  const singlePurchase = server === 'v1' && packageCategory === 'boosting'
+  const valid = quantity >= 1 && quantity <= (singlePurchase ? 1 : 999)
 
   const updateQuantity = (value: string) => {
-    const normalized = value.replace(/[^0-9]/g, '').slice(0, 3)
+    const normalized = singlePurchase ? '1' : value.replace(/[^0-9]/g, '').slice(0, 3)
     const nextQuantity = Number(normalized)
     onUpdate({
       packageQuantity: normalized,
@@ -61,12 +62,14 @@ export function StepAmount({ server, data, packageAmount, packageTitle, packageC
 
         <label className="mt-5 block">
           <span className="text-xs font-semibold text-[#aaa49a]">{t('quantity')}</span>
-          <div className="mt-2 flex items-center gap-3">
+          {singlePurchase ? (
+            <input aria-label={t('quantity')} type="number" min="1" max="1" readOnly value={1} className="mt-2 h-11 w-full rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-center text-lg font-bold text-[#eee9df]" />
+          ) : <div className="mt-2 flex items-center gap-3">
             <button type="button" aria-label={t('decreaseQuantity')} onClick={() => updateQuantity(String(Math.max(1, quantity - 1)))} className="h-11 w-11 rounded-lg border border-[#3b414b] bg-[#0d0f13] text-xl font-bold">−</button>
             <input type="number" min="1" max="999" inputMode="numeric" value={data.packageQuantity} onChange={event => updateQuantity(event.target.value)} className="h-11 min-w-0 flex-1 rounded-lg border border-[#3b414b] bg-[#0d0f13] px-3 text-center text-lg font-bold text-[#eee9df] outline-none focus:border-[#c9aa68]" />
             <button type="button" aria-label={t('increaseQuantity')} onClick={() => updateQuantity(String(Math.min(999, quantity + 1)))} className="h-11 w-11 rounded-lg border border-[#3b414b] bg-[#0d0f13] text-xl font-bold">+</button>
-          </div>
-          <p className="mt-2 text-xs text-[#77746e]">{t('quantityExample')}</p>
+          </div>}
+          <p className="mt-2 text-xs text-[#aaa49a]">{t(singlePurchase ? 'boostingV1Limit' : 'quantityExample')}</p>
         </label>
 
         <div className="mt-5 rounded-xl border border-[#c9aa68]/25 bg-[#c9aa68]/5 p-4">

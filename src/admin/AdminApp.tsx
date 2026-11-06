@@ -274,6 +274,7 @@ function getPackageCategory(packageId: string | null | undefined) {
   if (packageId?.startsWith('august-supply-')) return 'August Supply Package'
   if (packageId?.startsWith('september-supply-')) return 'September Supply Package'
   if (packageId?.startsWith('october-supply-')) return 'October Package'
+  if (packageId?.startsWith('november-supply-')) return 'November Package'
   if (packageId?.startsWith('boosting-')) return 'Boosting Package'
   return 'Legacy'
 }

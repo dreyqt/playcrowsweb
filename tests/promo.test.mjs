@@ -107,6 +107,7 @@ test('submission honors a timely PayPal capture after expiry but rejects a late 
     const promise = verifyPayPalOrder({
       server: 'v1', orderId: 'ORDER123', captureId: 'CAPTURE123', playerId: 'PLAYER',
       username: 'CHARACTER', expectedAmountUsd: 450, promoCode: 'WEEKEND10',
+      selectedPackageId: 'currency-500', selectedPackageTitle: 'Diamond Package', packageQuantity: 1,
     })
     if (time === LAST_VALID_TIME) await assert.doesNotReject(promise)
     else await assert.rejects(promise, /promotion had already ended/)
