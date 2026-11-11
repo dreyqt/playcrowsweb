@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import type { DonationRecord, DonationStatus } from './types'
 import { boostingAccessoryRewards, boostingWeaponRewards } from '../giftPackageData'
+import { MountPreorderCampaignControl, MountPreorderProgress } from './MountPreorders'
 
 const STATUS_LABELS: Record<DonationStatus, string> = {
   pending: 'Pending',
@@ -1091,6 +1092,7 @@ const openReceipt = async () => {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8">
+        <MountPreorderCampaignControl />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {([
             ['All', counts.all, 'all'],
@@ -1403,6 +1405,7 @@ const openReceipt = async () => {
                   )}
                   <DetailRow label="Total Paid" value={formatMoney(selected.currency, selected.amount)} />
                   <DetailRow label="Cumulative Value (USD)" value={getCumulativeCreditUsd(selected) == null ? 'Not recorded' : formatMoney('USD', getCumulativeCreditUsd(selected)!)} />
+                  {selected.server === 'v1' && <MountPreorderProgress key={selected.player_id} donation={selected} />}
                   {getBoostingBonusRewards(selected).length > 0 && (
                     <div className="border-b border-[#292d34] py-3">
                       <div className="text-[10px] font-bold uppercase tracking-widest text-[#c9aa68]">Boosting Package Bonus</div>

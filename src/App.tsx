@@ -11,6 +11,9 @@ import {
 } from './components/steps'
 import { GiftPackages } from './components/GiftPackages'
 import { CumulativeRewards } from './components/CumulativeRewards'
+import { MountPreorder } from './components/MountPreorder'
+import { MountPreorderPromo } from './components/MountPreorderPromo'
+import { useMountPreorderCampaign } from './lib/useMountPreorderCampaign'
 import { submitDonation } from './lib/submitDonation'
 import {
   EARLY_PROMO_CODE,
@@ -28,7 +31,7 @@ import { PLAYCROWS_SERVERS } from './server'
 import { getEventBonusEntitlement, isEventBonusSelectionValid, type EventBonusOption } from './eventBonus'
 import { useBonusI18n } from './bonusI18n'
 
-type InformationTab = 'packages' | 'support' | 'cumulative'
+type InformationTab = 'packages' | 'support' | 'cumulative' | 'mounts'
 
 const INITIAL: FormData = {
   currency: 'USD',
@@ -48,6 +51,7 @@ const INITIAL: FormData = {
 
 function PublicApp() {
   const { t } = useI18n()
+  const { campaign: mountCampaign, error: mountCampaignError } = useMountPreorderCampaign()
   const { t: bonusText } = useBonusI18n()
   // The merged public shop uses V1; legacy V2 records remain in administration.
   const selectedServer: PlayCrowsServer = 'v1'
@@ -320,7 +324,7 @@ function PublicApp() {
         ref={mainRef}
         tabIndex={-1}
         className={`mx-auto px-4 py-10 transition-[max-width] duration-200 focus:outline-none ${
-          step === 1 && activeTab === 'packages' && !hasSelectedPackage
+          step === 1 && (activeTab === 'mounts' || (activeTab === 'packages' && !hasSelectedPackage))
             ? 'max-w-5xl'
             : 'max-w-2xl'
         }`}
@@ -363,7 +367,7 @@ function PublicApp() {
             {step === 1 && (
               <>
                 <nav
-                  className="mb-8 mt-8 grid grid-cols-1 gap-1 rounded-xl border border-[#292d34] bg-[#0f1115] p-1 sm:grid-cols-3"
+                  className="mb-8 mt-8 grid grid-cols-2 gap-1 rounded-xl border border-[#292d34] bg-[#0f1115] p-1 sm:grid-cols-4"
                   aria-label="Support information"
                 >
                   <button
@@ -425,16 +429,29 @@ function PublicApp() {
                   >
                     {t('cumulativeRewards')}
                   </button>
+                  <button type="button" className={tabClass('mounts')} onClick={() => setActiveTab('mounts')}>
+                    {t('mountPreorderTitle')}
+                  </button>
                 </nav>
 
                 {activeTab === 'packages' &&
                   !hasSelectedPackage && (
+                    <>
+                    <MountPreorderPromo campaign={mountCampaign} error={mountCampaignError} onView={() => setActiveTab('mounts')} />
                     <GiftPackages
                       server={selectedServer}
                       selectedPackageId={selectedPackageId}
                       onSelectPackage={selectGiftPackage}
                     />
+                    </>
                   )}
+
+                {activeTab === 'mounts' && (
+                  <>
+                    {mountCampaignError && <p role="status" className="mb-4 text-sm text-[#d8b978]">{t('mountPreorderStatusUnavailable')}</p>}
+                    <MountPreorder campaignActive={mountCampaign?.active ?? null} onBrowsePackages={() => setActiveTab(hasSelectedPackage ? 'support' : 'packages')} />
+                  </>
+                )}
 
                 {activeTab === 'support' &&
                   hasSelectedPackage && (
@@ -472,6 +489,7 @@ function PublicApp() {
                         onUpdate={update}
                         onNext={next}
                       />
+                      <div className="mt-6"><MountPreorderPromo campaign={mountCampaign} error={mountCampaignError} compact onView={() => setActiveTab('mounts')} /></div>
                     </section>
                   )}
 
