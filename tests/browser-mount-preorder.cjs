@@ -20,7 +20,7 @@ const mounts = [
     ['Status Effect RES', '30%'], ['Status Effect Duration RED Rate', '30%'],
     ['+ACC', '30'], ['+Status Effect ACC', '35%'],
   ] },
-  { name: 'Golden Jackal of Ramses II', step: 2000, total: 3500, stats: [
+  { name: 'Golden Jackal of Ramses II', step: 1500, total: 3000, stats: [
     ['ATK SPD', '250%'], ['Skill SPD', '165%'], ['DEF', '100'], ['DMG RED', '120'],
     ['Skill DMG Tolerance', '15%'], ['MAX HP', '40,000'], ['INC DMG RED Rate', '15%'],
     ['Basic DMG', '60'], ['DMG Boost Rate', '10%'], ['Status Effect RES', '30%'],
@@ -99,7 +99,7 @@ async function catalog(page, mobile) {
   await expect(section).toContainText('Previous purchases do not count')
   await expect(section).toContainText('They cannot be purchased individually or claimed by skipping steps.')
   await expect(section).toContainText('Receive your usual gift-package contents')
-  await expect(section).toContainText('$500, then an additional $1,000, then an additional $2,000')
+  await expect(section).toContainText('$500, then an additional $1,000, then an additional $1,500')
   for (const [index, mount] of mounts.entries()) {
     const article = section.getByRole('article', { name: mount.name, exact: true })
     await expect(article).toContainText(price(mount.step))
@@ -134,7 +134,7 @@ async function korean(page) {
   await page.getByRole('button', { name: '탈것 자세히 보기', exact: true }).click()
   const section = mountSection(page)
   await expect(section.getByRole('heading', { name: '탈것 사전 예약', exact: true })).toBeVisible()
-  await expect(section).toContainText('총 $3,500 구매 시 탈것 3종을 모두 획득합니다.')
+  await expect(section).toContainText('총 $3,000 구매 시 탈것 3종을 모두 획득합니다.')
   await expect(section).toContainText('이전 구매 내역은 이번 사전 예약에 포함되지 않습니다.')
   await expect(section).toContainText('개별 구매나 단계 건너뛰기는 불가능합니다.')
   await expect(section.locator('summary')).toHaveText(Array(3).fill('새로운 능력치 전체 보기'))
@@ -158,7 +158,7 @@ async function checkout(page, paypal) {
   await packageCard(page, amount).getByRole('button', { name: 'Select NOVEMBER PACKAGE', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Support Amount', exact: true })).toBeVisible()
   await expect(page.locator('main')).toContainText('Mount pre-order')
-  await expect(page.locator('main')).toContainText('$500, $1,500 and $3,500')
+  await expect(page.locator('main')).toContainText('$500, $1,500 and $3,000')
   await expect(page.locator('main')).toContainText('Previous purchases do not count')
   await page.getByRole('button', { name: 'Continue', exact: true }).click()
   await page.getByPlaceholder('Enter your Login ID').fill('local-mount-account')
@@ -228,7 +228,7 @@ async function adminMounts(page) {
   await page.addInitScript(({ user }) => localStorage.setItem('sb-local-qa-auth-token', JSON.stringify({ access_token: 'local-test-token', refresh_token: 'local-test-refresh', expires_at: 4102444800, expires_in: 3600, token_type: 'bearer', user })), { user })
   let active = false, deliveries = []
   const donation = { id: '00000000-0000-4000-8000-000000000001', server: 'v1', reference_code: 'LOCAL-MOUNT-ADMIN', player_id: 'mount-admin-player', username: 'Mount Hero', created_at: '2026-11-11T01:00:00Z', payment_method: 'paypal', status: 'pending', currency: 'USD', amount: 500, selected_package_id: 'november-supply-500', selected_package_title: 'NOVEMBER PACKAGE', selected_package_amount: 500, package_quantity: 1, discount_percent: 0, payment_verified_at: '2026-11-11T01:00:00Z', fulfillment_status: 'not_delivered', event_bonus_selections: [], boosting_bonus_rewards: [], cumulative_credit_usd: 500 }
-  const progress = () => ({ active, starts_at: active ? '2026-11-11T00:00:00Z' : null, total_paid_usd: 3500, next_step: null, remaining_usd: 0, steps: mounts.map((mount, index) => ({ step: index + 1, mount_key: String(index), mount_name: mount.name, step_usd: mount.step, total_required_usd: mount.total, unlocked: true, reserved_at: '2026-11-11T01:00:00Z', source_donation_id: donation.id, delivery_status: deliveries.includes(index + 1) ? 'delivered' : 'reserved' })) })
+  const progress = () => ({ active, starts_at: active ? '2026-11-11T00:00:00Z' : null, total_paid_usd: 3000, next_step: null, remaining_usd: 0, steps: mounts.map((mount, index) => ({ step: index + 1, mount_key: String(index), mount_name: mount.name, step_usd: mount.step, total_required_usd: mount.total, unlocked: true, reserved_at: '2026-11-11T01:00:00Z', source_donation_id: donation.id, delivery_status: deliveries.includes(index + 1) ? 'delivered' : 'reserved' })) })
   await page.route('**/*', async route => {
     const request = route.request(), url = new URL(request.url())
     const json = body => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
@@ -251,7 +251,7 @@ async function adminMounts(page) {
   await expect(control).toContainText('Open since')
   await page.getByRole('button', { name: 'Review', exact: true }).click()
   const panel = page.getByRole('region', { name: 'Mount pre-order progress' })
-  await expect(panel).toContainText('$3,500.00')
+  await expect(panel).toContainText('$3,000.00')
   const buttons = panel.getByRole('button', { name: 'Record mount delivery', exact: true })
   await expect(buttons).toHaveCount(3)
   await expect(buttons.nth(0)).toBeEnabled()

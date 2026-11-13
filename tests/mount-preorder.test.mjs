@@ -26,7 +26,7 @@ const expectedMounts = [
     added: ['ACC', 'Status Effect ACC'],
   },
   {
-    name: 'Golden Jackal of Ramses II', stepPrice: 2000, requiredTotal: 3500,
+    name: 'Golden Jackal of Ramses II', stepPrice: 1500, requiredTotal: 3000,
     stats: [
       ['ATK SPD', '250%'], ['Skill SPD', '165%'], ['DEF', '100'], ['DMG RED', '120'],
       ['Skill DMG Tolerance', '15%'], ['MAX HP', '40,000'], ['INC DMG RED Rate', '15%'],
@@ -47,7 +47,7 @@ function loadSource(path, names) {
 
 const { MOUNT_PREORDER_STEPS } = loadSource('src/mountPreorderData.ts', ['MOUNT_PREORDER_STEPS'])
 
-test('all three mount steps require $500, $1,500, and $3,500 total new spending', () => {
+test('all three mount steps require $500, $1,500, and $3,000 total new spending', () => {
   assert.equal(MOUNT_PREORDER_STEPS.length, 3)
   assert.deepEqual(MOUNT_PREORDER_STEPS.map(({ name, stepPrice, requiredTotal }) => ({ name, stepPrice, requiredTotal })),
     expectedMounts.map(({ name, stepPrice, requiredTotal }) => ({ name, stepPrice, requiredTotal })))

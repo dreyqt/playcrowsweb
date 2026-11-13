@@ -30,7 +30,7 @@ export function MountPreorderCampaignControl() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-base font-bold text-[#e4c98e]">Mount pre-orders</h2>
-          <p className="mt-1 text-sm text-[#bcb4a6]">$500 → $1,500 → $3,500 total verified spending per Login ID.</p>
+          <p className="mt-1 text-sm text-[#bcb4a6]">$500 → $1,500 → $3,000 total verified spending per Login ID.</p>
           <p className="mt-2 text-xs leading-5 text-[#aaa49a]">{error ? 'Campaign status unavailable. Install the mount pre-order database update before launching.'
             : !campaign ? 'Loading campaign status…'
             : campaign.active ? `Open since ${new Date(campaign.starts_at!).toLocaleString('en-SG', { timeZone: 'Asia/Singapore' })} (Singapore time).`

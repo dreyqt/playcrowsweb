@@ -63,8 +63,8 @@ export const MOUNT_PREORDER_STEPS: readonly MountPreorderStep[] = [
     id: 'golden-jackal-ramses-ii',
     name: 'Golden Jackal of Ramses II',
     image: '/images/mount-preorder/golden-jackal-ramses-ii.png',
-    stepPrice: 2000,
-    requiredTotal: 3500,
+    stepPrice: 1500,
+    requiredTotal: 3000,
     accent: '#e9c780',
     glow: 'rgba(155, 108, 222, 0.19)',
     stats: [

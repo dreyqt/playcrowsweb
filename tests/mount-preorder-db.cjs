@@ -6,6 +6,7 @@ const { before, after, test } = require('node:test')
 const { PGlite } = require('@electric-sql/pglite')
 const db = new PGlite()
 const migration = readFileSync(path.join(__dirname, '../supabase/migrations/20261111143850_mount_preorder_bonus.sql'), 'utf8')
+const priceMigration = readFileSync(path.join(__dirname, '../supabase/migrations/20261113180731_reduce_mount_preorder_step_three_price.sql'), 'utf8')
 const admin = '00000000-0000-0000-0000-000000000099'
 let oldOrder, prelaunchOrder, launchedAt
 async function scalar(sql, args = []) { return Object.values((await db.query(sql, args)).rows[0])[0] }
@@ -145,4 +146,54 @@ test('normal package fulfillment leaves mounts reserved; separate delivery is or
   assert.deepEqual(delivered.steps.map(s=>s.delivery_status),['delivered','delivered','delivered'])
   await asUser(admin,()=>scalar('select mark_mount_preorder_delivered($1,3)',['stepplayer']))
   assert.deepEqual(await progress('stepplayer'),delivered)
+})
+
+test('price reduction grants newly eligible reservations without altering launch, spending or deliveries',async()=>{
+  await purchase('price-below',500,{quantity:5})
+  await purchase('price-below',5,{packageId:'currency-5',quantity:99})
+  const exact = await purchase('price-exact',500,{quantity:6})
+  const over = await purchase('price-over',500,{quantity:6})
+  await purchase('price-over',5,{packageId:'currency-5',quantity:99})
+  assert.equal((await progress('price-exact')).steps[2].unlocked,false)
+  const campaignBefore = await scalar('select get_mount_preorder_campaign()')
+  const donationsBefore = (await db.query('select * from donations order by id')).rows
+  const creditsBefore = (await db.query('select * from mount_preorder_private.purchase_credits order by source_donation_id')).rows
+  const reservationsBefore = (await db.query('select * from mount_preorder_private.reservations order by player_id_normalized,step')).rows
+  await db.exec(`begin; ${priceMigration} commit;`)
+  assert.deepEqual(await scalar('select get_mount_preorder_campaign()'),campaignBefore)
+  assert.deepEqual((await db.query('select * from donations order by id')).rows,donationsBefore)
+  assert.deepEqual((await db.query('select * from mount_preorder_private.purchase_credits order by source_donation_id')).rows,creditsBefore)
+  const reservationsAfter = (await db.query('select * from mount_preorder_private.reservations order by player_id_normalized,step')).rows
+  for(const row of reservationsBefore) assert.deepEqual(reservationsAfter.find(r=>r.player_id_normalized===row.player_id_normalized && r.step===row.step),row)
+  assert.equal(reservationsAfter.length,reservationsBefore.length+2)
+  for(const [player,source] of [['price-exact',exact.id],['price-over',over.id]]) {
+    const p=await progress(player)
+    assert.equal(p.steps[2].delivery_status,'reserved')
+    assert.equal(p.steps[2].source_donation_id,source)
+    assert.equal(p.steps[2].step_usd,1500)
+    assert.equal(p.steps[2].total_required_usd,3000)
+  }
+  const below=await progress('price-below')
+  assert.equal(below.steps[2].unlocked,false)
+  assert.equal(below.remaining_usd,5)
+  assert.equal((await progress('prelaunch')).total_paid_usd,0)
+})
+
+test('after reduction, the final $1,500 completes Step 3 at exactly $3,000 total',async()=>{
+  await purchase('reduced-steps',500)
+  await purchase('reduced-steps',1000)
+  assert.equal((await progress('reduced-steps')).remaining_usd,1500)
+  await purchase('reduced-steps',500,{quantity:3})
+  const p=await progress('reduced-steps')
+  assert.equal(p.total_paid_usd,3000)
+  assert.deepEqual(p.steps.map(s=>s.unlocked),[true,true,true])
+  assert.deepEqual(p.steps.map(s=>s.total_required_usd),[500,1500,3000])
+  await purchase('price-below',5,{packageId:'currency-5'})
+  assert.equal((await progress('price-below')).steps[2].unlocked,true)
+})
+
+test('reapplying the price update neither duplicates reservations nor changes their timestamps',async()=>{
+  const before=(await db.query('select * from mount_preorder_private.reservations order by player_id_normalized,step')).rows
+  await db.exec(`begin; ${priceMigration} commit;`)
+  assert.deepEqual((await db.query('select * from mount_preorder_private.reservations order by player_id_normalized,step')).rows,before)
 })
