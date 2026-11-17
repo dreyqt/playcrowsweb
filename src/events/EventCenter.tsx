@@ -34,14 +34,19 @@ const dateLabel = (value: string | null) => {
 
 const LATEST_CLIENT_DOWNLOADS: Record<PlayCrowsServer, { pc: string; android: string }> = {
   v1: {
-    pc: 'http://download.playcrows.com/pv1/PlayV1-PC-all-11.zip',
-    android: 'http://download.playcrows.com/pv1/PlayAZ-v1-all-12.apk',
+    pc: 'https://download.playcrows.com/p/PlayV1-PC-all-19.zip',
+    android: 'https://download.playcrows.com/p/PlayAZ-v1-all-19.apk',
   },
   v2: {
     pc: 'http://download.playcrows.com/pv2/PlayV2-PC-all-8.zip',
     android: 'http://download.playcrows.com/pv2/PlayAZ-v2-all-8.apk',
   },
 }
+
+const V1_CLIENT_RELEASE_DATE = '2026-11-17'
+const OFFICIAL_DISCORD_URL = 'https://discord.gg/Kmwfee38c'
+// Replace only known official invites in published event content, never arbitrary referral invites.
+const LEGACY_OFFICIAL_DISCORD = /https?:\/\/(?:www\.)?(?:discord\.gg\/|discord(?:app)?\.com\/invite\/)(?:FQ3UZbFdFm|rq8Sfu7ZqW|ayxHdychr)(?![A-Za-z0-9_-])/g
 
 const MULTI_LANGUAGE_CLIENT_LABEL: Record<LanguageCode, string> = {
   en: '🌐 Multi-language Client',
@@ -57,20 +62,24 @@ const LEGACY_LANGUAGE_LINE = /^(?:🇺🇸\s*)?English$|^(?:🇰🇷\s*)?Korean$
 function normalizeDownloadText(text: string, server: PlayCrowsServer, language: LanguageCode): string {
   const latest = LATEST_CLIENT_DOWNLOADS[server]
   const pcPattern = server === 'v1'
-    ? /https?:\/\/download\.playcrows\.com\/pv1\/PlayV1-PC-[A-Za-z0-9._-]+\.zip/gi
+    ? /https?:\/\/download\.playcrows\.com\/(?:p|pv1)\/PlayV1-PC-[A-Za-z0-9._-]+\.zip/gi
     : /https?:\/\/download\.playcrows\.com\/pv2\/PlayV2-PC-[A-Za-z0-9._-]+\.zip/gi
   const androidPattern = server === 'v1'
-    ? /https?:\/\/download\.playcrows\.com\/pv1\/PlayAZ-v1-[A-Za-z0-9._-]+\.apk/gi
+    ? /https?:\/\/download\.playcrows\.com\/(?:p|pv1)\/PlayAZ-v1-[A-Za-z0-9._-]+\.apk/gi
     : /https?:\/\/download\.playcrows\.com\/pv2\/PlayAZ-v2-[A-Za-z0-9._-]+\.apk/gi
 
   const replaced = text.replace(pcPattern, latest.pc).replace(androidPattern, latest.android)
-  const lines = replaced.split('\n')
+  const lines = (server === 'v1' ? replaced.replace(LEGACY_OFFICIAL_DISCORD, OFFICIAL_DISCORD_URL) : replaced).split('\n')
   const seen = new Set<string>()
   const output: string[] = []
 
   for (let i = 0; i < lines.length; i += 1) {
     const current = lines[i]
     const next = lines[i + 1]?.trim()
+    if (server === 'v1' && /^【\d{4}-\d{2}-\d{2}】$/.test(current.trim()) && (next === latest.pc || next === latest.android)) {
+      output.push(current.replace(/\d{4}-\d{2}-\d{2}/, V1_CLIENT_RELEASE_DATE))
+      continue
+    }
     if (LEGACY_LANGUAGE_LINE.test(current.trim()) && (next === latest.pc || next === latest.android)) {
       if (!seen.has(next)) {
         output.push(MULTI_LANGUAGE_CLIENT_LABEL[language])
