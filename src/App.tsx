@@ -305,7 +305,8 @@ function PublicApp() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <a href="/research" className="rounded-lg border border-[#c9aa68]/35 bg-[#c9aa68]/5 px-3 py-2 text-xs font-bold text-[#c9aa68] no-underline hover:bg-[#c9aa68]/10">Research</a>
             <span className="hidden rounded-lg border border-[#3b414b] bg-[#15181e] px-3 py-2 text-xs font-bold text-[#d9d5cc] sm:inline-block">
               {PLAYCROWS_SERVERS[selectedServer].name}
             </span>

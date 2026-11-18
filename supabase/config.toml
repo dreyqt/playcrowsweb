@@ -1,0 +1,4 @@
+# Only public research submissions use invitation authentication.
+# Administrative actions also validate the signed-in user inside the function.
+[functions.research-api]
+verify_jwt = false

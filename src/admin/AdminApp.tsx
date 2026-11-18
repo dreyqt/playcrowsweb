@@ -1137,6 +1137,12 @@ const openReceipt = async () => {
             <option value="v2">PlayCrows V2</option>
           </select>
           <a
+            href="/admin/research"
+            className="rounded-lg border border-[#c9aa68]/45 bg-[#c9aa68]/8 px-3 py-2 text-xs font-bold text-[#c9aa68] no-underline hover:bg-[#c9aa68]/12"
+          >
+            Research Admin
+          </a>
+          <a
             href="/admin/events"
             className="rounded-lg border border-[#c9aa68]/45 bg-[#c9aa68]/8 px-3 py-2 text-xs font-bold text-[#c9aa68] no-underline hover:bg-[#c9aa68]/12"
           >

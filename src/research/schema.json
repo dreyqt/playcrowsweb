@@ -1,0 +1,1997 @@
+{
+  "schemaVersion": 1,
+  "title": "Night Crows — New Class Research Form (Blank Template)",
+  "sourceFile": "Night_Crows_New_Class_Research_EN.html",
+  "headings": [
+    {
+      "level": 1,
+      "id": null,
+      "text": "Night Crows — New Class Research Form (Blank Template)"
+    },
+    {
+      "level": 2,
+      "id": "section-5",
+      "text": "Instructions"
+    },
+    {
+      "level": 2,
+      "id": "section-6",
+      "text": "0. Assignments & Progress"
+    },
+    {
+      "level": 2,
+      "id": "section-7",
+      "text": "1. Class Overview"
+    },
+    {
+      "level": 2,
+      "id": "section-8",
+      "text": "2. Skills"
+    },
+    {
+      "level": 3,
+      "id": "section-9",
+      "text": "2.1 Orb"
+    },
+    {
+      "level": 3,
+      "id": "section-10",
+      "text": "2.2 Cannon"
+    },
+    {
+      "level": 3,
+      "id": "section-11",
+      "text": "2.3 Gauntlets"
+    },
+    {
+      "level": 3,
+      "id": "section-12",
+      "text": "2.4 Skill Traits (All Three Classes)"
+    },
+    {
+      "level": 2,
+      "id": "section-13",
+      "text": "3. Post-Launch Balance Changes"
+    },
+    {
+      "level": 2,
+      "id": "section-14",
+      "text": "4. Weapon Styles, Outfits & Summons"
+    },
+    {
+      "level": 3,
+      "id": "section-15",
+      "text": "4.1 Class-Specific Weapon Style Counts"
+    },
+    {
+      "level": 3,
+      "id": "section-16",
+      "text": "4.2 Class Outfits"
+    },
+    {
+      "level": 3,
+      "id": "section-17",
+      "text": "4.3 Summon Rates by Grade"
+    },
+    {
+      "level": 3,
+      "id": "section-18",
+      "text": "4.4 Confirm / Reroll Costs (Diamonds)"
+    },
+    {
+      "level": 2,
+      "id": "section-19",
+      "text": "5. Equipment & Enhancement"
+    },
+    {
+      "level": 3,
+      "id": "section-20",
+      "text": "5.1 Class Weapons & Sub-Weapons"
+    },
+    {
+      "level": 3,
+      "id": "section-21",
+      "text": "5.2 Enhancement Rates"
+    },
+    {
+      "level": 3,
+      "id": "section-22",
+      "text": "5.3 Refining, Blessing, Magic Crafting & Upgrades"
+    },
+    {
+      "level": 2,
+      "id": "section-23",
+      "text": "6. Synthesis & Rates"
+    },
+    {
+      "level": 3,
+      "id": "section-24",
+      "text": "6.1 Grade Upgrade Rates (4-to-1 Synthesis)"
+    },
+    {
+      "level": 3,
+      "id": "section-25",
+      "text": "6.2 Guaranteed Rewards & Failure Rewards"
+    },
+    {
+      "level": 3,
+      "id": "section-26",
+      "text": "6.3 Transcendence & Breakthrough Rates"
+    },
+    {
+      "level": 3,
+      "id": "section-27",
+      "text": "6.4 Other Chance-Based Systems"
+    },
+    {
+      "level": 2,
+      "id": "section-28",
+      "text": "7. Progression Systems"
+    },
+    {
+      "level": 3,
+      "id": "section-29",
+      "text": "7.1 Progression Overview"
+    },
+    {
+      "level": 3,
+      "id": "section-30",
+      "text": "7.2 Growth Rating Requirements"
+    },
+    {
+      "level": 3,
+      "id": "section-31",
+      "text": "7.3 Class Change Rules"
+    },
+    {
+      "level": 2,
+      "id": "section-32",
+      "text": "8. Launch Events & Purchases"
+    },
+    {
+      "level": 3,
+      "id": "section-33",
+      "text": "8.1 New Class Launch Events"
+    },
+    {
+      "level": 3,
+      "id": "section-34",
+      "text": "8.2 Packs & Passes"
+    },
+    {
+      "level": 2,
+      "id": "section-35",
+      "text": "9. Videos & Community Sources"
+    },
+    {
+      "level": 2,
+      "id": "section-36",
+      "text": "10. Open Questions & Source Log"
+    },
+    {
+      "level": 3,
+      "id": "section-37",
+      "text": "10.1 Open Questions"
+    },
+    {
+      "level": 3,
+      "id": "section-38",
+      "text": "10.2 Source Log"
+    }
+  ],
+  "tables": [
+    {
+      "id": "section-6",
+      "sectionId": "section-6",
+      "title": "0. Assignments & Progress",
+      "groupId": "section-6",
+      "groupTitle": "0. Assignments & Progress",
+      "kind": "assignments",
+      "intro": "",
+      "columns": [
+        "Module",
+        "Section",
+        "Owner",
+        "Status",
+        "Due Date",
+        "Notes"
+      ],
+      "rows": [
+        [
+          "Class Overview",
+          "1",
+          "",
+          "Not Started",
+          "",
+          ""
+        ],
+        [
+          "Skills: Orb",
+          "2.1",
+          "",
+          "Not Started",
+          "",
+          ""
+        ],
+        [
+          "Skills: Cannon",
+          "2.2",
+          "",
+          "Not Started",
+          "",
+          ""
+        ],
+        [
+          "Skills: Gauntlets",
+          "2.3",
+          "",
+          "Not Started",
+          "",
+          ""
+        ],
+        [
+          "Balance Changes",
+          "3",
+          "",
+          "Not Started",
+          "",
+          ""
+        ],
+        [
+          "Weapon Styles, Outfits & Summons",
+          "4",
+          "",
+          "Not Started",
+          "",
+          ""
+        ],
+        [
+          "Equipment & Enhancement",
+          "5",
+          "",
+          "Not Started",
+          "",
+          ""
+        ],
+        [
+          "Synthesis & Rates",
+          "6",
+          "",
+          "Not Started",
+          "",
+          ""
+        ],
+        [
+          "Progression Systems",
+          "7",
+          "",
+          "Not Started",
+          "",
+          ""
+        ],
+        [
+          "Launch Events & Purchases",
+          "8",
+          "",
+          "Not Started",
+          "",
+          ""
+        ],
+        [
+          "Videos & Community Sources",
+          "9",
+          "",
+          "Not Started",
+          "",
+          ""
+        ],
+        [
+          "Open Questions & Sources",
+          "10",
+          "",
+          "Not Started",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {
+        "3": [
+          "Not Started",
+          "In Progress",
+          "Pending Review",
+          "Complete"
+        ]
+      }
+    },
+    {
+      "id": "section-7",
+      "sectionId": "section-7",
+      "title": "1. Class Overview",
+      "groupId": "section-7",
+      "groupTitle": "1. Class Overview",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Item",
+        "Orb",
+        "Cannon",
+        "Gauntlets",
+        "Source"
+      ],
+      "rows": [
+        [
+          "Korean Release Date",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Global Release Date",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Starting Class",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Class Role (Official Description)",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Core Mechanics / Mode Switching",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Special Resources (e.g., Magic Stones)",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Tier 1 Name (ZH / KO / EN)",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Tier 2 Name",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Tier 3 Name",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Tier 4 Name",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Awakening Name",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Tier 5 Name (Korea)",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Mythic Awakening Skill",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Awakened Legendary Passive Skill",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Sub-Weapon Type",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Crafting Profession",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Equipment Collections Added at Launch",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Max Carry Weight",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Players in Level Top 100 (Global / Korea)",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Players in Growth Rating Top 100",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-9",
+      "sectionId": "section-9",
+      "title": "2.1 Orb",
+      "groupId": "section-8",
+      "groupTitle": "2. Skills",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Skill Name (ZH / KO / EN)",
+        "Type",
+        "Grade",
+        "Acquisition",
+        "Effect (Original Text)",
+        "Full Moon Effect",
+        "Cooldown / Cost",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-10",
+      "sectionId": "section-10",
+      "title": "2.2 Cannon",
+      "groupId": "section-8",
+      "groupTitle": "2. Skills",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Skill Name (ZH / KO / EN)",
+        "Type",
+        "Grade",
+        "Acquisition",
+        "Effect (Original Text)",
+        "Ranged / AoE / Status Tactics: Differences",
+        "Cooldown / Cost",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-11",
+      "sectionId": "section-11",
+      "title": "2.3 Gauntlets",
+      "groupId": "section-8",
+      "groupTitle": "2. Skills",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Skill Name (ZH / KO / EN)",
+        "Type",
+        "Grade",
+        "Acquisition",
+        "Effect (Original Text)",
+        "Mountain / Flowing Water: Differences",
+        "Cooldown / Cost",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-12",
+      "sectionId": "section-12",
+      "title": "2.4 Skill Traits (All Three Classes)",
+      "groupId": "section-8",
+      "groupTitle": "2. Skills",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Class",
+        "Skill",
+        "Trait Tier (1 / 2 / 3 / Advanced)",
+        "Points Required",
+        "Effect",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-13",
+      "sectionId": "section-13",
+      "title": "3. Post-Launch Balance Changes",
+      "groupId": "section-13",
+      "groupTitle": "3. Post-Launch Balance Changes",
+      "kind": "research",
+      "intro": "List changes from newest to oldest. If a Global update repeats a Korean change, enter its date under “Korean Update Date.”",
+      "columns": [
+        "Date",
+        "Server",
+        "Class",
+        "Skill / System",
+        "Change Type (Buff / Nerf / Rework / Fix / New)",
+        "Before",
+        "After",
+        "Korean Update Date",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-15",
+      "sectionId": "section-15",
+      "title": "4.1 Class-Specific Weapon Style Counts",
+      "groupId": "section-14",
+      "groupTitle": "4. Weapon Styles, Outfits & Summons",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Grade",
+        "Orb",
+        "Cannon",
+        "Gauntlets",
+        "Source"
+      ],
+      "rows": [
+        [
+          "Normal",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Uncommon",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Rare",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Epic",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Legendary",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Mythic",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Event / Monster Weapon Styles",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Total",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-16",
+      "sectionId": "section-16",
+      "title": "4.2 Class Outfits",
+      "groupId": "section-14",
+      "groupTitle": "4. Weapon Styles, Outfits & Summons",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Class",
+        "Stage",
+        "Outfit Name",
+        "Price (Diamonds)",
+        "Equipped Effect",
+        "Release Date",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-17",
+      "sectionId": "section-17",
+      "title": "4.3 Summon Rates by Grade",
+      "groupId": "section-14",
+      "groupTitle": "4. Weapon Styles, Outfits & Summons",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Summon Pool",
+        "Category (Mount / Weapon Style / Card / Element)",
+        "Normal",
+        "Uncommon",
+        "Rare",
+        "Epic",
+        "Legendary",
+        "Mythic",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-18",
+      "sectionId": "section-18",
+      "title": "4.4 Confirm / Reroll Costs (Diamonds)",
+      "groupId": "section-14",
+      "groupTitle": "4. Weapon Styles, Outfits & Summons",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Category",
+        "Grade",
+        "1st",
+        "2nd",
+        "3rd",
+        "4th",
+        "5th",
+        "Effective Date",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-20",
+      "sectionId": "section-20",
+      "title": "5.1 Class Weapons & Sub-Weapons",
+      "groupId": "section-19",
+      "groupTitle": "5. Equipment & Enhancement",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Class",
+        "Grade (e.g., Lower-Tier Epic / Legendary)",
+        "Weapon Name",
+        "Sub-Weapon Name",
+        "Acquisition",
+        "Materials / Crafting Level",
+        "Main Stats",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-21",
+      "sectionId": "section-21",
+      "title": "5.2 Enhancement Rates",
+      "groupId": "section-19",
+      "groupTitle": "5. Equipment & Enhancement",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Slot",
+        "Scroll Type (Normal / Radiant / Dark / Protection)",
+        "Target Level",
+        "Success Rate",
+        "No-Change Rate",
+        "Downgrade Rate",
+        "Destruction Rate",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-22",
+      "sectionId": "section-22",
+      "title": "5.3 Refining, Blessing, Magic Crafting & Upgrades",
+      "groupId": "section-19",
+      "groupTitle": "5. Equipment & Enhancement",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "System",
+        "Unlock Requirements",
+        "Eligible Slots / Grades",
+        "Materials Required",
+        "Rules / Outcome",
+        "Rate",
+        "Source"
+      ],
+      "rows": [
+        [
+          "Refining",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Blessing",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Magic Crafting",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Equipment Awakening / Upgrade",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-24",
+      "sectionId": "section-24",
+      "title": "6.1 Grade Upgrade Rates (4-to-1 Synthesis)",
+      "groupId": "section-23",
+      "groupTitle": "6. Synthesis & Rates",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Material Grade",
+        "Mounts",
+        "Weapon Styles",
+        "Resonance Cards",
+        "Elements",
+        "Source"
+      ],
+      "rows": [
+        [
+          "Normal → Uncommon",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Uncommon → Rare",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Rare → Epic",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Epic → Legendary",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Legendary → Mythic",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Mythic → Immortal",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-25",
+      "sectionId": "section-25",
+      "title": "6.2 Guaranteed Rewards & Failure Rewards",
+      "groupId": "section-23",
+      "groupTitle": "6. Synthesis & Rates",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Category",
+        "Grade",
+        "Failures Until Guarantee",
+        "Failure Rewards",
+        "Counter Reset Rules",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-26",
+      "sectionId": "section-26",
+      "title": "6.3 Transcendence & Breakthrough Rates",
+      "groupId": "section-23",
+      "groupTitle": "6. Synthesis & Rates",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Category",
+        "Grade",
+        "Lv1",
+        "Lv5",
+        "Lv10",
+        "Materials",
+        "Refund on Failure?",
+        "Source"
+      ],
+      "rows": [
+        [
+          "Mounts",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Weapon Styles",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Gliders",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-27",
+      "sectionId": "section-27",
+      "title": "6.4 Other Chance-Based Systems",
+      "groupId": "section-23",
+      "groupTitle": "6. Synthesis & Rates",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "System (Philosopher’s Stone, Magic Infusion, Guardian Spirit Evolution, etc.)",
+        "Stage",
+        "Success Rate",
+        "Failure Outcome",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-29",
+      "sectionId": "section-29",
+      "title": "7.1 Progression Overview",
+      "groupId": "section-28",
+      "groupTitle": "7. Progression Systems",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "System",
+        "Unlock Level / Quest",
+        "Key Materials",
+        "Material Sources",
+        "Key Mechanics",
+        "Changes with Class?",
+        "Source"
+      ],
+      "rows": [
+        [
+          "Weapon Proficiency",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Faith Inheritance / Resolve",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Magic Infusion",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Alchemy",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Potential",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Guardian Spirits",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Resonance Cards",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Class Advancement & Awakening",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Collections",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Other (e.g., Inheritance Corridor)",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-30",
+      "sectionId": "section-30",
+      "title": "7.2 Growth Rating Requirements",
+      "groupId": "section-28",
+      "groupTitle": "7. Progression Systems",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Content / Area",
+        "Level Requirement",
+        "Growth Rating Requirement",
+        "Effective Date",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-31",
+      "sectionId": "section-31",
+      "title": "7.3 Class Change Rules",
+      "groupId": "section-28",
+      "groupTitle": "7. Progression Systems",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Convertible Item",
+        "Grade Restrictions",
+        "Conversion Rules",
+        "Cost / Limit",
+        "Source"
+      ],
+      "rows": [
+        [
+          "Weapon Styles",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Equipment",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Skill",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Weapon Proficiency",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Secret Manuals",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-33",
+      "sectionId": "section-33",
+      "title": "8.1 New Class Launch Events",
+      "groupId": "section-32",
+      "groupTitle": "8. Launch Events & Purchases",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Class",
+        "Server",
+        "Event Name",
+        "Type (Pre-Registration / Check-In / Class Change / Community / New Server)",
+        "Period",
+        "Main Rewards",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-34",
+      "sectionId": "section-34",
+      "title": "8.2 Packs & Passes",
+      "groupId": "section-32",
+      "groupTitle": "8. Launch Events & Purchases",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Product Name",
+        "Server",
+        "Price (Local Currency / Diamonds)",
+        "Purchase Limit",
+        "Contents",
+        "Trigger (e.g., Pop-Up)",
+        "Availability",
+        "Source"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-35",
+      "sectionId": "section-35",
+      "title": "9. Videos & Community Sources",
+      "groupId": "section-35",
+      "groupTitle": "9. Videos & Community Sources",
+      "kind": "research",
+      "intro": "After watching, note specific timestamps under “Key Details” (e.g., 03:20 — stance switching). Do not enter only the title.",
+      "columns": [
+        "Title",
+        "Link",
+        "Class",
+        "Type (Official Trailer / Developer Q&A / Guide / Gameplay Test / PvP)",
+        "Publish Date",
+        "Views",
+        "Key Details & Timestamps",
+        "Recorded By"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-35-2",
+      "sectionId": "section-35",
+      "title": "9. Videos & Community Sources",
+      "groupId": "section-35",
+      "groupTitle": "9. Videos & Community Sources",
+      "kind": "research",
+      "intro": "Community feedback excerpts (forums, Discord, video comments):",
+      "columns": [
+        "Class",
+        "Comment",
+        "Positive / Negative",
+        "Source",
+        "Date"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-37",
+      "sectionId": "section-37",
+      "title": "10.1 Open Questions",
+      "groupId": "section-36",
+      "groupTitle": "10. Open Questions & Source Log",
+      "kind": "research",
+      "intro": "Prioritize the first six questions, which remain unanswered in the design document. Add new questions in the blank rows below.",
+      "columns": [
+        "Question",
+        "Where to Look",
+        "Answer",
+        "Source",
+        "Verified By"
+      ],
+      "rows": [
+        [
+          "Orb and Cannon: class-specific weapon style counts by grade",
+          "Filter the in-game Weapon Style Codex",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Official Chinese names for Cannon Tier 4 and all Korean Tier 5 classes",
+          "Class page in the Global Simplified Chinese client",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Gauntlets: crafting profession and whether the sub-weapon is a gourd",
+          "In-game crafting menu",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Damage multipliers and cooldowns for each skill",
+          "Screenshots of in-game skill details",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Growth Rating / Combat Power formula",
+          "In-game character stats and community guides",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Developer Q&A “크로우 톡톡,” Episode 3, 04:54: answer about the next class",
+          "Watch and transcribe the video",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    },
+    {
+      "id": "section-38",
+      "sectionId": "section-38",
+      "title": "10.2 Source Log",
+      "groupId": "section-36",
+      "groupTitle": "10. Open Questions & Source Log",
+      "kind": "research",
+      "intro": "",
+      "columns": [
+        "Source Name",
+        "Link / Screenshot Location",
+        "Type (Official / Media / Video / In-Game / Community)",
+        "Server",
+        "Access Date",
+        "Logged By"
+      ],
+      "rows": [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ],
+      "selectColumns": {}
+    }
+  ]
+}
