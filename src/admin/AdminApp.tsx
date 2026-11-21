@@ -346,16 +346,17 @@ function hasReservedDecemberBonus(donation: DonationRecord) {
 
 function getDecemberBonusDeliveryText(donation: DonationRecord) {
   if (!isDecemberPackage(donation)) return null
+  if (donation.december_bonus_delivered_at) return 'DELIVERED — the one-time Garuda of Eternity Wings reward is recorded with this order. Do not grant it again.'
   if (donation.status === 'rejected') return 'REJECTED — this order does not qualify for a new Garuda reward. Previously delivered rewards remain recorded in fulfillment evidence.'
   if (!donation.payment_verified_at || donation.december_bonus_eligible == null) {
     return 'Verify payment and save the review to calculate December progress and reserve any eligible reward.'
   }
   if (hasReservedDecemberBonus(donation)) {
     return donation.fulfillment_status === 'delivered'
-      ? 'DELIVERED — the one-time Garuda of Eternity Wings reward is recorded with this order. Do not grant it again.'
+      ? 'ELIGIBLE — the package was delivered, but Garuda is still pending. Save Review to refresh eligibility, grant exactly one Garuda, then record its separate delivery below.'
       : 'ELIGIBLE — Garuda of Eternity Wings was reserved on the last review. Save Review immediately before granting it to refresh eligibility. Grant exactly one, regardless of package quantity.'
   }
-  return 'No Garuda reward is reserved for this order. A player needs $2,500 in verified December-pack value and can receive this reward once; another order may hold the reservation.'
+  return 'No Garuda reward is reserved for this order. A player needs $1,500 in verified December-pack value and can receive this reward once; another order may hold the reservation.'
 }
 
 function getDecemberFulfillmentError(donation: DonationRecord, items: string) {
@@ -368,6 +369,10 @@ function getDecemberFulfillmentError(donation: DonationRecord, items: string) {
     return 'Save the review and check the delivery items against this order’s Garuda reward eligibility before continuing.'
   }
   return null
+}
+
+function canRecordSeparateDecemberDelivery(donation: DonationRecord) {
+  return hasReservedDecemberBonus(donation) && donation.fulfillment_status === 'delivered' && !donation.december_bonus_delivered_at
 }
 
 function getItemsWithReservedBonuses(donation: DonationRecord, baseItems = getDefaultItemsDelivered(donation)) {
@@ -386,9 +391,9 @@ function getItemsWithReservedBonuses(donation: DonationRecord, baseItems = getDe
     items += ` + ${packageBonus} (One-Time Event Bonus)`
   }
   if (isDecemberPackage(donation)) {
-    items = items.replace(/ \+ Garuda of Eternity Wings \(One-Time December \$2,500 Bonus\)/g, '')
+    items = items.replace(/ \+ Garuda of Eternity Wings \(One-Time December \$(?:1|2),500 Bonus\)/g, '')
     if (hasReservedDecemberBonus(donation) && !items.includes('Garuda of Eternity Wings')) {
-      items += ' + Garuda of Eternity Wings (One-Time December $2,500 Bonus)'
+      items += ' + Garuda of Eternity Wings (One-Time December $1,500 Bonus)'
     }
   }
   return items
@@ -617,7 +622,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, december_bonus_name, december_bonus_eligible, december_verified_total_usd, december_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, december_bonus_name, december_bonus_eligible, december_verified_total_usd, december_bonus_reserved_at, december_bonus_delivered_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -847,6 +852,25 @@ const openReceipt = async () => {
     setFulfillmentEvidence(null); setSaveMessage('Package marked as delivered. Fulfillment evidence is now locked.')
   }
 
+  const markDecemberBonusDelivered = async () => {
+    if (!selected || !canRecordSeparateDecemberDelivery(selected)) return
+    if (status === 'rejected' || !paymentVerified) return setSaveMessage('Save a verified, non-rejected payment review before recording Garuda delivery.')
+    if (!window.confirm(`Confirm Garuda of Eternity Wings has actually been delivered to Login ID ${selected.player_id}? This records the one-time bonus separately from the already delivered package.`)) return
+    setSaving(true)
+    setSaveMessage('Recording Garuda delivery…')
+    try {
+      const { data, error } = await supabase.rpc('mark_december_bonus_delivered', { p_donation_id: selected.id })
+      if (error) throw error
+      if (!data?.id || !data.december_bonus_delivered_at) throw new Error('Unable to confirm the Garuda delivery record. Refresh the order before retrying.')
+      const updated = data as DonationRecord
+      setSelected(updated)
+      setDonations(current => current.map(item => item.id === updated.id ? updated : item))
+      setSaveMessage('Garuda delivery recorded. This player cannot receive another Garuda reward.')
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : 'Unable to record Garuda delivery. Save Review to refresh eligibility and try again.')
+    } finally { setSaving(false) }
+  }
+
   const downloadEvidencePdf = async () => {
     if (!selected) return
     if (selected.fulfillment_status !== 'delivered') return setSaveMessage('Mark the package as delivered before downloading the evidence PDF.')
@@ -876,6 +900,7 @@ const openReceipt = async () => {
         ['Package', getPackageDisplayName(selected)],
         ['Quantity', String(selected.package_quantity ?? 1)],
         ['Event Bonus Rewards', getEventBonusSelectionSummary(selected) || 'None'],
+        ...(isDecemberPackage(selected) ? [['December Garuda Delivery', selected.december_bonus_delivered_at ? formatDate(selected.december_bonus_delivered_at) : 'No Garuda delivery recorded for this order']] as Array<[string, string]> : []),
         ['Fulfillment Status', 'DELIVERED'],
         ['Delivered At', selected.fulfilled_at ? formatDate(selected.fulfilled_at) : 'Not recorded'],
         ['Processed By', selected.fulfilled_by ?? 'Admin'],
@@ -949,7 +974,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, december_bonus_name, december_bonus_eligible, december_verified_total_usd, december_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, december_bonus_name, december_bonus_eligible, december_verified_total_usd, december_bonus_reserved_at, december_bonus_delivered_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
       )
       .single()
 
@@ -1532,12 +1557,14 @@ const openReceipt = async () => {
                 <div className="mt-4 rounded-xl border border-[#3b414b] bg-[#0d0f13] p-4">
                   {isDecemberPackage(selected) && (
                     <div className={`mb-4 rounded-lg border p-3 ${hasReservedDecemberBonus(selected) ? 'border-[#22c55e]/50 bg-[#22c55e]/10' : 'border-[#c9aa68]/40 bg-[#c9aa68]/5'}`}>
-                      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c9aa68]">December · One-Time $2,500 Reward</div>
+                      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c9aa68]">December · One-Time $1,500 Reward</div>
                       <div className="mt-1 text-sm font-bold text-[#eee9df]">Garuda of Eternity Wings</div>
                       <p className="mt-2 text-xs leading-5 text-[#c9c3b9]">{getDecemberBonusDeliveryText(selected)}</p>
                       <p className="mt-2 text-xs text-[#c9aa68]">Verified December value recorded for this order: {selected.december_verified_total_usd == null ? 'Not yet calculated' : formatMoney('USD', selected.december_verified_total_usd)}</p>
                       <p className="mt-1 text-[11px] leading-5 text-[#aaa49a]">Only December packs count, at their full listed USD price × quantity. Discounts do not reduce progress. This is separate from general cumulative rewards.</p>
                       {selected.december_bonus_reserved_at && <p className="mt-1 text-[10px] text-[#8c887f]">Reserved: {formatDate(selected.december_bonus_reserved_at)}</p>}
+                      {selected.december_bonus_delivered_at && <p className="mt-2 text-xs text-[#22c55e]">Garuda delivered: {formatDate(selected.december_bonus_delivered_at)}</p>}
+                      {canRecordSeparateDecemberDelivery(selected) && <button type="button" disabled={saving} onClick={() => void markDecemberBonusDelivered()} className="mt-3 min-h-11 w-full rounded-lg border border-[#22c55e]/50 bg-[#22c55e]/10 px-4 text-sm font-bold text-[#22c55e] hover:bg-[#22c55e]/20 disabled:opacity-60">Mark Garuda as Delivered</button>}
                     </div>
                   )}
                   {getPackageEventBonusName(selected.selected_package_id) && (

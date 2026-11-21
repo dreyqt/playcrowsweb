@@ -257,7 +257,7 @@ async function sendDiscordDonationNotification(options: {
 
   if (selectedPackageId.startsWith('december-supply-')) {
     ;(embed.fields as Array<Record<string, unknown>>).push({
-      name: 'December $2,500 Milestone',
+      name: 'December $1,500 Milestone',
       value: 'Garuda of Eternity Wings · once per player\n' +
         (donation.decemberBonusEligible === true
           ? 'Reserved when this order was saved. Save Review in Admin to refresh eligibility before granting exactly one.'

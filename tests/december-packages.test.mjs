@@ -128,10 +128,10 @@ test('retired monthly packages cannot be purchased but retain their historical r
   }
 })
 
-test('the separate $2,500 Garuda milestone is never sold as an ordinary package or included reward', () => {
+test('the separate $1,500 Garuda milestone is never sold as an ordinary package or included reward', () => {
   for (const server of ['v1', 'v2']) {
     for (const item of getGiftPackages(server)) {
-      assert.doesNotMatch(item.id, /garuda|december.*2500/i)
+      assert.doesNotMatch(item.id, /garuda|december.*(?:1500|2500)/i)
       assert.doesNotMatch(item.title, /Garuda/i)
       assert.equal(item.rewards.some(reward => /Garuda/i.test(reward.name)), false)
     }

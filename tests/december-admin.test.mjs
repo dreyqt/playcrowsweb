@@ -6,15 +6,15 @@ import vm from 'node:vm'
 
 const source = readFileSync(new URL('../src/admin/AdminApp.tsx', import.meta.url), 'utf8')
 const helperSource = source.slice(source.indexOf('function getPackageCategory('), source.indexOf('function PackageCategoryBadge('))
-const helpers = vm.runInNewContext(stripTypeScriptTypes(helperSource) + '\n({ getPackageCategory, getDefaultItemsDelivered, isDecemberPackage, hasReservedDecemberBonus, getItemsWithReservedBonuses, getDecemberBonusDeliveryText, getDecemberFulfillmentError })')
+const helpers = vm.runInNewContext(stripTypeScriptTypes(helperSource) + '\n({ getPackageCategory, getDefaultItemsDelivered, isDecemberPackage, hasReservedDecemberBonus, getItemsWithReservedBonuses, getDecemberBonusDeliveryText, getDecemberFulfillmentError, canRecordSeparateDecemberDelivery })')
 const bonus = 'Garuda of Eternity Wings'
-const suffix = ` + ${bonus} (One-Time December $2,500 Bonus)`
+const suffix = ` + ${bonus} (One-Time December $1,500 Bonus)`
 const order = (overrides = {}) => ({
   server: 'v1', selected_package_id: 'december-supply-500', selected_package_title: 'DECEMBER PACKAGE',
   selected_package_amount: 500, package_quantity: 5, username: 'Player', status: 'approved',
   fulfillment_status: 'not_delivered', payment_verified_at: '2026-12-01T00:00:00Z',
-  december_bonus_name: bonus, december_bonus_eligible: true, december_verified_total_usd: 2500,
-  december_bonus_reserved_at: '2026-12-01T00:00:00Z', event_bonus_selections: [], ...overrides,
+  december_bonus_name: bonus, december_bonus_eligible: true, december_verified_total_usd: 1500,
+  december_bonus_reserved_at: '2026-12-01T00:00:00Z', december_bonus_delivered_at: null, event_bonus_selections: [], ...overrides,
 })
 
 test('all five December tiers display their new category and one reserved reward per player', () => {
@@ -52,13 +52,27 @@ test('revoked or duplicate generated bonus text is corrected in unfulfilled draf
   assert.equal(helpers.getItemsWithReservedBonuses(order({ status: 'rejected' }), 'Custom items' + suffix), 'Custom items')
   assert.equal(helpers.getItemsWithReservedBonuses(order(), 'Custom items' + suffix + suffix), 'Custom items' + suffix)
   assert.equal(helpers.getItemsWithReservedBonuses(order(), 'Custom Garuda of Eternity Wings delivery'), 'Custom Garuda of Eternity Wings delivery')
+  const oldSuffix = ` + ${bonus} (One-Time December $2,500 Bonus)`
+  assert.equal(helpers.getItemsWithReservedBonuses(order(), 'Custom items' + oldSuffix), 'Custom items' + suffix)
+  assert.equal(helpers.getItemsWithReservedBonuses(order({ december_bonus_eligible: false }), 'Custom items' + oldSuffix), 'Custom items')
+})
+
+test('a previously delivered package can still have a pending Garuda under the lower threshold', () => {
+  const deliveredPackage = order({ fulfillment_status: 'delivered', items_delivered: 'Original package evidence' })
+  assert.match(helpers.getDecemberBonusDeliveryText(deliveredPackage), /Garuda is still pending/)
+  assert.equal(helpers.canRecordSeparateDecemberDelivery(deliveredPackage), true)
+  assert.equal(helpers.getItemsWithReservedBonuses(deliveredPackage, deliveredPackage.items_delivered), 'Original package evidence')
+  for (const values of [{ december_bonus_delivered_at: '2026-12-01T01:00:00Z' }, { december_bonus_eligible: false }, { status: 'rejected' }, { fulfillment_status: 'not_delivered' }]) {
+    assert.equal(helpers.canRecordSeparateDecemberDelivery({ ...deliveredPackage, ...values }), false)
+  }
+  assert.match(helpers.getDecemberBonusDeliveryText({ ...deliveredPackage, status: 'rejected', december_bonus_delivered_at: '2026-12-01T01:00:00Z' }), /^DELIVERED/)
 })
 
 test('completed delivery evidence is unchanged even if eligibility or order status later changes', () => {
   const evidence = 'Original evidence' + suffix
   const donation = order({ fulfillment_status: 'delivered', december_bonus_eligible: false, status: 'rejected' })
   assert.equal(helpers.getItemsWithReservedBonuses(donation, evidence), evidence)
-  assert.match(helpers.getDecemberBonusDeliveryText(order({ fulfillment_status: 'delivered' })), /^DELIVERED/)
+  assert.match(helpers.getDecemberBonusDeliveryText(order({ fulfillment_status: 'delivered', december_bonus_delivered_at: '2026-12-01T01:00:00Z' })), /^DELIVERED/)
 })
 
 test('December reward remains separate from existing selected event bundles', () => {

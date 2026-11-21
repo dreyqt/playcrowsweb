@@ -22,7 +22,7 @@ async function purchase(player, price = 500, options = {}) {
 async function update(id, values) {
   return (await db.query(`update donations set ${Object.keys(values).map((key,i) => `${key}=$${i+2}`).join(',')} where id=$1 returning *`, [id, ...Object.values(values)])).rows[0]
 }
-const deliver = (id, garuda) => update(id, { fulfillment_status: 'delivered', fulfilled_at: new Date().toISOString(), items_delivered: 'Package' + (garuda ? ` + ${reward} (One-Time December $2,500 Bonus)` : '') })
+const deliver = (id, garuda) => update(id, { fulfillment_status: 'delivered', fulfilled_at: new Date().toISOString(), items_delivered: 'Package' + (garuda ? ` + ${reward} (One-Time December $1,500 Bonus)` : '') })
 let historical
 before(async () => {
   await db.exec(`create role anon; create role authenticated; create schema auth;
@@ -44,6 +44,7 @@ before(async () => {
   await db.exec(migration('20261111143850_mount_preorder_bonus.sql'))
   await db.exec(migration('20261113180731_reduce_mount_preorder_step_three_price.sql'))
   await db.exec(migration('20261121172350_december_packages_and_garuda_bonus.sql'))
+  await db.exec(migration('20261121175319_lower_december_garuda_threshold.sql'))
 })
 after(async () => db.close())
 
@@ -64,10 +65,10 @@ test('full listed price combines all December tiers and quantities for one norma
   const first = await purchase(' MixPlayer ',50,{package_quantity:2,amount:5400,currency:'PHP',discount_percent:10})
   await purchase('mixplayer',100)
   await purchase('MIXPLAYER',200,{package_quantity:4})
-  await purchase('mixplayer',500)
+  const threshold=await purchase('mixplayer',500,{amount:450,discount_percent:10})
   assert.equal(await total('mixplayer'),1500)
   assert.equal((await row(first.id)).december_bonus_eligible,false)
-  const threshold=await purchase('mixplayer',1000,{amount:900,discount_percent:10})
+  await purchase('mixplayer',1000,{amount:900,discount_percent:10})
   assert.equal(await total('mixplayer'),2500)
   assert.equal(threshold.december_bonus_eligible,true)
   assert.equal((await claim('mixplayer')).source_donation_id,threshold.id)
@@ -122,23 +123,23 @@ test('replayed payment evidence cannot count twice, including after donation del
 })
 
 test('rejection and unverification revoke undelivered credit, and re-verification restores exactly once', async () => {
-  const a=await purchase('reverse',1000,{package_quantity:2})
+  const a=await purchase('reverse',1000)
   const b=await purchase('reverse',500)
   assert.equal(b.december_bonus_eligible,true)
   await update(a.id,{status:'rejected'})
   assert.equal(await total('reverse'),500)
   assert.equal((await claim('reverse')).source_donation_id,null)
   await assert.rejects(deliver(b.id,true),/DECEMBER_REVIEW_REQUIRED/)
-  const refreshed=await update(b.id,{items_delivered:`Package + ${reward} (One-Time December $2,500 Bonus)`})
+  const refreshed=await update(b.id,{items_delivered:`Package + ${reward} (One-Time December $1,500 Bonus)`})
   assert.equal(refreshed.december_bonus_eligible,false)
   assert.equal(refreshed.items_delivered,'Package')
   const restored=await update(a.id,{status:'approved'})
   assert.equal(restored.december_bonus_eligible,true)
-  assert.equal(await total('reverse'),2500)
+  assert.equal(await total('reverse'),1500)
   await update(a.id,{payment_verified_at:null})
   assert.equal(await total('reverse'),500)
   await update(a.id,{payment_verified_at:new Date().toISOString()})
-  assert.equal(await total('reverse'),2500)
+  assert.equal(await total('reverse'),1500)
 })
 
 test('losing a reserved source transfers eligibility, refreshed on review without rewriting sibling records', async () => {

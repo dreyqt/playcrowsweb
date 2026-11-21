@@ -213,7 +213,8 @@ Deno.serve(async request => {
           december_bonus_name,
           december_bonus_eligible,
           december_verified_total_usd,
-          december_bonus_reserved_at
+          december_bonus_reserved_at,
+          december_bonus_delivered_at
     `)
     .eq('id', donationId)
     .single()
@@ -341,9 +342,11 @@ Deno.serve(async request => {
 
   if (packageId.startsWith('december-supply-')) {
     ;(embed.fields as Array<Record<string, unknown>>).push({
-      name: 'December $2,500 Milestone',
+      name: 'December $1,500 Milestone',
       value: 'Garuda of Eternity Wings · once per player\n' +
-        (donation.status === 'rejected'
+        (donation.december_bonus_delivered_at
+          ? 'Garuda delivery recorded. Do not grant this one-time reward again.'
+          : donation.status === 'rejected'
           ? 'Rejected order: do not grant Garuda. Any already-delivered reward stays recorded.'
           : donation.december_bonus_eligible === true
             ? 'Reserved when this order was saved. Save Review in Admin to refresh eligibility before granting exactly one; do not repeat a delivered reward.'

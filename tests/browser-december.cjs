@@ -50,7 +50,7 @@ function packageCard(page, amount) {
 async function checkNotice(page) {
   const notice = page.getByRole('complementary', { name: 'Garuda of Eternity Wings', exact: true })
   await expect(notice).toBeVisible()
-  await expect(notice).toContainText('$2,500')
+  await expect(notice).toContainText('$1,500')
   await expect(notice).toContainText('Only December packages count')
   await expect(notice).toContainText('full listed USD value')
   await expect(notice).toContainText('Discounts do not reduce')
@@ -134,13 +134,18 @@ async function locales(page) {
     ['English', 'December Packages', 'One reward per player', 'full listed USD value'],
   ]
   for (const [label, title, once, basis] of expected) {
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
     await page.getByRole('button', { name: /^Language:/ }).click()
+    await expect(page.getByRole('button', { name: /^Language:/ })).toHaveAttribute('aria-expanded', 'true')
     await page.getByRole('option').filter({ hasText: label }).click()
+    await expect(page.getByRole('button', { name: /^Language:/ })).toHaveAttribute('aria-expanded', 'false')
     await expect(page.locator('.gift-package-tabs__button--active')).toHaveText(title)
     await expect(page.locator('article.gift-package-card')).toHaveCount(5)
     const notice = page.getByRole('complementary', { name: 'Garuda of Eternity Wings', exact: true })
     await expect(notice).toContainText(once)
     await expect(notice).toContainText(basis)
+    await expect(notice).toContainText(/\$1[,\. ]500/)
+    await expect(notice).not.toContainText(/\$2[,\. ]500/)
     await noOverflow(page)
   }
 }

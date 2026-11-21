@@ -10,9 +10,11 @@
 
 ## December reward
 
-Garuda of Eternity Wings is an additional reward, **once per player**, after verified December purchases reach **$2,500**. All five tiers combine at their full listed USD price multiplied by quantity. Discounts do not reduce December progress; other categories do not contribute.
+Garuda of Eternity Wings is an additional reward, **once per player**, after verified December purchases reach **$1,500**. All five tiers combine at their full listed USD price multiplied by quantity. Discounts do not reduce December progress; other categories do not contribute.
 
 The database calculates eligibility from trusted package IDs and verified payments. The administration panel shows the reservation on its qualifying order. Save the payment review immediately before granting the reward to refresh its eligibility, then check the delivery items and attach the usual backend delivery evidence. The shop does not automatically deliver an in-game item: staff must grant the reward and record delivery.
+
+The lower $1,500 threshold also applies to existing verified December purchases. If the qualifying package was already delivered before Garuda became eligible, its original package evidence remains unchanged. The admin panel shows Garuda as pending and provides **Mark Garuda as Delivered** to record the additional reward after staff grant it. An existing delivered Garuda remains consumed; lowering the threshold does not award another.
 
 Rejected or unverified purchases stop contributing, and an undelivered reservation can be revoked or transferred. Each order displays the snapshot from its latest review; save that review to refresh it after another order changes. Delivery validates the current reservation again. Delivered rewards remain consumed even if an order is later rejected or deleted, so subsequent purchases cannot earn another Garuda. Duplicate provider references cannot be credited again.
 
@@ -24,7 +26,7 @@ The source update is local; it has not been published or applied to the live dat
 
 Use the existing deployment process during a short checkout maintenance window:
 
-1. Apply `supabase/migrations/20261121172350_december_packages_and_garuda_bonus.sql` after the repository's existing migrations.
+1. Apply `supabase/migrations/20261121172350_december_packages_and_garuda_bonus.sql` if it has not already been applied, then apply `supabase/migrations/20261121175319_lower_december_garuda_threshold.sql`. The original migration remains unchanged for existing installations; the new migration sets $1,500 and updates existing qualifying accounts.
 2. Deploy the four updated functions from `supabase/edgefunction/`: `paypal-checkout`, `submit-donation`, `recover-paypal-payment`, and `update-donation-discord-status`.
 3. Build and deploy the frontend through its existing hosting workflow, then reopen checkout.
 
@@ -32,6 +34,6 @@ The database update is required before the new admin interface is used. Deployin
 
 ## Validation
 
-All 140 unit/handler checks and 83 isolated PostgreSQL checks pass. They cover every reward quantity, active and archived catalogs, translated event terms, payment handling, administration, and database behavior. All four browser scenarios pass with mocked requests: desktop catalog, mobile catalog, checkout/submission, and all six languages. These include all five reward lists and checkout quantities. No live payment, reward, database mutation or Discord notification was sent during testing.
+All 142 unit/handler checks and 90 isolated PostgreSQL checks pass. They cover every reward quantity, active and archived catalogs, translated event terms, payment handling, administration, and database behavior. All four storefront browser scenarios pass with mocked requests: desktop catalog, mobile catalog, checkout/submission, and all six languages. These include all five reward lists and checkout quantities. A separate admin browser check verifies the newly earned Garuda delivery action, delivered timestamp, preserved original package evidence, and exclusion of ineligible/already rewarded orders. No live payment, reward, database mutation or Discord notification was sent during testing.
 
 The production build and TypeScript checks pass. The obsolete unused October notice component has been removed, resolving its previous translation-key errors. Source backups and browser screenshots are retained in the task workspace; dependencies and local preview builds are not copied into the project.

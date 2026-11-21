@@ -104,18 +104,26 @@ function field(embed, name) {
 for (const [stage, render] of [['initial submission', initialEmbed], ['admin update', updatedEmbed]]) {
   test(stage + ': December milestone uses persisted eligibility and once-per-player delivery wording', async () => {
     for (const eligible of [null,false,true]) {
-      const embed=await render(donation({december_bonus_eligible:eligible, december_verified_total_usd:eligible===null?null:2500}))
-      const bonus=field(embed,'December $2,500 Milestone')
+      const embed=await render(donation({december_bonus_eligible:eligible, december_verified_total_usd:eligible===null?null:1500}))
+      const bonus=field(embed,'December $1,500 Milestone')
       assert.match(bonus.value,/Garuda of Eternity Wings/)
       assert.match(bonus.value,/once per player/)
       if(eligible===true) assert.match(bonus.value,/Save Review in Admin.*exactly one/)
       if(eligible===false) assert.match(bonus.value,/No Garuda grant/)
       if(eligible===null) assert.match(bonus.value,/Payment verification pending/)
-      if(eligible!==null) assert.match(bonus.value,/at last review.*2,500/)
+      if(eligible!==null) assert.match(bonus.value,/at last review.*1,500/)
     }
   })
 }
 test('rejected December orders never instruct staff to grant a reward',async()=>{
-  const embed=await updatedEmbed(donation({status:'rejected',december_bonus_eligible:true,december_verified_total_usd:2500}))
-  assert.match(field(embed,'December $2,500 Milestone').value,/Rejected order: do not grant Garuda/)
+  const embed=await updatedEmbed(donation({status:'rejected',december_bonus_eligible:true,december_verified_total_usd:1500}))
+  assert.match(field(embed,'December $1,500 Milestone').value,/Rejected order: do not grant Garuda/)
+})
+
+test('actual bonus delivery is distinguished from an ordinary completed package',async()=>{
+  const pending=await updatedEmbed(donation({fulfillment_status:'delivered',december_bonus_eligible:true,december_bonus_delivered_at:null}))
+  assert.match(field(pending,'December $1,500 Milestone').value,/Save Review in Admin/)
+  const delivered=await updatedEmbed(donation({fulfillment_status:'delivered',december_bonus_eligible:true,december_bonus_delivered_at:'2026-12-01T00:00:00Z'}))
+  assert.match(field(delivered,'December $1,500 Milestone').value,/delivery recorded.*Do not grant/)
+  assert.doesNotMatch(field(delivered,'December $1,500 Milestone').value,/Save Review/)
 })
