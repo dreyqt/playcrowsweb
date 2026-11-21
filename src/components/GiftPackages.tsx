@@ -18,9 +18,13 @@ type ShopCategory = Exclude<GiftPackageCategory, 'september-supply' | 'october-s
 /*
  * Most item icons are resolved automatically from the reward name.
  * These aliases only cover filenames that intentionally use a shorter
- * or different name inside public/images/.
+ * or different name/capitalization inside public/images/.
  */
 const REWARD_ICON_ALIASES: Record<string, string> = {
+  'Phoeneia of the Sun': 'Phoeneia_of_the_Sun.png',
+  'Auroral Albanion': 'Auroral_Albanion.png',
+  'Stymphalox of Steel': 'Stymphalox_of_Steel.png',
+  'Mantikar of Nebula': 'Mantikar_of_Nebula.png',
   'Black Wing Special Supply': 'black_wings_special_supply.png',
   'Black Wings Special Supply (Attributed)': 'black_wings_special_supply.png',
   'Time Recharger Selection Chest (Bound)': 'time_recharger_selection_chest.png',
