@@ -38,6 +38,11 @@ interface GiftPackageDefinition { title: string; amount: number }
 // Recovery also retains retired packages to fulfill payments already completed.
 // Active checkout and donation submission do not accept the August packages.
 const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
+  'december-supply-50': { title: 'DECEMBER PACKAGE', amount: 50 },
+  'december-supply-100': { title: 'DECEMBER PACKAGE', amount: 100 },
+  'december-supply-200': { title: 'DECEMBER PACKAGE', amount: 200 },
+  'december-supply-500': { title: 'DECEMBER PACKAGE', amount: 500 },
+  'december-supply-1000': { title: 'DECEMBER PACKAGE', amount: 1000 },
   'november-supply-50': { title: 'NOVEMBER PACKAGE', amount: 50 },
   'november-supply-100': { title: 'NOVEMBER PACKAGE', amount: 100 },
   'november-supply-200': { title: 'NOVEMBER PACKAGE', amount: 200 },
@@ -266,7 +271,7 @@ export default {
         payment_method: 'paypal', paypal_order_id: String(order.id), paypal_capture_id: String(capture.id), paypal_payment_status: 'COMPLETED',
         paypal_payer_email: payerEmail, paypal_transaction_id: String(capture.id), payment_verified_at: verifiedAt, promo_code: recoveredPackage.promoCode, discount_percent: recoveredPackage.discountPercent,
         status: 'pending', admin_notes: `Recovered from PayPal by ${user.email ?? user.id}. Original PayPal ID entered: ${inputId}.`,
-      }).select('id, reference_code, created_at, server, player_id, username, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, amount, currency, paypal_order_id, paypal_capture_id, payment_verified_at, event_bonus_name, event_bonus_eligible, october_bonus_name, october_bonus_eligible, october_verified_total_usd').single()
+      }).select('id, reference_code, created_at, server, player_id, username, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, amount, currency, paypal_order_id, paypal_capture_id, payment_verified_at, event_bonus_name, event_bonus_eligible, october_bonus_name, october_bonus_eligible, october_verified_total_usd, december_bonus_name, december_bonus_eligible, december_verified_total_usd, december_bonus_reserved_at').single()
       if (insertError || !donation) {
         console.error('Recovered PayPal donation insert error:', insertError)
         if (insertError?.message?.includes('V1_BOOSTING_LIMIT')) return jsonResponse({

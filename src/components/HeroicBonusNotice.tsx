@@ -2,8 +2,7 @@ import { useId, useState } from 'react'
 import { useI18n } from '../i18n'
 
 /** Informational event placeholder; eligibility and claims are not calculated here. */
-export function HeroicBonusNotice({ septemberSelected = false, compact = false }: {
-  septemberSelected?: boolean
+export function HeroicBonusNotice({ compact = false }: {
   compact?: boolean
 }) {
   const { t } = useI18n()
@@ -54,9 +53,6 @@ export function HeroicBonusNotice({ septemberSelected = false, compact = false }
             </div>
           )}
           <p className="mt-3 text-sm font-semibold leading-relaxed text-[#f1d487]">{t('heroicBonusOneTime')}</p>
-          <p className={`mt-3 text-sm leading-relaxed ${septemberSelected ? 'font-semibold text-[#f1d487]' : 'text-[#b9b3a8]'}`}>
-            {t(septemberSelected ? 'heroicBonusSeptemberSelected' : 'heroicBonusExclusion')}
-          </p>
         </div>
       )}
     </aside>

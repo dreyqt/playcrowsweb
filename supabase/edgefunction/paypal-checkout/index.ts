@@ -32,6 +32,11 @@ interface GiftPackageDefinition {
 
 /* Keep synchronized with src/giftPackageData.ts and submit-donation. */
 const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
+  'december-supply-50': { title: 'DECEMBER PACKAGE', amount: 50 },
+  'december-supply-100': { title: 'DECEMBER PACKAGE', amount: 100 },
+  'december-supply-200': { title: 'DECEMBER PACKAGE', amount: 200 },
+  'december-supply-500': { title: 'DECEMBER PACKAGE', amount: 500 },
+  'december-supply-1000': { title: 'DECEMBER PACKAGE', amount: 1000 },
   'november-supply-50': { title: 'NOVEMBER PACKAGE', amount: 50 },
   'november-supply-100': { title: 'NOVEMBER PACKAGE', amount: 100 },
   'november-supply-200': { title: 'NOVEMBER PACKAGE', amount: 200 },
@@ -108,6 +113,11 @@ type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
 
 function parseServer(value: unknown): PlayCrowsServer | null {
   return value === 'v1' || value === 'v2' ? value : null
+}
+
+
+function isRetiredMonthlyPackage(packageId: string) {
+  return /^(?:september|october|november)-supply-/.test(packageId)
 }
 
 const EARLY_PROMO_CODE = 'WEEKEND10'
@@ -257,6 +267,7 @@ export default {
       const username = String(body.username ?? '').trim()
 
       if (!server) return jsonResponse({ error: 'Please select a valid PlayCrows server.' }, 400)
+      if (isRetiredMonthlyPackage(selectedPackageId)) return jsonResponse({ error: 'This monthly package is no longer available. Please refresh the shop.', code: 'PACKAGE_RETIRED' }, 410)
       const packageDefinition = GIFT_PACKAGES_BY_SERVER[server][selectedPackageId]
       if (!packageDefinition) return jsonResponse({ error: 'Invalid support package.' }, 400)
       if (!Number.isInteger(packageQuantity) || packageQuantity < 1 || packageQuantity > MAX_PACKAGE_QUANTITY) {
@@ -352,6 +363,7 @@ export default {
       }
       // Already charged V2 orders remain recoverable, but never start a new charge.
       if (server === 'v2') return mergedServerResponse()
+      if (isRetiredMonthlyPackage(trusted.packageId)) return jsonResponse({ error: 'This monthly package is no longer available. Please create a current package order.', code: 'PACKAGE_RETIRED' }, 410)
       if (isV1Boosting(server, trusted.packageId)) {
         if (trusted.quantity !== 1) return boostingLimitResponse('Each V1 Boosting package is limited to quantity 1 and one purchase per account. Please create a new order.')
         const { error } = await context.supabaseAdmin.rpc('reserve_v1_boosting_paypal', {

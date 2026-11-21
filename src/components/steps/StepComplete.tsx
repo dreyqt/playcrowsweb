@@ -20,6 +20,7 @@ import {
 import { Btn, Card } from '../ui'
 import type { GiftPackageCategory } from '../../giftPackageData'
 import { BoostingBonusNotice } from '../BoostingBonusNotice'
+import { DecemberBonusNotice } from '../DecemberBonusNotice'
 
 const PAYMENT_LABELS = {
   paypal: 'PayPal',
@@ -115,6 +116,10 @@ export function StepComplete({ server, data, selectedPackageAmount, selectedPack
 
       {selectedPackageCategory === 'boosting' && selectedPackageAmount !== null && (
         <BoostingBonusNotice server={server} packageAmount={selectedPackageAmount} packageQuantity={packageQuantity} compact />
+      )}
+
+      {selectedPackageCategory === 'december-supply' && (
+        <DecemberBonusNotice compact />
       )}
 
       <Card className="p-5">

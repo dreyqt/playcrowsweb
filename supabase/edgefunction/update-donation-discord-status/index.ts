@@ -209,7 +209,11 @@ Deno.serve(async request => {
       event_bonus_eligible,
       october_bonus_name,
       october_bonus_eligible,
-      october_verified_total_usd
+      october_verified_total_usd,
+          december_bonus_name,
+          december_bonus_eligible,
+          december_verified_total_usd,
+          december_bonus_reserved_at
     `)
     .eq('id', donationId)
     .single()
@@ -245,6 +249,8 @@ Deno.serve(async request => {
           ? 'October Package'
           : packageId.startsWith('november-supply-')
             ? 'November Package'
+            : packageId.startsWith('december-supply-')
+              ? 'December Package'
             : packageId.startsWith('boosting-')
               ? 'Boosting Package'
               : packageId.startsWith('support-')
@@ -331,6 +337,22 @@ Deno.serve(async request => {
         inline: false,
       })
     }
+  }
+
+  if (packageId.startsWith('december-supply-')) {
+    ;(embed.fields as Array<Record<string, unknown>>).push({
+      name: 'December $2,500 Milestone',
+      value: 'Garuda of Eternity Wings · once per player\n' +
+        (donation.status === 'rejected'
+          ? 'Rejected order: do not grant Garuda. Any already-delivered reward stays recorded.'
+          : donation.december_bonus_eligible === true
+            ? 'Reserved when this order was saved. Save Review in Admin to refresh eligibility before granting exactly one; do not repeat a delivered reward.'
+            : donation.december_bonus_eligible === false
+              ? 'No Garuda grant on this order. Check the current reservation in Admin.'
+              : 'Payment verification pending. Do not grant Garuda yet.') +
+        (donation.december_verified_total_usd != null ? '\nVerified December value at last review: ' + formatDiscordMoney('USD', Number(donation.december_verified_total_usd)) : ''),
+      inline: false,
+    })
   }
 
   const oneTimeEventBonus = packageId === 'september-supply-500'

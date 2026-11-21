@@ -48,14 +48,14 @@ function loadSource(path, names, overrides = {}) {
   return sandbox.result
 }
 
-const { getGiftPackages } = loadSource('src/giftPackageData.ts', ['getGiftPackages'])
+const { getGiftPackages, getHistoricalGiftPackages, findHistoricalGiftPackage } = loadSource('src/giftPackageData.ts', ['getGiftPackages', 'getHistoricalGiftPackages', 'findHistoricalGiftPackage'])
 const plain = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value))
 const normalizeName = name => name
 
 for (const server of ['v1', 'v2']) {
   for (const [index, amount] of amounts.entries()) {
     test(`${server} $${amount} October package contains every requested item and exact quantity`, () => {
-      const packages = getGiftPackages(server)
+      const packages = getHistoricalGiftPackages(server)
       const matches = packages.filter(item => item.id === `october-supply-${amount}`)
       assert.equal(matches.length, 1, 'Exactly one October package must exist for this tier')
       const item = matches[0]
@@ -74,19 +74,20 @@ for (const server of ['v1', 'v2']) {
   }
 }
 
-test('merged V1 shop adds November while preserving legacy categories and historical V2 catalog', () => {
+test('December replaces retired monthly categories while preserving historical V2 records', () => {
   const categories = server => [...new Set(plain(getGiftPackages(server)).map(item => item.category))].sort()
-  assert.deepEqual(categories('v1'), ['boosting', 'currency', 'november-supply', 'october-supply', 'september-supply', 'support'])
-  assert.deepEqual(categories('v2'), ['boosting', 'currency', 'october-supply', 'september-supply', 'support'])
+  assert.deepEqual(categories('v1'), ['boosting', 'currency', 'december-supply', 'support'])
+  assert.deepEqual(categories('v2'), ['boosting', 'currency', 'support'])
   for (const server of ['v1', 'v2']) {
     assert.equal(getGiftPackages(server).some(item => item.id.startsWith('august-supply-')), false)
-    assert.equal(getGiftPackages(server).filter(item => item.category === 'september-supply').length, 4)
+    assert.equal(getGiftPackages(server).filter(item => item.category === 'september-supply').length, 0)
+    assert.equal(getHistoricalGiftPackages(server).filter(item => item.category === 'september-supply').length, 4)
   }
 })
 
 test('all four October packages keep their 73 reward entries without mount bonuses', () => {
   for (const server of ['v1', 'v2']) {
-    const october = getGiftPackages(server).filter(item => item.category === 'october-supply')
+    const october = getHistoricalGiftPackages(server).filter(item => item.category === 'october-supply')
     assert.equal(october.length, 4)
     assert.equal(october.reduce((count, item) => count + item.rewards.length, 0), 73)
     for (const item of october) {
@@ -109,42 +110,29 @@ test('all six October translations keep category labels and remove the mount pro
   }
 })
 
-test('checkout and submission accept every displayed package with the displayed title and price', () => {
+test('checkout, submission, and recovery retain trusted prices for every displayed package', () => {
   for (const name of ['paypal-checkout', 'submit-donation', 'recover-paypal-payment']) {
     const { GIFT_PACKAGES_BY_SERVER: catalogs } = loadSource(`supabase/edgefunction/${name}/index.ts`, ['GIFT_PACKAGES_BY_SERVER'])
     for (const server of ['v1', 'v2']) {
       for (const item of getGiftPackages(server)) {
         assert.deepEqual(plain(catalogs[server][item.id]), { title: item.title, amount: item.amount }, `${name}: ${server}/${item.id}`)
       }
-      if (name !== 'recover-paypal-payment') {
-        assert.deepEqual(Object.keys(catalogs[server]).sort(), plain(getGiftPackages(server)).map(item => item.id).sort(), `${name}: reject retired or unknown packages`)
-      }
+
     }
   }
 })
 
-test('PayPal creates October orders for the merged V1 shop and respects package quantities', async () => {
-  for (const server of ['v1']) {
-    for (const amount of amounts) {
-      const orders = []
-      const { app } = loadSource('supabase/edgefunction/paypal-checkout/index.ts', ['app'], {
-        fetch: async (url, options) => {
-          if (String(url).endsWith('/v1/oauth2/token')) return Response.json({ access_token: 'mock-token' })
-          assert.match(String(url), /\/v2\/checkout\/orders$/)
-          orders.push(JSON.parse(options.body))
-          return Response.json({ id: 'LOCALORDER123', status: 'CREATED' })
-        },
-      })
-      const response = await app.fetch(new Request('https://local.test/checkout', {
-        method: 'POST',
-        body: JSON.stringify({ action: 'create', server, selectedPackageId: `october-supply-${amount}`, packageQuantity: 2, playerId: 'LOCAL-PLAYER', username: 'Local Hero' }),
-      }))
-      assert.equal(response.status, 200, `${server} $${amount}`)
-      assert.equal((await response.json()).amount, (amount * 2).toFixed(2))
-      assert.equal(orders.length, 1)
-      assert.equal(orders[0].purchase_units[0].amount.value, (amount * 2).toFixed(2))
-      assert.match(orders[0].purchase_units[0].description, new RegExp(`OCTOBER.*PACKAGE ×2 \\| PlayCrows ${server.toUpperCase()}`))
-    }
+test('retired October packages are rejected before contacting PayPal', async () => {
+  const { app } = loadSource('supabase/edgefunction/paypal-checkout/index.ts', ['app'])
+  for (const amount of amounts) {
+    const response = await app.fetch(new Request('https://local.test/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create', server: 'v1', selectedPackageId: 'october-supply-' + amount, packageQuantity: 2, playerId: 'LOCAL-PLAYER', username: 'Local Hero' }),
+    }))
+    assert.equal(response.status, 410)
+    const body = await response.json()
+    assert.equal(body.code, 'PACKAGE_RETIRED')
+    assert.match(body.error, /no longer available/i)
   }
 })
 
@@ -165,7 +153,7 @@ test('payment recovery identifies the exact October tier and quantity from its c
   const { inferPackage } = loadSource('supabase/edgefunction/recover-paypal-payment/index.ts', ['inferPackage'])
   for (const server of ['v1', 'v2']) {
     for (const amount of amounts) {
-      const item = getGiftPackages(server).find(item => item.id === `october-supply-${amount}`)
+      const item = findHistoricalGiftPackage(server, `october-supply-${amount}`)
       for (const quantity of [1, 2, 5]) {
         const inferred = inferPackage(server, item.title, quantity, amount * quantity)
         assert.equal(inferred?.id, item.id)

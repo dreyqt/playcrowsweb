@@ -5,7 +5,7 @@ export interface GiftReward {
   quantity?: number
 }
 
-export type GiftPackageCategory = 'currency' | 'support' | 'september-supply' | 'october-supply' | 'november-supply' | 'boosting'
+export type GiftPackageCategory = 'currency' | 'support' | 'september-supply' | 'october-supply' | 'november-supply' | 'december-supply' | 'boosting'
 
 export interface GiftPackage {
   id: string
@@ -541,7 +541,7 @@ export const novemberGiftPackages: GiftPackage[] = [
   },
 ]
 
-export const v1GiftPackages: GiftPackage[] = [
+const historicalV1GiftPackages: GiftPackage[] = [
   ...novemberGiftPackages,
   ...boostingGiftPackages,
   ...octoberGiftPackages,
@@ -872,7 +872,7 @@ export const v1GiftPackages: GiftPackage[] = [
 ]
 
 // V2 catalog — Diamond Packages plus selected Support Packages.
-export const v2GiftPackages: GiftPackage[] = [
+const historicalV2GiftPackages: GiftPackage[] = [
   ...boostingGiftPackages,
   ...octoberGiftPackages,
   {
@@ -1143,6 +1143,235 @@ export const v2GiftPackages: GiftPackage[] = [
 
 ]
 
+/** December contents repeat with package quantity, including each named bonus.
+ * Garuda of Eternity Wings is a separate cumulative reward, not package content.
+ */
+export const decemberGiftPackages: GiftPackage[] = [
+  {
+    id: 'december-supply-50', category: 'december-supply', title: 'DECEMBER PACKAGE', amount: 50, isNew: true,
+    rewards: [
+      { name: 'Diamond', quantity: 180_000 },
+      { name: 'Mileage', quantity: 90_000 },
+      { name: 'Contribution Coin', quantity: 10_000 },
+      { name: "Star's Memory (Bound)", quantity: 750 },
+      { name: 'Party Dungeon Raid Ticket', quantity: 20 },
+      { name: 'Morion (Bound)', quantity: 35_000 },
+      { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 60 },
+      { name: 'Time Charging Device - Harpenon Sanctum (Attribution)', quantity: 100 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 3_000 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 25 },
+      { name: 'Total War Supply Crates (Attributed)', quantity: 150 },
+      { name: "Forgotten One's Remnant Selection Chest (Bound)", quantity: 8 },
+      { name: '[L] Weapon Style Summon Challenge Ticket (Bound)', quantity: 230 },
+      { name: '[L] Mount Summon Challenge Ticket (Bound)', quantity: 230 },
+      { name: 'Element Extraction of Fusion x11 (Attribution)', quantity: 225 },
+      { name: "Eligio's Stimulant of EXP (Bound)", quantity: 150 },
+      { name: "Night Crow's Stimulant of Growth (Bound)", quantity: 150 },
+      { name: 'Night Crows Blessing Stimulant of Growth (Bound)', quantity: 1 },
+      { name: 'Torn Invoices (Attribution)', quantity: 250 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 250 },
+      { name: 'Brilliant Refinement Stone Selection Chest (Bound)', quantity: 1_250 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 550 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 550 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 550 },
+      { name: 'Brilliant Enhancement Scroll Selection Chest (Bound)', quantity: 75 },
+      { name: 'Pitch-black Enhancement Scroll Selection Chest (Bound)', quantity: 75 },
+      { name: 'Spell Rune Crystal I (Bound)', quantity: 3_500 },
+      { name: 'Spell Starlight Crystal I (Bound)', quantity: 2_300 },
+      { name: 'Enchantment Frost Crystal I (Attributed)', quantity: 3_500 },
+      { name: '[UC] Crafting Material Selection Chest (Bound)', quantity: 1_300 },
+      { name: '[C] Crafting Material x40 Selection Chest (Bound)', quantity: 1_300 },
+      { name: '[R] Arcane Scroll Selection Chest (Bound)', quantity: 1_300 },
+      { name: 'Wind Orb Chest (Attributed)', quantity: 30 },
+      { name: 'Metal Fragment (Bound)', quantity: 25_000 },
+      { name: "Master's Aircraft Toolbox (Bound)", quantity: 50 },
+    ],
+  },
+  {
+    id: 'december-supply-100', category: 'december-supply', title: 'DECEMBER PACKAGE', amount: 100, isNew: true,
+    rewards: [
+      { name: 'Diamond', quantity: 400_000 },
+      { name: 'Mileage', quantity: 175_000 },
+      { name: 'Contribution Coin', quantity: 30_000 },
+      { name: "Star's Memory (Bound)", quantity: 1_500 },
+      { name: 'Party Dungeon Raid Ticket', quantity: 45 },
+      { name: 'Morion (Bound)', quantity: 75_000 },
+      { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 175 },
+      { name: 'Time Charging Device - Harpenon Sanctum (Attribution)', quantity: 225 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 12_500 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 60 },
+      { name: 'Total War Supply Crates (Attributed)', quantity: 500 },
+      { name: "Forgotten One's Remnant Selection Chest (Bound)", quantity: 15 },
+      { name: '[L] Weapon Style Summon Challenge Ticket (Bound)', quantity: 450 },
+      { name: '[L] Mount Summon Challenge Ticket (Bound)', quantity: 450 },
+      { name: 'Element Extraction of Fusion x11 (Attribution)', quantity: 430 },
+      { name: "Eligio's Stimulant of EXP (Bound)", quantity: 250 },
+      { name: "Night Crow's Stimulant of Growth (Bound)", quantity: 250 },
+      { name: 'Night Crows Blessing Stimulant of Growth (Bound)', quantity: 3 },
+      { name: 'Torn Invoices (Attribution)', quantity: 500 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 500 },
+      { name: 'Brilliant Refinement Stone Selection Chest (Bound)', quantity: 2_500 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 1_250 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 1_250 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 1_250 },
+      { name: 'Brilliant Enhancement Scroll Selection Chest (Bound)', quantity: 150 },
+      { name: 'Pitch-black Enhancement Scroll Selection Chest (Bound)', quantity: 150 },
+      { name: 'Spell Rune Crystal I (Bound)', quantity: 8_000 },
+      { name: 'Spell Starlight Crystal I (Bound)', quantity: 8_000 },
+      { name: 'Enchantment Frost Crystal I (Attributed)', quantity: 8_000 },
+      { name: '[UC] Crafting Material Selection Chest (Bound)', quantity: 1_500 },
+      { name: '[C] Crafting Material x40 Selection Chest (Bound)', quantity: 1_500 },
+      { name: '[R] Arcane Scroll Selection Chest (Bound)', quantity: 1_500 },
+      { name: 'Wind Orb Chest (Attributed)', quantity: 75 },
+      { name: 'Metal Fragment (Bound)', quantity: 60_000 },
+      { name: "Master's Aircraft Toolbox (Bound)", quantity: 100 },
+    ],
+  },
+  {
+    id: 'december-supply-200', category: 'december-supply', title: 'DECEMBER PACKAGE', amount: 200, isNew: true,
+    rewards: [
+      { name: 'Diamond', quantity: 900_000 },
+      { name: 'Mileage', quantity: 350_000 },
+      { name: 'Contribution Coin', quantity: 60_000 },
+      { name: "Star's Memory (Bound)", quantity: 3_000 },
+      { name: 'Party Dungeon Raid Ticket', quantity: 95 },
+      { name: 'Morion (Bound)', quantity: 150_000 },
+      { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 350 },
+      { name: 'Time Charging Device - Harpenon Sanctum (Attribution)', quantity: 600 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 30_000 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 130 },
+      { name: 'Total War Supply Crates (Attributed)', quantity: 1_000 },
+      { name: "Forgotten One's Remnant Selection Chest (Bound)", quantity: 30 },
+      { name: '[L] Weapon Style Summon Challenge Ticket (Bound)', quantity: 900 },
+      { name: '[L] Mount Summon Challenge Ticket (Bound)', quantity: 900 },
+      { name: 'Element Extraction of Fusion x11 (Attribution)', quantity: 850 },
+      { name: "Eligio's Stimulant of EXP (Bound)", quantity: 500 },
+      { name: "Night Crow's Stimulant of Growth (Bound)", quantity: 500 },
+      { name: 'Night Crows Blessing Stimulant of Growth (Bound)', quantity: 7 },
+      { name: 'Torn Invoices (Attribution)', quantity: 1_000 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 1_000 },
+      { name: 'Brilliant Refinement Stone Selection Chest (Bound)', quantity: 5_000 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 3_000 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 3_000 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 300 },
+      { name: 'Brilliant Enhancement Scroll Selection Chest (Bound)', quantity: 300 },
+      { name: 'Pitch-black Enhancement Scroll Selection Chest (Bound)', quantity: 300 },
+      { name: 'Spell Rune Crystal I (Bound)', quantity: 17_500 },
+      { name: 'Spell Starlight Crystal I (Bound)', quantity: 17_500 },
+      { name: 'Enchantment Frost Crystal I (Attributed)', quantity: 17_500 },
+      { name: '[UC] Crafting Material Selection Chest (Bound)', quantity: 3_000 },
+      { name: '[C] Crafting Material x40 Selection Chest (Bound)', quantity: 3_000 },
+      { name: '[R] Arcane Scroll Selection Chest (Bound)', quantity: 3_000 },
+      { name: 'Wind Orb Chest (Attributed)', quantity: 150 },
+      { name: 'Metal Fragment (Bound)', quantity: 125_000 },
+      { name: "Master's Aircraft Toolbox (Bound)", quantity: 200 },
+      { name: 'Phoeneia of the Sun', quantity: 1 },
+    ],
+  },
+  {
+    id: 'december-supply-500', category: 'december-supply', title: 'DECEMBER PACKAGE', amount: 500, isNew: true,
+    rewards: [
+      { name: 'Diamond', quantity: 3_500_000 },
+      { name: 'Mileage', quantity: 1_000_000 },
+      { name: 'Contribution Coin', quantity: 350_000 },
+      { name: "Star's Memory (Bound)", quantity: 5_000 },
+      { name: 'Party Dungeon Raid Ticket', quantity: 200 },
+      { name: 'Morion (Bound)', quantity: 400_000 },
+      { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 1_000 },
+      { name: 'Time Charging Device - Harpenon Sanctum (Attribution)', quantity: 1_250 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 150_000 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 400 },
+      { name: 'Total War Supply Crates (Attributed)', quantity: 4_000 },
+      { name: "Forgotten One's Remnant Selection Chest (Bound)", quantity: 100 },
+      { name: '[L] Weapon Style Summon Challenge Ticket (Bound)', quantity: 2_250 },
+      { name: '[L] Mount Summon Challenge Ticket (Bound)', quantity: 2_250 },
+      { name: 'Element Extraction of Fusion x11 (Attribution)', quantity: 3_500 },
+      { name: "Eligio's Stimulant of EXP (Bound)", quantity: 1_500 },
+      { name: "Night Crow's Stimulant of Growth (Bound)", quantity: 1_500 },
+      { name: 'Night Crows Blessing Stimulant of Growth (Bound)', quantity: 15 },
+      { name: 'Torn Invoices (Attribution)', quantity: 3_000 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 3_000 },
+      { name: 'Brilliant Refinement Stone Selection Chest (Bound)', quantity: 20_000 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 15_000 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 15_000 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 15_000 },
+      { name: 'Brilliant Enhancement Scroll Selection Chest (Bound)', quantity: 1_000 },
+      { name: 'Pitch-black Enhancement Scroll Selection Chest (Bound)', quantity: 1_000 },
+      { name: 'Spell Rune Crystal I (Bound)', quantity: 45_000 },
+      { name: 'Spell Starlight Crystal I (Bound)', quantity: 45_000 },
+      { name: 'Enchantment Frost Crystal I (Attributed)', quantity: 45_000 },
+      { name: '[UC] Crafting Material Selection Chest (Bound)', quantity: 7_500 },
+      { name: '[C] Crafting Material x40 Selection Chest (Bound)', quantity: 7_500 },
+      { name: '[R] Arcane Scroll Selection Chest (Bound)', quantity: 7_500 },
+      { name: 'Wind Orb Chest (Attributed)', quantity: 250 },
+      { name: 'Metal Fragment (Bound)', quantity: 300_000 },
+      { name: "Master's Aircraft Toolbox (Bound)", quantity: 500 },
+      { name: 'Golden Necklace Insignia (Attributed)', quantity: 8 },
+      { name: 'Golden Ring Insignia (Attribution)', quantity: 16 },
+      { name: 'Levatos of Tidal Waves', quantity: 1 },
+      { name: 'Auroral Albanion', quantity: 1 },
+    ],
+  },
+  {
+    id: 'december-supply-1000', category: 'december-supply', title: 'DECEMBER PACKAGE', amount: 1000, isNew: true,
+    rewards: [
+      { name: 'Diamond', quantity: 9_000_000 },
+      { name: 'Mileage', quantity: 2_500_000 },
+      { name: 'Contribution Coin', quantity: 1_000_000 },
+      { name: "Star's Memory (Bound)", quantity: 10_000 },
+      { name: 'Party Dungeon Raid Ticket (Bound)', quantity: 500 },
+      { name: 'Morion (Bound)', quantity: 900_000 },
+      { name: 'Time Recharger - Masarta Special Dungeon (Bound)', quantity: 2_500 },
+      { name: 'Time Charging Device - Harpenon Sanctum (Attribution)', quantity: 3_500 },
+      { name: "Guardian's Scepter (Attribution)", quantity: 400_000 },
+      { name: 'Crusade Loot Chest (Attributed)', quantity: 1_250 },
+      { name: 'Total War Supply Crates (Attributed)', quantity: 10_000 },
+      { name: "Forgotten One's Remnant Selection Chest (Bound)", quantity: 300 },
+      { name: '[L] Weapon Style Summon Challenge Ticket (Bound)', quantity: 5_000 },
+      { name: '[L] Mount Summon Challenge Ticket (Bound)', quantity: 5_000 },
+      { name: 'Element Extraction of Fusion x11 (Attribution)', quantity: 8_000 },
+      { name: "Eligio's Stimulant of EXP (Bound)", quantity: 5_000 },
+      { name: "Night Crow's Stimulant of Growth (Bound)", quantity: 5_000 },
+      { name: 'Night Crows Blessing Stimulant of Growth (Bound)', quantity: 30 },
+      { name: 'Torn Invoices (Attribution)', quantity: 7_000 },
+      { name: 'Torn Seniority Letter (Attribution)', quantity: 7_000 },
+      { name: 'Brilliant Refinement Stone Selection Chest (Bound)', quantity: 50_000 },
+      { name: 'Shining Armor Enhancement Scroll Chest (Bound)', quantity: 35_000 },
+      { name: 'Shining Weapon Enhancement Scroll Chest (Bound)', quantity: 35_000 },
+      { name: 'Shining Accessory Enhancement Scroll Chest (Bound)', quantity: 35_000 },
+      { name: 'Brilliant Enhancement Scroll Selection Chest (Bound)', quantity: 2_500 },
+      { name: 'Pitch-black Enhancement Scroll Selection Chest (Bound)', quantity: 2_500 },
+      { name: 'Spell Rune Crystal I (Bound)', quantity: 100_000 },
+      { name: 'Spell Starlight Crystal I (Bound)', quantity: 100_000 },
+      { name: 'Enchantment Frost Crystal I (Attributed)', quantity: 100_000 },
+      { name: '[UC] Crafting Material Selection Chest (Bound)', quantity: 15_000 },
+      { name: '[C] Crafting Material x40 Selection Chest (Bound)', quantity: 15_000 },
+      { name: '[R] Arcane Scroll Selection Chest (Bound)', quantity: 15_000 },
+      { name: 'Wind Orb Chest (Attributed)', quantity: 500 },
+      { name: 'Metal Fragment (Bound)', quantity: 750_000 },
+      { name: "Master's Aircraft Toolbox (Bound)", quantity: 1_500 },
+      { name: 'Golden Necklace Insignia (Attributed)', quantity: 16 },
+      { name: 'Golden Ring Insignia (Attribution)', quantity: 32 },
+      { name: 'Stymphalox of Steel', quantity: 1 },
+      { name: 'Mantikar of Nebula', quantity: 1 },
+    ],
+  },
+]
+
+const retiredMonthlyCategories = new Set<GiftPackageCategory>([
+  'september-supply', 'october-supply', 'november-supply',
+])
+
+/** Only current packages can be selected for a new purchase. */
+export const v1GiftPackages: GiftPackage[] = [
+  ...decemberGiftPackages,
+  ...historicalV1GiftPackages.filter(item => !retiredMonthlyCategories.has(item.category)),
+]
+
+export const v2GiftPackages: GiftPackage[] = historicalV2GiftPackages.filter(
+  item => !retiredMonthlyCategories.has(item.category),
+)
+
 export const giftPackagesByServer: Record<PlayCrowsServer, GiftPackage[]> = {
   v1: v1GiftPackages,
   v2: v2GiftPackages,
@@ -1154,4 +1383,18 @@ export function getGiftPackages(server: PlayCrowsServer) {
 
 export function findGiftPackage(server: PlayCrowsServer, id: string | null) {
   return getGiftPackages(server).find(item => item.id === id) ?? null
+}
+
+/** Read-only catalog for order history, including retired package contents.
+ * Never use this lookup to authorize a new purchase.
+ */
+export function getHistoricalGiftPackages(server: PlayCrowsServer) {
+  const current = getGiftPackages(server)
+  const currentIds = new Set(current.map(item => item.id))
+  const archived = server === 'v1' ? historicalV1GiftPackages : historicalV2GiftPackages
+  return [...current, ...archived.filter(item => !currentIds.has(item.id))]
+}
+
+export function findHistoricalGiftPackage(server: PlayCrowsServer, id: string | null) {
+  return getHistoricalGiftPackages(server).find(item => item.id === id) ?? null
 }

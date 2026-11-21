@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { octoberTranslations } from './octoberTranslations'
 import { novemberTranslations } from './novemberTranslations'
+import { decemberTranslations } from './decemberTranslations'
 import { boostingTranslations } from './boostingTranslations'
 import { mountPreorderTranslations } from './mountPreorderTranslations'
 
@@ -19,6 +20,7 @@ export const LANGUAGES: { code: LanguageCode; short: string; label: string }[] =
 const en = {
   ...octoberTranslations.en,
   ...novemberTranslations.en,
+  ...decemberTranslations.en,
   ...boostingTranslations.en,
   ...mountPreorderTranslations.en,
   heroicBonusTitle: "Current Bonus Event · Heroic Skills",
@@ -224,6 +226,7 @@ const ko: TranslationTable = {
   ...en,
   ...octoberTranslations.ko,
   ...novemberTranslations.ko,
+  ...decemberTranslations.ko,
   ...boostingTranslations.ko,
   ...mountPreorderTranslations.ko,
   v2EventBonusTitle: "현재 V2 보너스 · EVENT001 / EVENT002 / EVENT003 / EVENT004 / EVENT005 보상",
@@ -265,6 +268,7 @@ const th: TranslationTable = {
   ...en,
   ...octoberTranslations.th,
   ...novemberTranslations.th,
+  ...decemberTranslations.th,
   ...boostingTranslations.th,
   ...mountPreorderTranslations.th,
   v2EventBonusTitle: "โบนัส V2 ปัจจุบัน · รางวัล EVENT001 / EVENT002 / EVENT003 / EVENT004 / EVENT005",
@@ -289,6 +293,7 @@ const pt: TranslationTable = {
   ...en,
   ...octoberTranslations.pt,
   ...novemberTranslations.pt,
+  ...decemberTranslations.pt,
   ...boostingTranslations.pt,
   ...mountPreorderTranslations.pt,
   v2EventBonusTitle: "Bônus V2 Atual · Recompensas EVENT001 / EVENT002 / EVENT003 / EVENT004 / EVENT005",
@@ -310,6 +315,7 @@ const zhTW: TranslationTable = {
   ...en,
   ...octoberTranslations['zh-TW'],
   ...novemberTranslations['zh-TW'],
+  ...decemberTranslations['zh-TW'],
   ...boostingTranslations['zh-TW'],
   ...mountPreorderTranslations['zh-TW'],
   v2EventBonusTitle: "目前 V2 加碼 · EVENT001 / EVENT002 / EVENT003 / EVENT004 / EVENT005 獎勵",
@@ -330,6 +336,7 @@ const ru: TranslationTable = {
   ...en,
   ...octoberTranslations.ru,
   ...novemberTranslations.ru,
+  ...decemberTranslations.ru,
   ...boostingTranslations.ru,
   ...mountPreorderTranslations.ru,
   v2EventBonusTitle: "Текущий бонус V2 · Награды EVENT001 / EVENT002 / EVENT003 / EVENT004 / EVENT005",

@@ -4,6 +4,7 @@ import type { PlayCrowsServer } from '../server'
 import { useI18n } from '../i18n'
 import { HeroicBonusNotice } from './HeroicBonusNotice'
 import { BoostingBonusNotice } from './BoostingBonusNotice'
+import { DecemberBonusNotice } from './DecemberBonusNotice'
 import { EARLY_PROMO_CODE, EARLY_PROMO_DISCOUNT_PERCENT, EARLY_PROMO_END_DISPLAY, isEarlyPromoActive } from '../promo'
 
 interface GiftPackagesProps {
@@ -11,6 +12,8 @@ interface GiftPackagesProps {
   selectedPackageId?: string | null
   onSelectPackage?: (packageId: string) => void
 }
+
+type ShopCategory = Exclude<GiftPackageCategory, 'september-supply' | 'october-supply' | 'november-supply'>
 
 /*
  * Most item icons are resolved automatically from the reward name.
@@ -134,26 +137,25 @@ function RewardIcon({ name, tMissing, unavailable }: { name: string; tMissing: s
 export function GiftPackages({ server, selectedPackageId, onSelectPackage }: GiftPackagesProps) {
   const { t } = useI18n()
   const giftPackages = useMemo(() => getGiftPackages(server), [server])
-  const sections: Record<GiftPackageCategory, { title: string; description: string }> = {
-    'november-supply': { title: t('novemberPackages'), description: t('novemberPackagesDesc') },
+  const sections: Record<ShopCategory, { title: string; description: string }> = {
+    'december-supply': { title: t('decemberPackages'), description: t('decemberPackagesDesc') },
     boosting: { title: t('boostingPacks'), description: t('boostingPacksDesc') },
     currency: { title: t('currency'), description: t('currencyDesc') },
     support: { title: t('supportPackages'), description: t('supportPackagesDesc') },
-    'september-supply': { title: t('septemberSupplyPackages'), description: t('septemberSupplyPackagesDesc') },
-    'october-supply': { title: t('octoberPackages'), description: t('octoberPackagesDesc') },
   }
   const availableCategories = useMemo(
-    () => (Object.keys(sections) as GiftPackageCategory[]).filter(category =>
+    () => (Object.keys(sections) as ShopCategory[]).filter(category =>
       giftPackages.some(item => item.category === category)
     ),
     [giftPackages]
   )
-  const selectedCategory = useMemo<GiftPackageCategory | null>(() => {
+  const selectedCategory = useMemo<ShopCategory | null>(() => {
     if (!selectedPackageId) return null
-    return giftPackages.find(item => item.id === selectedPackageId)?.category ?? null
+    const category = giftPackages.find(item => item.id === selectedPackageId)?.category
+    return category && category in sections ? category as ShopCategory : null
   }, [selectedPackageId, giftPackages])
 
-  const [activeCategory, setActiveCategory] = useState<GiftPackageCategory>(
+  const [activeCategory, setActiveCategory] = useState<ShopCategory>(
     selectedCategory ?? availableCategories[0] ?? 'currency'
   )
   const [rewardModalPackageId, setRewardModalPackageId] = useState<string | null>(null)
@@ -221,9 +223,9 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
         </div>
       )}
 
-      {server === 'v1' && (
+      {server === 'v1' && activeCategory !== 'december-supply' && (
         <div className="mb-6">
-          <HeroicBonusNotice septemberSelected={activeCategory === 'september-supply'} />
+          <HeroicBonusNotice />
         </div>
       )}
 
@@ -251,6 +253,12 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
           <p className="mt-1 text-sm text-[#8f8b84]">{section.description}</p>
         </div>
 
+        {activeCategory === 'december-supply' && (
+          <div className="mb-6">
+            <DecemberBonusNotice />
+          </div>
+        )}
+
         {activeCategory === 'boosting' && (
           <div className="mb-5">
             <BoostingBonusNotice server={server} compact />
@@ -272,15 +280,11 @@ export function GiftPackages({ server, selectedPackageId, onSelectPackage }: Gif
                       <span className="gift-package-card__label">
                         {giftPackage.category === 'boosting'
                           ? t('boostingPackage')
-                          : giftPackage.category === 'november-supply'
-                          ? t('novemberPackage')
+                          : giftPackage.category === 'december-supply'
+                          ? t('decemberPackage')
                           : giftPackage.category === 'currency'
                           ? t('currency')
-                          : giftPackage.category === 'october-supply'
-                            ? t('octoberPackage')
-                            : giftPackage.category === 'september-supply'
-                              ? t('septemberSupplyPackage')
-                              : t('supportPackage')}
+                          : t('supportPackage')}
                       </span>
                       {giftPackage.isNew && (
                         <span className="inline-flex items-center rounded-full border border-[#e7c36a]/60 bg-[#e7c36a]/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#f1d487] shadow-[0_0_16px_rgba(231,195,106,0.14)]">

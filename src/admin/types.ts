@@ -59,6 +59,10 @@ export interface DonationRecord {
   october_bonus_eligible: boolean | null
   october_verified_total_usd: number | string | null
   october_bonus_reserved_at: string | null
+  december_bonus_name: string | null
+  december_bonus_eligible: boolean | null
+  december_verified_total_usd: number | string | null
+  december_bonus_reserved_at: string | null
   submission_ip_hash: string | null
   submission_device_id: string | null
 }

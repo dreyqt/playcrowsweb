@@ -55,11 +55,11 @@ function loadSource(path, names) {
   return sandbox.result
 }
 const plain = value => JSON.parse(JSON.stringify(value))
-const { getGiftPackages, findGiftPackage } = loadSource('src/giftPackageData.ts', ['getGiftPackages', 'findGiftPackage'])
+const { getGiftPackages, findGiftPackage, getHistoricalGiftPackages, findHistoricalGiftPackage } = loadSource('src/giftPackageData.ts', ['getGiftPackages', 'findGiftPackage', 'getHistoricalGiftPackages', 'findHistoricalGiftPackage'])
 
 for (const [index, amount] of amounts.entries()) {
-  test(`V1 November $${amount} has the exact requested contents, including the confirmed correction`, () => {
-    const item = findGiftPackage('v1', `november-supply-${amount}`)
+  test(`Archived V1 November ${amount} retains the original contents, including the confirmed correction`, () => {
+    const item = findHistoricalGiftPackage('v1', `november-supply-${amount}`)
     assert.ok(item)
     assert.equal(item.title, 'NOVEMBER PACKAGE')
     assert.equal(item.category, 'november-supply')
@@ -74,14 +74,18 @@ for (const [index, amount] of amounts.entries()) {
   })
 }
 
-test('November is available only in V1 with five unique tiers and 174 reward entries', () => {
-  const november = getGiftPackages('v1').filter(item => item.category === 'november-supply')
+test('November remains available for V1 order history only, with five tiers and 174 reward entries', () => {
+  const november = getHistoricalGiftPackages('v1').filter(item => item.category === 'november-supply')
   assert.deepEqual(plain(november.map(item => item.amount)), amounts)
   assert.deepEqual(plain(november.map(item => item.rewards.length)), [34, 34, 34, 36, 36])
   assert.equal(november.reduce((total, item) => total + item.rewards.length, 0), 174)
   assert.equal(new Set(getGiftPackages('v1').map(item => item.id)).size, getGiftPackages('v1').length)
   assert.equal(getGiftPackages('v2').some(item => item.category === 'november-supply'), false)
-  for (const amount of amounts) assert.equal(findGiftPackage('v2', `november-supply-${amount}`), null)
+  for (const amount of amounts) {
+    assert.equal(findGiftPackage('v1', `november-supply-${amount}`), null)
+    assert.equal(findGiftPackage('v2', `november-supply-${amount}`), null)
+    assert.equal(findHistoricalGiftPackage('v2', `november-supply-${amount}`), null)
+  }
 })
 
 test('November category labels and descriptions are translated in all six site languages', () => {

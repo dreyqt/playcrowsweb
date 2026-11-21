@@ -102,6 +102,8 @@ async function sendDiscordDonationNotification(options: {
     octoberBonusName: string | null
     octoberBonusEligible: boolean | null
     octoberVerifiedTotalUsd: number | null
+    decemberBonusEligible?: boolean | null
+    decemberVerifiedTotalUsd?: number | null
     cumulativeCreditUsd?: number | null
   }
   server: PlayCrowsServer
@@ -149,6 +151,8 @@ async function sendDiscordDonationNotification(options: {
           ? 'October Package'
           : selectedPackageId.startsWith('november-supply-')
             ? 'November Package'
+            : selectedPackageId.startsWith('december-supply-')
+              ? 'December Package'
             : selectedPackageId.startsWith('boosting-')
               ? 'Boosting Package'
               : 'Support Package'
@@ -251,6 +255,20 @@ async function sendDiscordDonationNotification(options: {
     }
   }
 
+  if (selectedPackageId.startsWith('december-supply-')) {
+    ;(embed.fields as Array<Record<string, unknown>>).push({
+      name: 'December $2,500 Milestone',
+      value: 'Garuda of Eternity Wings · once per player\n' +
+        (donation.decemberBonusEligible === true
+          ? 'Reserved when this order was saved. Save Review in Admin to refresh eligibility before granting exactly one.'
+          : donation.decemberBonusEligible === false
+            ? 'No Garuda grant on this order. Check the current reservation in Admin.'
+            : 'Payment verification pending. Do not grant Garuda yet.') +
+        (donation.decemberVerifiedTotalUsd != null ? '\nVerified December value at last review: ' + formatDiscordMoney('USD', Number(donation.decemberVerifiedTotalUsd)) : ''),
+      inline: false,
+    })
+  }
+
   const oneTimeEventBonus = selectedPackageId === 'september-supply-500'
     ? 'Rare Monster Weapon Style SET'
     : selectedPackageId === 'september-supply-1000'
@@ -342,6 +360,11 @@ interface GiftPackageDefinition {
  * The server uses it to prevent clients from changing package prices/titles.
  */
 const V1_GIFT_PACKAGES: Record<string, GiftPackageDefinition> = {
+  'december-supply-50': { title: 'DECEMBER PACKAGE', amount: 50 },
+  'december-supply-100': { title: 'DECEMBER PACKAGE', amount: 100 },
+  'december-supply-200': { title: 'DECEMBER PACKAGE', amount: 200 },
+  'december-supply-500': { title: 'DECEMBER PACKAGE', amount: 500 },
+  'december-supply-1000': { title: 'DECEMBER PACKAGE', amount: 1000 },
   'november-supply-50': { title: 'NOVEMBER PACKAGE', amount: 50 },
   'november-supply-100': { title: 'NOVEMBER PACKAGE', amount: 100 },
   'november-supply-200': { title: 'NOVEMBER PACKAGE', amount: 200 },
@@ -418,6 +441,11 @@ type PlayCrowsServer = keyof typeof GIFT_PACKAGES_BY_SERVER
 
 function parseServer(value: unknown): PlayCrowsServer | null {
   return value === 'v1' || value === 'v2' ? value : null
+}
+
+
+function isRetiredMonthlyPackage(packageId: string) {
+  return /^(?:september|october|november)-supply-/.test(packageId)
 }
 
 const EARLY_PROMO_CODE = 'WEEKEND10'
@@ -507,12 +535,12 @@ async function verifyPayPalOrder(options: {
   }
 
   const purchaseUnit = order.purchase_units?.[0]
-  // A same-price order must not be relabeled as Boosting or November (or vice versa).
+  // A same-price order must not be relabeled as Boosting, December or a retired month (or vice versa).
   // The provider description and final donation must refer to the same package.
   const trustedDescription = String(purchaseUnit?.description ?? '').match(/^(.*?)\s+×(\d+)\s+\|\s+PlayCrows\s+(V1|V2)$/i)
   const needsPackageVerification = server === 'v1' && (options.selectedPackageId.startsWith('boosting-') ||
-    options.selectedPackageId.startsWith('november-supply-') ||
-    ['BOOSTING PACKAGE', 'NOVEMBER PACKAGE'].includes(trustedDescription?.[1].trim().toUpperCase() ?? ''))
+    options.selectedPackageId.startsWith('december-supply-') || isRetiredMonthlyPackage(options.selectedPackageId) ||
+    ['BOOSTING PACKAGE', 'DECEMBER PACKAGE', 'NOVEMBER PACKAGE', 'OCTOBER PACKAGE', 'SEPTEMBER SUPPLY PACKAGE'].includes(trustedDescription?.[1].trim().toUpperCase() ?? ''))
   if (needsPackageVerification && (order.purchase_units?.length !== 1 || !trustedDescription ||
     trustedDescription[1].trim() !== options.selectedPackageTitle ||
     Number(trustedDescription[2]) !== options.packageQuantity || trustedDescription[3].toLowerCase() !== server)) {
@@ -705,6 +733,9 @@ export default {
         return errorResponse('Invalid donation amount mode.')
       }
 
+      if (isRetiredMonthlyPackage(selectedPackageId) && paymentMethod !== 'paypal' && paymentMethod !== 'paddle') {
+        return Response.json({ error: 'This monthly package is no longer available. Please refresh the shop.', code: 'PACKAGE_RETIRED' }, { status: 410 })
+      }
       const selectedPackage = GIFT_PACKAGES_BY_SERVER[server][selectedPackageId]
       if (!selectedPackage) {
         return errorResponse('Invalid gift package.')
@@ -1074,7 +1105,11 @@ export default {
           event_bonus_eligible,
           october_bonus_name,
           october_bonus_eligible,
-          october_verified_total_usd
+          october_verified_total_usd,
+          december_bonus_name,
+          december_bonus_eligible,
+          december_verified_total_usd,
+          december_bonus_reserved_at
         `)
         .single()
 
@@ -1112,6 +1147,8 @@ export default {
               octoberBonusName: donation.october_bonus_name ?? null,
               octoberBonusEligible: donation.october_bonus_eligible ?? null,
               octoberVerifiedTotalUsd: donation.october_verified_total_usd ?? null,
+              decemberBonusEligible: donation.december_bonus_eligible ?? null,
+              decemberVerifiedTotalUsd: donation.december_verified_total_usd ?? null,
               cumulativeCreditUsd: donation.cumulative_credit_usd ?? null,
             },
             server,

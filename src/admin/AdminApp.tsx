@@ -276,6 +276,7 @@ function getPackageCategory(packageId: string | null | undefined) {
   if (packageId?.startsWith('september-supply-')) return 'September Supply Package'
   if (packageId?.startsWith('october-supply-')) return 'October Package'
   if (packageId?.startsWith('november-supply-')) return 'November Package'
+  if (packageId?.startsWith('december-supply-')) return 'December Package'
   if (packageId?.startsWith('boosting-')) return 'Boosting Package'
   return 'Legacy'
 }
@@ -335,6 +336,40 @@ function getPackageEventBonusName(packageId: string | null | undefined) {
   return null
 }
 
+function isDecemberPackage(donation: DonationRecord) {
+  return donation.server === 'v1' && /^december-supply-(50|100|200|500|1000)$/.test(donation.selected_package_id ?? '')
+}
+
+function hasReservedDecemberBonus(donation: DonationRecord) {
+  return isDecemberPackage(donation) && Boolean(donation.payment_verified_at) && donation.status !== 'rejected' && donation.december_bonus_eligible === true
+}
+
+function getDecemberBonusDeliveryText(donation: DonationRecord) {
+  if (!isDecemberPackage(donation)) return null
+  if (donation.status === 'rejected') return 'REJECTED — this order does not qualify for a new Garuda reward. Previously delivered rewards remain recorded in fulfillment evidence.'
+  if (!donation.payment_verified_at || donation.december_bonus_eligible == null) {
+    return 'Verify payment and save the review to calculate December progress and reserve any eligible reward.'
+  }
+  if (hasReservedDecemberBonus(donation)) {
+    return donation.fulfillment_status === 'delivered'
+      ? 'DELIVERED — the one-time Garuda of Eternity Wings reward is recorded with this order. Do not grant it again.'
+      : 'ELIGIBLE — Garuda of Eternity Wings was reserved on the last review. Save Review immediately before granting it to refresh eligibility. Grant exactly one, regardless of package quantity.'
+  }
+  return 'No Garuda reward is reserved for this order. A player needs $2,500 in verified December-pack value and can receive this reward once; another order may hold the reservation.'
+}
+
+function getDecemberFulfillmentError(donation: DonationRecord, items: string) {
+  if (!isDecemberPackage(donation)) return null
+  if (!donation.payment_verified_at || donation.december_bonus_eligible == null || donation.status === 'rejected') {
+    return 'Save an approved, verified payment review first so December reward eligibility is checked before delivery.'
+  }
+  const includesGaruda = /Garuda of Eternity Wings/i.test(items)
+  if (includesGaruda !== hasReservedDecemberBonus(donation)) {
+    return 'Save the review and check the delivery items against this order’s Garuda reward eligibility before continuing.'
+  }
+  return null
+}
+
 function getItemsWithReservedBonuses(donation: DonationRecord, baseItems = getDefaultItemsDelivered(donation)) {
   // Completed delivery text remains historical evidence, even when the promotion changes.
   if (donation.fulfillment_status === 'delivered') return baseItems
@@ -349,6 +384,12 @@ function getItemsWithReservedBonuses(donation: DonationRecord, baseItems = getDe
   const packageBonus = getPackageEventBonusName(donation.selected_package_id)
   if (packageBonus && donation.event_bonus_eligible === true && !items.includes(packageBonus)) {
     items += ` + ${packageBonus} (One-Time Event Bonus)`
+  }
+  if (isDecemberPackage(donation)) {
+    items = items.replace(/ \+ Garuda of Eternity Wings \(One-Time December \$2,500 Bonus\)/g, '')
+    if (hasReservedDecemberBonus(donation) && !items.includes('Garuda of Eternity Wings')) {
+      items += ' + Garuda of Eternity Wings (One-Time December $2,500 Bonus)'
+    }
   }
   return items
 }
@@ -576,7 +617,7 @@ export function AdminApp() {
     const { data, error } = await supabase
       .from('donations')
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, december_bonus_name, december_bonus_eligible, december_verified_total_usd, december_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
       )
       .order('created_at', { ascending: false })
       .limit(500)
@@ -769,6 +810,8 @@ const openReceipt = async () => {
     if (selected.payment_method === 'paypal' && !paypalTransactionId.trim()) return setSaveMessage('PayPal Transaction ID is required before delivery.')
     if (!deliveredTo.trim()) return setSaveMessage('Enter the player/account that received the package.')
     if (!itemsDelivered.trim()) return setSaveMessage('Enter the items or package that was delivered.')
+    const decemberError = getDecemberFulfillmentError(selected, itemsDelivered)
+    if (decemberError) return setSaveMessage(decemberError)
     const eventBonusName = getPackageEventBonusName(selected.selected_package_id)
     if (eventBonusName && selected.event_bonus_eligible == null) {
       return setSaveMessage('Save the verified payment first. Supabase must lock this player’s one-time event bonus eligibility before you fulfill the order.')
@@ -906,7 +949,7 @@ const openReceipt = async () => {
       })
       .eq('id', selected.id)
       .select(
-        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
+        'id, server, reference_code, created_at, player_id, username, currency, amount, promo_code, discount_percent, selected_package_amount, selected_package_id, selected_package_title, package_quantity, cumulative_credit_usd, boosting_bonus_rewards, additional_notes, payment_method, receipt_path, receipt_original_name, receipt_mime_type, receipt_size_bytes, status, admin_notes, discord_message_id, paypal_order_id, paypal_capture_id, paypal_transaction_id, paypal_payer_email, paddle_transaction_id, payment_verified_at, fulfillment_status, fulfilled_at, fulfillment_notes, delivered_to, items_delivered, backend_ledger_timestamp, fulfillment_evidence_path, fulfillment_evidence_name, fulfillment_evidence_mime_type, fulfillment_evidence_size_bytes, fulfilled_by, event_bonus_key, event_bonus_name, event_bonus_eligible, event_bonus_reserved_at, october_bonus_name, october_bonus_eligible, october_verified_total_usd, october_bonus_reserved_at, december_bonus_name, december_bonus_eligible, december_verified_total_usd, december_bonus_reserved_at, event_bonus_selections, event_bonus_selection_count, submission_ip_hash, submission_device_id'
       )
       .single()
 
@@ -922,7 +965,7 @@ const openReceipt = async () => {
     )
     setSelected(updated)
 
-    if ((getPackageEventBonusName(updated.selected_package_id) || updated.selected_package_id?.startsWith('october-supply-')) && updated.fulfillment_status !== 'delivered') {
+    if ((getPackageEventBonusName(updated.selected_package_id) || updated.selected_package_id?.startsWith('october-supply-') || isDecemberPackage(updated)) && updated.fulfillment_status !== 'delivered') {
       const withBonuses = getItemsWithReservedBonuses(updated, updated.items_delivered ?? undefined)
       setItemsDelivered(withBonuses)
       setFulfillmentNotes(buildFulfillmentNotes(updated, deliveredTo, withBonuses))
@@ -1487,6 +1530,16 @@ const openReceipt = async () => {
                 </label>
 
                 <div className="mt-4 rounded-xl border border-[#3b414b] bg-[#0d0f13] p-4">
+                  {isDecemberPackage(selected) && (
+                    <div className={`mb-4 rounded-lg border p-3 ${hasReservedDecemberBonus(selected) ? 'border-[#22c55e]/50 bg-[#22c55e]/10' : 'border-[#c9aa68]/40 bg-[#c9aa68]/5'}`}>
+                      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c9aa68]">December · One-Time $2,500 Reward</div>
+                      <div className="mt-1 text-sm font-bold text-[#eee9df]">Garuda of Eternity Wings</div>
+                      <p className="mt-2 text-xs leading-5 text-[#c9c3b9]">{getDecemberBonusDeliveryText(selected)}</p>
+                      <p className="mt-2 text-xs text-[#c9aa68]">Verified December value recorded for this order: {selected.december_verified_total_usd == null ? 'Not yet calculated' : formatMoney('USD', selected.december_verified_total_usd)}</p>
+                      <p className="mt-1 text-[11px] leading-5 text-[#aaa49a]">Only December packs count, at their full listed USD price × quantity. Discounts do not reduce progress. This is separate from general cumulative rewards.</p>
+                      {selected.december_bonus_reserved_at && <p className="mt-1 text-[10px] text-[#8c887f]">Reserved: {formatDate(selected.december_bonus_reserved_at)}</p>}
+                    </div>
+                  )}
                   {getPackageEventBonusName(selected.selected_package_id) && (
                     <div className={`mb-4 rounded-lg border p-3 ${selected.event_bonus_eligible === true ? 'border-[#22c55e]/50 bg-[#22c55e]/10' : selected.event_bonus_eligible === false ? 'border-[#ef4444]/50 bg-[#ef4444]/10' : 'border-[#d3ad62]/50 bg-[#d3ad62]/10'}`}>
                       <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#c9aa68]">{selected.selected_package_id?.startsWith('october-') ? 'October' : 'September'} One-Time Event Bonus</div>

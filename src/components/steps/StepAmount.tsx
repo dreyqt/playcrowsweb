@@ -5,6 +5,7 @@ import { useI18n } from '../../i18n'
 import { Btn, Card } from '../ui'
 import { HeroicBonusNotice } from '../HeroicBonusNotice'
 import { BoostingBonusNotice } from '../BoostingBonusNotice'
+import { DecemberBonusNotice } from '../DecemberBonusNotice'
 import type { GiftPackageCategory } from '../../giftPackageData'
 import type { PlayCrowsServer } from '../../server'
 
@@ -83,8 +84,12 @@ export function StepAmount({ server, data, packageAmount, packageTitle, packageC
         <BoostingBonusNotice server={server} packageAmount={packageAmount} packageQuantity={quantity} compact />
       )}
 
-      {server === 'v1' && (
-        <HeroicBonusNotice compact septemberSelected={packageCategory === 'september-supply'} />
+      {packageCategory === 'december-supply' && (
+        <DecemberBonusNotice compact />
+      )}
+
+      {server === 'v1' && packageCategory !== 'december-supply' && (
+        <HeroicBonusNotice compact />
       )}
 
       <Btn onClick={onNext} disabled={!valid}>{t('continue')}</Btn>

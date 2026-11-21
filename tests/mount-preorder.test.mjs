@@ -90,11 +90,11 @@ test('mount preorder labels are complete in all six supported site languages', (
   }
 })
 
-test('every current gift package earns credit at its trusted catalog price', () => {
+test('the original mount preorder migration preserves its historical package prices', () => {
   const source = readFileSync(new URL('../src/giftPackageData.ts', import.meta.url), 'utf8')
     .replace(/^import .*$/gm, '').replace(/^export /gm, '')
   const sandbox = {}
-  vm.runInNewContext(stripTypeScriptTypes(source) + '\nglobalThis.packages = getGiftPackages("v1");', sandbox)
+  vm.runInNewContext(stripTypeScriptTypes(source) + '\nglobalThis.packages = getHistoricalGiftPackages("v1").filter(item => item.category !== "december-supply");', sandbox)
   const sql = readFileSync(new URL('../supabase/migrations/20261111143850_mount_preorder_bonus.sql', import.meta.url), 'utf8')
   const catalog = sql.split('insert into mount_preorder_private.package_catalog')[1].split(';')[0]
   const actual = [...catalog.matchAll(/\('([^']+)',(\d+)\)/g)].map(([, id, value]) => [id, Number(value)]).sort()

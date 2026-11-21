@@ -80,56 +80,28 @@ test('November has exactly five trusted V1 tiers and cannot be selected from the
   }
 })
 
-test('November PayPal creates use trusted prices and selected quantity for every tier', async () => {
-  for (const amount of tiers) for (const quantity of [1, 3]) {
-    let sent
-    const { app } = load('paypal-checkout', ['app'], { fetch: async (url, options) => {
-      if (String(url).endsWith('/oauth2/token')) return Response.json({ access_token: 'local-token' })
-      sent = JSON.parse(options.body)
-      return Response.json({ id: 'ORDER123', status: 'CREATED' })
-    } })
-    const response = await app.fetch(request({ action: 'create', server: 'v1', selectedPackageId: `november-supply-${amount}`,
-      packageQuantity: quantity, playerId: 'PLAYER', username: 'Character', amount: 0.01 }), { supabaseAdmin: client() })
-    assert.equal(response.status, 200, await response.text())
-    assert.equal(sent.purchase_units[0].amount.value, (amount * quantity).toFixed(2))
-    assert.equal(sent.purchase_units[0].description, `NOVEMBER PACKAGE ×${quantity} | PlayCrows V1`)
+test('retired September, October and November reject new PayPal and manual purchases', async () => {
+  for (const month of ['september','october','november']) for (const amount of tiers) {
+    const { app } = load('paypal-checkout')
+    const response = await app.fetch(request({ action: 'create', server: 'v1', selectedPackageId: `${month}-supply-${amount}`,
+      packageQuantity: 2, playerId: 'PLAYER', username: 'Character' }), { supabaseAdmin: client() })
+    assert.equal(response.status, 410)
+    assert.equal((await response.json()).code, 'PACKAGE_RETIRED')
+    const manual = await submit(amount, 2, 'USD', { selectedPackageId: `${month}-supply-${amount}` })
+    assert.equal(manual.response.status, 410)
+    assert.equal(manual.capture.row, undefined)
+    assert.equal(manual.capture.uploaded, undefined)
   }
 })
 
-test('November manual checkout records ordinary V1 credit, selected quantity, and no Boosting extras', async () => {
-  for (const amount of tiers) for (const currency of ['USD', 'PHP', 'GBP']) {
-    const quantity = 2
-    const { response, capture } = await submit(amount, quantity, currency)
-    assert.equal(response.status, 201, await response.text())
-    assert.equal(capture.row.amount, amount * quantity * ({ USD: 1, PHP: 60, GBP: 0.79 }[currency]))
-    assert.equal(capture.row.selected_package_title, 'NOVEMBER PACKAGE')
-    assert.equal(capture.row.package_quantity, 2)
-    assert.equal(capture.row.cumulative_credit_usd, amount * quantity)
-    assert.deepEqual(plain(capture.row.boosting_bonus_rewards), [])
-    assert.equal(capture.row.event_bonus_selection_count, amount * quantity / 100)
+test('unpaid November orders cannot capture but already completed orders remain recoverable', async () => {
+  for (const completed of [false,true]) {
+    const calls = []
+    const { app } = load('paypal-checkout', ['app'], { fetch: provider(order({ amount: 200, quantity: 3, completed }), calls) })
+    const response = await app.fetch(request({ action: 'capture', server: 'v1', orderId: 'ORDER123' }), { supabaseAdmin: client() })
+    assert.equal(response.status, completed ? 200 : 410, await response.text())
+    assert.equal(calls.some(call => call.url.endsWith('/capture')), false)
   }
-})
-
-test('November submissions reject changed prices, titles, quantity and event entitlement before receipt upload', async () => {
-  for (const overrides of [{ amount: 1 }, { selectedPackageAmount: 1 }, { selectedPackageTitle: 'BOOSTING PACKAGE' },
-    { packageQuantity: 0 }, { packageQuantity: 1000 }, { selectedPackageId: 'november-supply-999' }, { eventBonusSelections: '{"001":1}' }]) {
-    const { response, capture } = await submit(50, 1, 'USD', overrides)
-    assert.equal(response.status, 400)
-    assert.equal(capture.uploaded, undefined)
-    assert.equal(capture.row, undefined)
-  }
-})
-
-test('November PayPal capture works at quantity >1 without consuming any Boosting claim', async () => {
-  const calls = []
-  const { app } = load('paypal-checkout', ['app'], { fetch: async (url, options) => {
-    calls.push({ url: String(url), method: options?.method })
-    if (String(url).endsWith('/oauth2/token')) return Response.json({ access_token: 'local-token' })
-    return Response.json(order({ amount: 200, quantity: 3, completed: String(url).endsWith('/capture') }))
-  } })
-  const response = await app.fetch(request({ action: 'capture', server: 'v1', orderId: 'ORDER123' }), { supabaseAdmin: client() })
-  assert.equal(response.status, 200, await response.text())
-  assert.equal(calls.filter(call => call.url.endsWith('/capture')).length, 1)
 })
 
 test('PayPal evidence binds November package identity and quantity, not just the paid amount', async () => {
